@@ -275,7 +275,7 @@
           </div>
           <div v-else-if="index === 2 && curConn.adapter?.loginState === goCqHttpStateCode.InLoginQrCode">
             <div>登录需要滑条验证码, 请使用登录此账号的手机QQ扫描二维码以继续登录:</div>
-            <img :src="store.curDice.qrcodes[curConn.id]" style="width: 12rem; height: 12rem" />
+            <img :src="store.curDice.qrcodes[curConn.id]" style="width: 20rem; height: 20rem" />
           </div>
           <div v-else-if="index === 2 && curConn.adapter?.loginState === goCqHttpStateCode.InLoginDeviceLock && curConn.adapter?.goCqHttpLoginDeviceLockUrl">
             <div>账号已开启设备锁，请访问此链接进行验证：</div>
@@ -453,7 +453,7 @@ const goStepTwo = async () => {
   })
   if (form.accountType > 0) {
     dialogFormVisible.value = false
-    form.step = 3
+    form.step = 1
     return
   }
   activities.value = []
