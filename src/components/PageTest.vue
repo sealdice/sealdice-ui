@@ -32,13 +32,26 @@ import imgSeal from '~/assets/seal.png'
 import imgMe from '~/assets/me.jpg'
 
 const store = useStore()
-
+let timerMsg: number
 onBeforeMount(async () => {
   restaurants.value = loadAll()
+    timerMsg = setInterval(async () => {
+        try {
+            let msg = await store.getRecentMessage()
+            for (let i of msg) {
+                store.talkLogs.push({
+                    content: i.message,
+                    isSeal: true
+                })
+            }
+        } catch (e: any) {
+
+        }
+    }, 1000) as any
 })
 
 onBeforeUnmount(() => {
-  // clearInterval(timerId)
+  clearInterval(timerMsg)
 })
 
 const restaurants = ref<RestaurantItem[]>([])
