@@ -72,13 +72,13 @@ const doSend = async () => {
       isSeal: false
     })
     try {
-      const ret = await store.diceExec(text)
-      for (let i of ret) {
-        store.talkLogs.push({
-          content: i.message,
-          isSeal: true
-        })
-      }
+      await store.diceExec(text)
+      // for (let i of ret) {
+      //   store.talkLogs.push({
+      //     content: i.message,
+      //     isSeal: true
+      //   })
+      // }
     } catch (e) {
       store.talkLogs.push({
         name: '',
@@ -93,7 +93,7 @@ const doSend = async () => {
         el.scrollTop = el.scrollHeight
       }
 
-      
+
       const elAc = autocomplete.value as any
       if (elAc) {
         elAc.suggestions = [];

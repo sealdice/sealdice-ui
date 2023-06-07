@@ -101,7 +101,7 @@
 
           </el-sub-menu>
 
-          <!-- 
+          <!--
           <el-menu-item index="4">
             <el-icon>
               <setting />
@@ -316,11 +316,24 @@ onBeforeMount(async () => {
       }
     }
   }, 5000) as any
+  timerMsg = setInterval(async () => {
+      try {
+          let msg = await store.getRecentMessage()
+          for (let i of msg) {
+              store.talkLogs.push({
+                  content: i.message,
+                  isSeal: true
+              })
+          }
+      } catch (e: any) {
 
+      }
+  }, 1000) as any
   newsData.value = await store.news()
 })
 
 let timerId: number
+let timerMsg: number
 
 const handleOpen = (key: string, keyPath: string[]) => {
 }
@@ -425,7 +438,7 @@ body {
 .sd-center {
   display: flex;
   align-items: center;
-  justify-content: center;  
+  justify-content: center;
 }
 
 #app {
