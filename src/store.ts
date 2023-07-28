@@ -391,6 +391,10 @@ export const useStore = defineStore('main', {
       return info as any
     },
 
+    async jsStatus(): Promise<boolean> {
+      const resp = await apiFetch(urlPrefix+'/js/status', {method: 'GET'})
+      return resp.status
+    },
     async jsList(): Promise<JsScriptInfo[]> {
       return await apiFetch(urlPrefix+'/js/list', { method: 'GET', headers: {
         token: this.token
@@ -413,6 +417,13 @@ export const useStore = defineStore('main', {
     },
     async jsReload() {
       return await apiFetch(urlPrefix+'/js/reload', {
+        headers: {
+          token: this.token
+        }
+      })
+    },
+    async jsShutdown() {
+      return await apiFetch(urlPrefix+'/js/shutdown', {
         headers: {
           token: this.token
         }
