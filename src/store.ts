@@ -436,6 +436,22 @@ export const useStore = defineStore('main', {
         err: string,
       }
     },
+    async jsEnable(body: any) {
+      return await apiFetch(urlPrefix+'/js/enable', {
+        headers: {
+          token: this.token
+        },
+        body
+      })
+    },
+    async jsDisable(body: any) {
+      return await apiFetch(urlPrefix+'/js/disable', {
+        headers: {
+          token: this.token
+        },
+        body
+      })
+    },
 
     async toolOnebot() {
       return await apiFetch(urlPrefix+'/tool/onebot', {

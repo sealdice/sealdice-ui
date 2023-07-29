@@ -10,6 +10,11 @@
   </el-row>
 
   <el-row>
+    <el-alert v-show="needReload" title="存在修改，需要重载后生效" type="error" effect="dark" :closable="false"
+      style="margin-top: 10px" />
+  </el-row>
+
+  <el-row>
     <el-col :span="24">
       <el-tabs v-model="mode" class="demo-tabs" :stretch=true>
         <el-tab-pane label="控制台" name="console">
@@ -46,8 +51,18 @@
               <div v-for="i, index in jsList">
                 <el-descriptions :title="i.name" :border="false" class="js-item">
                   <template #title>
-                    <span>{{ i.name }}</span>
-                    <el-button style="float:right" @click="doDelete(i, index)">删除</el-button>
+                    <el-row style="display: flex;">
+                      <el-col :span="2" :xs="3">
+                        <el-switch v-model="i.enable" @change="changejsScriptStatus(i.name, i.enable)"
+                          style="--el-switch-on-color: #67C23A; --el-switch-off-color: #F56C6C" />
+                      </el-col>
+                      <el-col :span="20" :xs="14" style="display: flex;align-items: center;">
+                        <div>{{ i.name }}</div>
+                      </el-col>
+                      <el-col :span="2" :xs="3" style="align-self: flex-end;">
+                        <el-button @click="doDelete(i, index)" :icon="Delete" circle title="删除" />
+                      </el-col>
+                    </el-row>
                   </template>
                   <el-descriptions-item label="作者">{{ i.author || '<佚名>' }}</el-descriptions-item>
                   <el-descriptions-item label="版本">{{ i.version || '<未定义>' }}</el-descriptions-item>
@@ -75,7 +90,7 @@ import { useStore } from '~/store'
 import { urlBase } from '~/backend'
 import filesize from 'filesize'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Refresh, CaretRight, Upload, Search } from '@element-plus/icons-vue'
+import { Refresh, CaretRight, Upload, Search, Delete } from '@element-plus/icons-vue'
 import * as dayjs from 'dayjs'
 
 // import type { UploadProps, UploadUserFile } from 'element-plus'
@@ -95,6 +110,7 @@ const store = useStore()
 const jsEnable = ref(false)
 const editorBox = ref(null);
 const mode = ref('console');
+const needReload = ref(false)
 let editor: EditorView
 
 const jsLines = ref([] as string[])
@@ -220,6 +236,7 @@ const jsReload = async () => {
   } else {
     ElMessage.success('已重载')
     await refreshList()
+    needReload.value = false
   }
   jsEnable.value = await jsStatus()
 }
@@ -242,6 +259,7 @@ const beforeUpload = async (file: any) => { // UploadRawFile
   await store.jsUpload({ form: fd })
   refreshList();
   ElMessage.success('上传完成，请在全部操作完成后，手动重载插件')
+  needReload.value = true
 }
 
 const doDelete = async (data: any, index: number) => {
@@ -260,7 +278,30 @@ const doDelete = async (data: any, index: number) => {
       refreshList()
     }, 1000);
     ElMessage.success('插件已删除，请手动重载后生效')
+    needReload.value = true
   })
+}
+
+const changejsScriptStatus = async (name: string, status: boolean) => {
+  if (status) {
+    const ret = await store.jsEnable({ name })
+    setTimeout(() => {
+      refreshList()
+    }, 1000);
+    if (ret.result) {
+      ElMessage.success('插件已启用，请手动重载后生效')
+    }
+  } else {
+    const ret = await store.jsDisable({ name })
+    setTimeout(() => {
+      refreshList()
+    }, 1000);
+    if (ret.result) {
+      ElMessage.success('插件已禁用，请手动重载后生效')
+    }
+  }
+  needReload.value = true
+  return true
 }
 </script>
 
