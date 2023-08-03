@@ -704,6 +704,7 @@ const form = reactive({
 
   relWorkDir: '',
   connectUrl: '',
+  accessToken: '',
 })
 
 const addOne = () => {
