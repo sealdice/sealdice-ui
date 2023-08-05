@@ -232,6 +232,9 @@
         </el-form-item>
         <el-form-item v-if="form.accountType === 0 && form.protocol === 1" label="使用签名服务" :label-width="formLabelWidth">
           <el-switch v-model="form.useSignServer" style="--el-switch-on-color: #67C23A;"/>
+          <el-tooltip content="如果不知道这是什么请勿勾选。允许填写签名服务相关信息。" style="">
+            <el-icon><QuestionFilled/></el-icon>
+          </el-tooltip>
         </el-form-item>
         <el-form-item v-if="form.accountType === 0 && form.protocol === 1 && form.useSignServer" label="签名服务url" :label-width="formLabelWidth">
           <el-input v-model="form.signServerUrl" type="string" autocomplete="off"></el-input>
@@ -438,7 +441,7 @@ import { h, reactive, onBeforeMount, onBeforeUnmount, onMounted, ref, nextTick }
 import { useStore, goCqHttpStateCode } from '~/store';
 import type { DiceConnection } from '~/store';
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Edit } from '@element-plus/icons-vue'
+import { Plus, Edit, QuestionFilled } from '@element-plus/icons-vue'
 import { sleep } from '~/utils'
 import { delay } from 'lodash-es'
 import * as dayjs from 'dayjs'
