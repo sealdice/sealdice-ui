@@ -230,13 +230,13 @@
             <!-- <div v-if="form.protocol !== 1" style="color: #aa4422;">提示: 首次登录时，iPad或者Android手表协议一般都会失败，建议用安卓登录后改协议。</div> -->
           </small>
         </el-form-item>
-        <el-form-item v-if="form.accountType === 0" label="使用签名服务" :label-width="formLabelWidth">
+        <el-form-item v-if="form.accountType === 0 && form.protocol === 1" label="使用签名服务" :label-width="formLabelWidth">
           <el-switch v-model="form.useSignServer" style="--el-switch-on-color: #67C23A;"/>
         </el-form-item>
-        <el-form-item v-if="form.accountType === 0 && form.useSignServer" label="签名服务url" :label-width="formLabelWidth">
+        <el-form-item v-if="form.accountType === 0 && form.protocol === 1 && form.useSignServer" label="签名服务url" :label-width="formLabelWidth">
           <el-input v-model="form.signServerUrl" type="string" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item v-if="form.accountType === 0 && form.useSignServer" label="签名服务key" :label-width="formLabelWidth">
+        <el-form-item v-if="form.accountType === 0 && form.protocol === 1 && form.useSignServer" label="签名服务key" :label-width="formLabelWidth">
           <el-input v-model="form.signServerKey" type="string" autocomplete="off"></el-input>
         </el-form-item>
 
