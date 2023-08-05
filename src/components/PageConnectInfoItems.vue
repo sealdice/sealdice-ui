@@ -237,10 +237,10 @@
           </el-tooltip>
         </el-form-item>
         <el-form-item v-if="form.accountType === 0 && form.protocol === 1 && form.useSignServer" label="签名服务url" :label-width="formLabelWidth">
-          <el-input v-model="form.signServerUrl" type="string" autocomplete="off"></el-input>
+          <el-input v-model="form.signServerUrl" type="string" autocomplete="off" placeholder="http://127.0.0.1:8080"></el-input>
         </el-form-item>
         <el-form-item v-if="form.accountType === 0 && form.protocol === 1 && form.useSignServer" label="签名服务key" :label-width="formLabelWidth">
-          <el-input v-model="form.signServerKey" type="string" autocomplete="off"></el-input>
+          <el-input v-model="form.signServerKey" type="string" autocomplete="off" placeholder="114514"></el-input>
         </el-form-item>
 
         <el-form-item v-if="form.accountType === 6" label="账号" :label-width="formLabelWidth" required>
