@@ -26,6 +26,9 @@ export interface AdapterQQ {
   goCqHttpLoginDeviceLockUrl: string;
   ignoreFriendRequest: boolean;
   goCqHttpSmsNumberTip: string;
+  useSignServer: boolean;
+  signServerUrl: string;
+  signServerKey: string;
 }
 
 interface TalkLogItem {
@@ -166,14 +169,14 @@ export const useStore = defineStore('main', {
       return info as any
     },
 
-    async addImConnection(form: {accountType: number, account: string, password: string, protocol: number, token: string, proxyURL:string,url: string, clientID: string, implementation: string, connectUrl: string, accessToken: string, relWorkDir: string}) {
-      const {accountType, account, password, protocol, token,proxyURL, url, clientID, implementation, relWorkDir, connectUrl, accessToken} = form
+    async addImConnection(form: {accountType: number, account: string, password: string, protocol: number, token: string, proxyURL:string,url: string, clientID: string, implementation: string, connectUrl: string, accessToken: string, relWorkDir: string, useSignServer: boolean, signServerUrl: string, signServerKey: string}) {
+      const {accountType, account, password, protocol, token,proxyURL, url, clientID, implementation, relWorkDir, connectUrl, accessToken, useSignServer, signServerUrl, signServerKey} = form
       let info = null
       switch (accountType) {
         //QQ
         case 0:
           if (implementation === 'gocq') {
-            info = await backend.post(urlPrefix+'/im_connections/add', { account, password, protocol }, { timeout: 65000 })
+            info = await backend.post(urlPrefix+'/im_connections/add', { account, password, protocol, useSignServer, signServerUrl, signServerKey }, { timeout: 65000 })
           } else if (implementation === 'walle-q') {
             info = await backend.post(urlPrefix+'/im_connections/addWalleQ', { account, password, protocol }, { timeout: 65000 })
           }
@@ -218,8 +221,8 @@ export const useStore = defineStore('main', {
       return info as any as DiceConnection
     },
 
-    async getImConnectionsSetData(i: DiceConnection, { protocol, ignoreFriendRequest }: { protocol: number, ignoreFriendRequest: boolean }) {
-      const info = await backend.post(urlPrefix+'/im_connections/set_data', { id: i.id, protocol, ignoreFriendRequest })
+    async getImConnectionsSetData(i: DiceConnection, { protocol, ignoreFriendRequest, useSignServer, signServerUrl, signServerKey }: { protocol: number, ignoreFriendRequest: boolean, useSignServer: boolean, signServerUrl: string, signServerKey: string }) {
+      const info = await backend.post(urlPrefix+'/im_connections/set_data', { id: i.id, protocol, ignoreFriendRequest, useSignServer, signServerUrl, signServerKey })
       return info as any as DiceConnection
     },
 
@@ -391,6 +394,10 @@ export const useStore = defineStore('main', {
       return info as any
     },
 
+    async jsStatus(): Promise<boolean> {
+      const resp = await apiFetch(urlPrefix+'/js/status', {method: 'GET'})
+      return resp.status
+    },
     async jsList(): Promise<JsScriptInfo[]> {
       return await apiFetch(urlPrefix+'/js/list', { method: 'GET', headers: {
         token: this.token
@@ -418,12 +425,35 @@ export const useStore = defineStore('main', {
         }
       })
     },
+    async jsShutdown() {
+      return await apiFetch(urlPrefix+'/js/shutdown', {
+        headers: {
+          token: this.token
+        }
+      })
+    },
     async jsExec(code: string) {
       return await apiFetch(urlPrefix+'/js/execute', {body: { value: code }}) as {
         ret: any,
         outputs: string[],
         err: string,
       }
+    },
+    async jsEnable(body: any) {
+      return await apiFetch(urlPrefix+'/js/enable', {
+        headers: {
+          token: this.token
+        },
+        body
+      })
+    },
+    async jsDisable(body: any) {
+      return await apiFetch(urlPrefix+'/js/disable', {
+        headers: {
+          token: this.token
+        },
+        body
+      })
     },
 
     async toolOnebot() {
