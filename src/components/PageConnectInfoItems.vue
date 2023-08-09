@@ -733,7 +733,6 @@ const form = reactive({
   relWorkDir: '',
   accessToken: '',
   connectUrl: '',
-  accessToken: '',
 
   useSignServer: false,
   signServerUrl: '',
