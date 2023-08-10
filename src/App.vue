@@ -273,7 +273,7 @@ const checkNews = async(close: any) => {
   if (ret?.result) {
     ElMessage.success('已阅读最新的海豹新闻')
   } else {
-    ElMessage.error('')
+    ElMessage.error('阅读海豹新闻失败')
   }
   await updateNews()
   close()
@@ -284,6 +284,8 @@ const updateNews = async () => {
     newsData.value = newsInfo.news
     newsChecked.value = newsInfo.checked
     newsMark.value = newsInfo.newsMark
+  } else {
+    ElMessage.error(newsInfo?.err ?? '获取海豹新闻失败')
   }
 }
 

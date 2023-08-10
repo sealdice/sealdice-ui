@@ -164,7 +164,7 @@ export const useStore = defineStore('main', {
       return info as any as DiceConnection
     },
 
-    async news(): Promise<{result: true, checked: boolean, news: string, newsMark: string} | { result: false, err: string}> {
+    async news(): Promise<{result: true, checked: boolean, news: string, newsMark: string} | { result: false, err?: string}> {
       const info = await backend.get(urlPrefix+'/utils/news')
       return info as any
     },
