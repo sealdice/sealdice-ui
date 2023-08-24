@@ -52,10 +52,10 @@
             <div class="file-line">
               <div class="file-info">
                 <span style="margin-right: 2px;">
-                  <IBiFolder2 color="#303133" v-if="data.isDir" />
-                  <IBiFiletypeJson color="#E6A23C" v-else-if="data.type === '.json'" />
-                  <IBiFiletypeXlsx color="#67C23A" v-else-if="data.type === '.xlsx'" />
-                  <IBiFileBreak v-else />
+                  <i-bi-folder2 color="#303133" v-if="data.isDir" />
+                  <i-bi-filetype-json color="#E6A23C" v-else-if="data.type === '.json'" />
+                  <i-bi-filetype-xlsx color="#67C23A" v-else-if="data.type === '.xlsx'" />
+                  <i-bi-file-break v-else />
                 </span>
                 <span :class="{ 'del-line': data.deleted }" truncated>
                   {{ node.label }}

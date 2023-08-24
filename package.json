@@ -27,11 +27,12 @@
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
-    "@iconify/json": "^2.2.102",
+    "@iconify-json/bi": "^1.1.18",
     "@types/lodash-es": "*",
     "@types/node": "*",
     "@vitejs/plugin-vue": "^2.2.2",
     "@vue/compiler-sfc": "^3.2.31",
+    "iconify-icon": "^1.0.8",
     "sass": "^1.49.8",
     "typescript": "^4.5.5",
     "unplugin-icons": "^0.16.5",
