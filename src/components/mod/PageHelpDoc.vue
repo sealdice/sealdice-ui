@@ -10,7 +10,7 @@
   <el-tabs v-model="tab" :stretch=true>
     <el-tab-pane label="文件" name="file">
       <el-space class="file-control">
-        <el-button type="danger" :icon="Delete" @click="deleteFiles">删除所选</el-button>
+        <el-button type="danger" :icon="Delete" v-show="showDeleteFile" @click="deleteFiles">删除所选</el-button>
         <el-button type="primary" :icon="Upload" @click="uploadDialogVisible = true">上传</el-button>
       </el-space>
 
@@ -132,6 +132,7 @@ import { onBeforeMount, reactive, ref } from 'vue';
 import { useStore } from '~/store';
 import { Delete, Refresh, Upload } from '@element-plus/icons-vue'
 import { trim } from 'lodash-es';
+import { computed } from 'vue';
 
 interface Group {
   key: string,
@@ -200,6 +201,10 @@ const submitUpload = async (formData: FormInstance | undefined) => {
 }
 
 const fileTreeRef = ref<InstanceType<typeof ElTree>>()
+const showDeleteFile = computed(() => {
+  const checkedFileKeys = fileTreeRef.value!.getCheckedKeys(false) as string[]
+  return checkedFileKeys.length !== 0
+})
 const deleteFiles = async () => {
   const checkedFileKeys = fileTreeRef.value!.getCheckedKeys(false) as string[]
   if (checkedFileKeys && checkedFileKeys.length !== 0) {
