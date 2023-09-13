@@ -55,7 +55,7 @@
           <div style="display: flex;">
             <div>
               <!-- :suffix-icon="Management" -->
-              <el-input v-model="config.diceMasters[index]" :autosize="true"></el-input> 
+              <el-input v-model="config.diceMasters[index]" :autosize="true"></el-input>
             </div>
             <div style="display: flex; align-items: center; width: 1.3rem; margin-left: 1rem;">
               <el-tooltip :content="index === 0 ? '点击添加项目' : '点击删除你不想要的项'" placement="bottom-start">
@@ -91,7 +91,7 @@
           <div style="display: flex;">
             <div>
               <!-- :suffix-icon="Management" -->
-              <el-input v-model="config.noticeIds[index]" :autosize="true"></el-input> 
+              <el-input v-model="config.noticeIds[index]" :autosize="true"></el-input>
             </div>
             <div style="display: flex; align-items: center; width: 1.3rem; margin-left: 1rem;">
               <el-tooltip :content="index === 0 ? '点击添加项目' : '点击删除你不想要的项'" placement="bottom-start">
@@ -112,29 +112,50 @@
     </el-form-item>
 
     <el-form-item label="邮箱通知">
-        <el-tooltip raw-content content="为处理某些平台通知频繁引起的问题，启用后<b>只会通过邮件</b>进行通知">
-            <el-icon><question-filled /></el-icon>
-          </el-tooltip>
+      <el-tooltip raw-content content="为处理某些平台通知频繁引起的问题，启用后<b>只会通过邮件</b>进行通知">
+        <el-icon><question-filled /></el-icon>
+      </el-tooltip>
           <el-checkbox label="开启" v-model="config.mailEnable"/>
     </el-form-item>
     <el-form-item label="发件邮箱">
-        <el-tooltip raw-content content="特别提醒：QQ号被冻结后对应账号的邮箱也无法使用">
-            <el-icon><question-filled /></el-icon>
-          </el-tooltip>
+      <el-tooltip raw-content content="特别提醒：QQ号被冻结后对应账号的邮箱也无法使用">
+        <el-icon><question-filled /></el-icon>
+      </el-tooltip>
       <el-input v-model="config.mailFrom" style="width: 12rem"/>
     </el-form-item>
     <el-form-item label="邮箱密钥">
-        <el-tooltip raw-content content="请注意不一定是密码，例如 QQ邮箱就需要在设置界面生成授权码">
-            <el-icon><question-filled /></el-icon>
-          </el-tooltip>
+      <el-tooltip raw-content content="请注意不一定是密码，例如 QQ邮箱就需要在设置界面生成授权码">
+        <el-icon><question-filled /></el-icon>
+      </el-tooltip>
       <el-input v-model="config.mailPassword"  style="width: 12rem"/>
     </el-form-item>
     <el-form-item label="SMTP 服务地址">
-        <el-tooltip raw-content content="例如 smtp.qq.com">
-            <el-icon><question-filled /></el-icon>
-          </el-tooltip>
+      <el-tooltip raw-content content="例如 smtp.qq.com">
+        <el-icon><question-filled /></el-icon>
+      </el-tooltip>
       <el-input v-model="config.mailSmtp" style="width: 12rem"/>
     </el-form-item>
+
+    <el-form-item>
+      <template #label>
+        <div>
+          <span>出目模式</span>
+          <el-tooltip raw-content>
+            <template #content>
+              均匀模式（默认）：骰子出目为等可能性的结果，如 D100 时，结果为 1、50、100 的可能性均等。<br />
+              稳定模式：骰子出目结果符合正态分布，如 D100 时，结果将倾向集中在 50 附近。
+            </template>
+            <el-icon><question-filled /></el-icon>
+          </el-tooltip>
+        </div>
+      </template>
+      <el-radio-group v-model="config.rollMode" style="margin-right: 1rem;" size="small">
+        <el-radio-button :label="0">均匀</el-radio-button>
+        <el-radio-button :label="1">稳定</el-radio-button>
+      </el-radio-group>
+      <el-text type="info" size="small">{{ config.rollMode === 1 ? '惊喜太多哩，我不玩儿了！' : '还是需要一些惊喜，对吧？' }}</el-text>
+    </el-form-item>
+
     <el-form-item>
       <template #label>
         <div>
@@ -158,17 +179,17 @@
       </template>
       <el-checkbox label="开启" v-model="config.botExtFreeSwitch"/>
     </el-form-item>
-      <el-form-item>
-          <template #label>
-              <div>
-                  <span>刷屏警告开关</span>
-                  <el-tooltip raw-content content="默认关闭。开启后会对使用指令过快的用户进行警告，警告后继续使用指令会增加怒气值，只对QQ平台有效">
-                      <el-icon><question-filled /></el-icon>
-                  </el-tooltip>
-              </div>
-          </template>
+    <el-form-item>
+      <template #label>
+        <div>
+          <span>刷屏警告开关</span>
+          <el-tooltip raw-content content="默认关闭。开启后会对使用指令过快的用户进行警告，警告后继续使用指令会增加怒气值，只对QQ平台有效">
+            <el-icon><question-filled /></el-icon>
+          </el-tooltip>
+        </div>
+      </template>
           <el-checkbox label="开启" v-model="config.rateLimitEnabled"/>
-      </el-form-item>
+    </el-form-item>
     <el-form-item>
       <template #label>
         <div>
@@ -320,7 +341,7 @@
       </template>
       <el-checkbox label="开启" v-model="config.workInQQChannel"/>
     </el-form-item>
-  
+
     <el-form-item>
       <template #label>
         <div>
@@ -389,7 +410,7 @@
       </template>
       <el-checkbox label="开启" v-model="config.playerNameWrapEnable" @click="nameWrapUncheck"/>
     </el-form-item>
-  
+
     <el-form-item label="日志仅记录指令">
       <el-checkbox label="在群聊中" v-model="config.onlyLogCommandInGroup"/>
       <el-checkbox label="在私聊中" v-model="config.onlyLogCommandInPrivate"/>
@@ -427,7 +448,7 @@
           <div style="display: flex;">
             <div>
               <!-- :suffix-icon="Management" -->
-              <el-input v-model="config.commandPrefix[index]" :autosize="true"></el-input> 
+              <el-input v-model="config.commandPrefix[index]" :autosize="true"></el-input>
             </div>
             <div style="display: flex; align-items: center; width: 1.3rem; margin-left: 1rem;">
               <el-tooltip :content="index === 0 ? '点击添加项目' : '点击删除你不想要的项目'" placement="bottom-start">
@@ -459,7 +480,7 @@
       </div>
       <!-- <el-input v-model="config.helpMasterLicense" type="textarea" autosize clearable style="width: auto;" /> -->
     </div>
-  
+
     <el-form-item label="" style="margin-top: 3rem;" v-if="modified">
       <el-button type="danger" @click="submitGiveup">放弃改动</el-button>
       <el-button type="success" @click="submit">保存设置</el-button>
