@@ -1,7 +1,7 @@
 <template>
   <draggable class="dragArea" tag="div" :list="tasks" handle=".handle" :group="{ name: 'g1' }" item-key="name">
     <template #item="{ element: el, index }">
-      <li style="padding-right: .5rem; list-style: none; margin-bottom: 0.5rem;">
+      <li class="reply-item" style="padding-right: .5rem; list-style: none; margin-bottom: 0.5rem;">
         <div style="display: flex; justify-content: space-between;">
           <el-checkbox v-model="el.enable">开启</el-checkbox>
           <div style="display: flex; align-items: center;">
@@ -226,6 +226,10 @@ const removeItem = (v: any[], index: number | any) => {
   /* outline: 1px dashed; */
   padding-top: 1rem;
   padding-bottom: 1rem;
+  .reply-item:not(:last-child) {
+    border-bottom: 1px solid var(--el-border-color);
+    padding-bottom: 1rem;
+  }
 }
 
 @media screen and (max-width: 700px) {
