@@ -1,15 +1,15 @@
 import { apiFetch, backend } from './backend'
 
 export enum goCqHttpStateCode {
-  Init              = 0,
-	InLogin           = 1,
-	InLoginQrCode     = 2,
-	InLoginBar        = 3,
-	InLoginVerifyCode = 6,
-	InLoginDeviceLock = 7,
-	LoginSuccessed    = 10,
-	LoginFailed       = 11,
-	Closed            = 20
+  Init = 0,
+  InLogin = 1,
+  InLoginQrCode = 2,
+  InLoginBar = 3,
+  InLoginVerifyCode = 6,
+  InLoginDeviceLock = 7,
+  LoginSuccessed = 10,
+  LoginFailed = 11,
+  Closed = 20
 }
 
 export interface AdapterQQ {
@@ -51,20 +51,22 @@ export interface DiceConnection {
   adapter: AdapterQQ;
 }
 
-const urlPrefix = 'sd-api'
+export const urlPrefix = 'sd-api'
 
 interface DiceServer {
   config: any
-  customTextsHelpInfo: { [k: string]: {
+  customTextsHelpInfo: {
     [k: string]: {
-      filename: string[],
-      origin: (string[])[],
-      vars: string[],
-      modified: boolean,
-      topOrder: number,
-      subType: string,
+      [k: string]: {
+        filename: string[],
+        origin: (string[])[],
+        vars: string[],
+        modified: boolean,
+        topOrder: number,
+        subType: string,
+      }
     }
-  }}
+  }
   customTexts: { [k: string]: { [k: string]: (string[])[] } }
   logs: { level: string, ts: number, caller: string, msg: string }[]
   conns: DiceConnection[]
@@ -128,11 +130,11 @@ export const useStore = defineStore('main', {
   },
   actions: {
     async customTextSave(category: string) {
-      await backend.post(urlPrefix+'/configs/customText/save', { data: this.curDice.customTexts[category], category })
+      await backend.post(urlPrefix + '/configs/customText/save', { data: this.curDice.customTexts[category], category })
     },
 
     async getBaseInfo() {
-      const info = await backend.get(urlPrefix+'/baseInfo', { timeout: 5000 })
+      const info = await backend.get(urlPrefix + '/baseInfo', { timeout: 5000 })
       if (!document.title.includes('-')) {
         if ((info as any).extraTitle && (info as any).extraTitle !== '') {
           document.title = `${(info as any).extraTitle} - ${document.title}`;
@@ -143,7 +145,7 @@ export const useStore = defineStore('main', {
     },
 
     async getCustomText() {
-      const info = await backend.get(urlPrefix+'/configs/customText')
+      const info = await backend.get(urlPrefix + '/configs/customText')
       const data = info as any;
       this.curDice.customTexts = data.texts;
       this.curDice.customTextsHelpInfo = data.helpInfo;
@@ -151,196 +153,196 @@ export const useStore = defineStore('main', {
     },
 
     async getImConnections() {
-      const info = await backend.get(urlPrefix+'/im_connections/list')
+      const info = await backend.get(urlPrefix + '/im_connections/list')
       this.diceServers[this.index].conns = info as any;
       return info
     },
 
     async gocqhttpReloginImConnection(i: DiceConnection) {
-      const info = await backend.post(urlPrefix+'/im_connections/gocqhttpRelogin', { id: i.id }, { timeout: 65000 })
+      const info = await backend.post(urlPrefix + '/im_connections/gocqhttpRelogin', { id: i.id }, { timeout: 65000 })
       return info as any as DiceConnection
     },
 
     async news() {
-      const info = await backend.get(urlPrefix+'/utils/news')
+      const info = await backend.get(urlPrefix + '/utils/news')
       return info as any
     },
 
-    async addImConnection(form: {accountType: number, account: string, password: string, protocol: number, token: string, proxyURL:string,url: string, clientID: string, implementation: string, connectUrl: string, relWorkDir: string}) {
-      const {accountType, account, password, protocol, token,proxyURL, url, clientID, implementation, relWorkDir, connectUrl} = form
+    async addImConnection(form: { accountType: number, account: string, password: string, protocol: number, token: string, proxyURL: string, url: string, clientID: string, implementation: string, connectUrl: string, relWorkDir: string }) {
+      const { accountType, account, password, protocol, token, proxyURL, url, clientID, implementation, relWorkDir, connectUrl } = form
       let info = null
       switch (accountType) {
         //QQ
         case 0:
           if (implementation === 'gocq') {
-            info = await backend.post(urlPrefix+'/im_connections/add', { account, password, protocol }, { timeout: 65000 })
+            info = await backend.post(urlPrefix + '/im_connections/add', { account, password, protocol }, { timeout: 65000 })
           } else if (implementation === 'walle-q') {
-            info = await backend.post(urlPrefix+'/im_connections/addWalleQ', { account, password, protocol }, { timeout: 65000 })
+            info = await backend.post(urlPrefix + '/im_connections/addWalleQ', { account, password, protocol }, { timeout: 65000 })
           }
           break
         case 1:
-          info = await backend.post(urlPrefix+'/im_connections/addDiscord', {token, proxyURL}, { timeout: 65000 })
+          info = await backend.post(urlPrefix + '/im_connections/addDiscord', { token, proxyURL }, { timeout: 65000 })
           break
         case 2:
-          info = await backend.post(urlPrefix+'/im_connections/addKook', {token}, { timeout: 65000 })
+          info = await backend.post(urlPrefix + '/im_connections/addKook', { token }, { timeout: 65000 })
           break
         case 3:
-          info = await backend.post(urlPrefix+'/im_connections/addTelegram', {token}, { timeout: 65000 })
+          info = await backend.post(urlPrefix + '/im_connections/addTelegram', { token }, { timeout: 65000 })
           break
         case 4:
-          info = await backend.post(urlPrefix+'/im_connections/addMinecraft', {url}, { timeout: 65000 })
+          info = await backend.post(urlPrefix + '/im_connections/addMinecraft', { url }, { timeout: 65000 })
           break
         case 5:
-          info = await backend.post(urlPrefix+'/im_connections/addDodo', {clientID, token}, { timeout: 65000 })
+          info = await backend.post(urlPrefix + '/im_connections/addDodo', { clientID, token }, { timeout: 65000 })
         case 6:
-          info = await backend.post(urlPrefix+'/im_connections/addGocqSeparate', {relWorkDir, connectUrl, account}, { timeout: 65000 })
-        }
+          info = await backend.post(urlPrefix + '/im_connections/addGocqSeparate', { relWorkDir, connectUrl, account }, { timeout: 65000 })
+      }
       return info as any as DiceConnection
     },
 
     async removeImConnection(i: DiceConnection) {
-      const info = await backend.post(urlPrefix+'/im_connections/del', { id: i.id })
+      const info = await backend.post(urlPrefix + '/im_connections/del', { id: i.id })
       return info as any as DiceConnection
     },
 
     async getImConnectionsQrCode(i: DiceConnection) {
-      const info = await backend.post(urlPrefix+'/im_connections/qrcode', { id: i.id })
+      const info = await backend.post(urlPrefix + '/im_connections/qrcode', { id: i.id })
       return info as any as { img: string }
     },
 
     async ImConnectionsSmsCodeSet(i: DiceConnection, smsCode: string) {
-      const info = await backend.post(urlPrefix+'/im_connections/sms_code_set', { id: i.id, code: smsCode })
+      const info = await backend.post(urlPrefix + '/im_connections/sms_code_set', { id: i.id, code: smsCode })
       return info as any as {}
     },
 
     async getImConnectionsSetEnable(i: DiceConnection, enable: boolean) {
-      const info = await backend.post(urlPrefix+'/im_connections/set_enable', { id: i.id, enable })
+      const info = await backend.post(urlPrefix + '/im_connections/set_enable', { id: i.id, enable })
       return info as any as DiceConnection
     },
 
     async getImConnectionsSetData(i: DiceConnection, { protocol, ignoreFriendRequest }: { protocol: number, ignoreFriendRequest: boolean }) {
-      const info = await backend.post(urlPrefix+'/im_connections/set_data', { id: i.id, protocol, ignoreFriendRequest })
+      const info = await backend.post(urlPrefix + '/im_connections/set_data', { id: i.id, protocol, ignoreFriendRequest })
       return info as any as DiceConnection
     },
 
     async logFetchAndClear() {
-      const info = await backend.get(urlPrefix+'/log/fetchAndClear')
+      const info = await backend.get(urlPrefix + '/log/fetchAndClear')
       this.curDice.logs = info as any;
     },
 
     async diceConfigGet() {
-      const info = await backend.get(urlPrefix+'/dice/config/get')
+      const info = await backend.get(urlPrefix + '/dice/config/get')
       this.curDice.config = info as any;
     },
 
     async diceConfigSet(data: any) {
-      await backend.post(urlPrefix+'/dice/config/set', data)
+      await backend.post(urlPrefix + '/dice/config/set', data)
       await this.diceConfigGet()
     },
 
     async diceExec(text: string) {
-      const info = await backend.post(urlPrefix+'/dice/exec', { message: text })
+      const info = await backend.post(urlPrefix + '/dice/exec', { message: text })
       return info as any
     },
 
     async getRecentMessage() {
-      const info = await backend.get(urlPrefix+'/dice/recentMessage')
+      const info = await backend.get(urlPrefix + '/dice/recentMessage')
       return info as any
     },
 
     async setCustomReply(data: any) {
-      const info = await backend.post(urlPrefix+'/configs/custom_reply/save', data)
+      const info = await backend.post(urlPrefix + '/configs/custom_reply/save', data)
       return info
     },
 
     async getCustomReply(filename: string) {
-      const info = await backend.get(urlPrefix+'/configs/custom_reply', { params: { filename } })
+      const info = await backend.get(urlPrefix + '/configs/custom_reply', { params: { filename } })
       return info
     },
 
     async customReplyFileNew(filename: string) {
-      const info = await backend.post(urlPrefix+'/configs/custom_reply/file_new', { filename });
+      const info = await backend.post(urlPrefix + '/configs/custom_reply/file_new', { filename });
       return info
     },
 
     async customReplyFileDelete(filename: string) {
-      const info = await backend.post(urlPrefix+'/configs/custom_reply/file_delete', { filename });
+      const info = await backend.post(urlPrefix + '/configs/custom_reply/file_delete', { filename });
       return info
     },
 
     async customReplyFileDownload(filename: string) {
-      const info = await backend.post(urlPrefix+'/configs/custom_reply/file_download', { filename });
+      const info = await backend.post(urlPrefix + '/configs/custom_reply/file_download', { filename });
       return info
     },
 
     async customReplyFileUpload({ form }: any) {
-      const info = await backend.post(urlPrefix+'/configs/custom_reply/file_upload', form)
+      const info = await backend.post(urlPrefix + '/configs/custom_reply/file_upload', form)
       return info as any
     },
 
     async customReplyFileList() {
-      const info = await backend.get(urlPrefix+'/configs/custom_reply/file_list')
+      const info = await backend.get(urlPrefix + '/configs/custom_reply/file_list')
       return info
     },
 
     async customReplyDebugModeGet() {
-      const info = await backend.get(urlPrefix+'/configs/custom_reply/debug_mode')
+      const info = await backend.get(urlPrefix + '/configs/custom_reply/debug_mode')
       return info
     },
 
     async customReplyDebugModeSet(value: boolean) {
-      const info = await backend.post(urlPrefix+'/configs/custom_reply/debug_mode', { value })
+      const info = await backend.post(urlPrefix + '/configs/custom_reply/debug_mode', { value })
       return info
     },
 
     async backupList() {
-      const info = await backend.get(urlPrefix+'/backup/list')
+      const info = await backend.get(urlPrefix + '/backup/list')
       return info as any
     },
 
     async backupConfigGet() {
-      const info = await backend.get(urlPrefix+'/backup/config_get')
+      const info = await backend.get(urlPrefix + '/backup/config_get')
       return info as any
     },
 
     async backupConfigSave(data: any) {
-      const info = await backend.post(urlPrefix+'/backup/config_set', data)
+      const info = await backend.post(urlPrefix + '/backup/config_set', data)
       return info as any
     },
 
     async backupDoSimple() {
-      const info = await backend.post(urlPrefix+'/backup/do_backup')
+      const info = await backend.post(urlPrefix + '/backup/do_backup')
       return info as any
     },
 
     async backupDelete(name: string) {
-      const info = await backend.post(urlPrefix+'/backup/delete', {}, { params: { name } })
+      const info = await backend.post(urlPrefix + '/backup/delete', {}, { params: { name } })
       return info as any
     },
 
     // ban list相关
     async banConfigGet() {
-      const info = await backend.get(urlPrefix+'/banconfig/get')
+      const info = await backend.get(urlPrefix + '/banconfig/get')
       return info as any
     },
 
     async banConfigSet(data: any) {
-      const info = await backend.post(urlPrefix+'/banconfig/set', data)
+      const info = await backend.post(urlPrefix + '/banconfig/set', data)
       return info as any
     },
 
     async banConfigMapGet() {
-      const info = await backend.get(urlPrefix+'/banconfig/list')
+      const info = await backend.get(urlPrefix + '/banconfig/list')
       return info as any
     },
 
     async banConfigMapDeleteOne(data: any) {
-      const info = await backend.post(urlPrefix+'/banconfig/map_delete_one', data)
+      const info = await backend.post(urlPrefix + '/banconfig/map_delete_one', data)
       return info as any
     },
 
     async banConfigMapAddOne(id: string, rank: number, name: string, reason: string) {
-      const info = await backend.post(urlPrefix+'/banconfig/map_add_one', {
+      const info = await backend.post(urlPrefix + '/banconfig/map_add_one', {
         ID: id,
         rank,
         name,
@@ -351,83 +353,88 @@ export const useStore = defineStore('main', {
 
     // 群组列表
     async groupList() {
-      const info = await backend.get(urlPrefix+'/group/list')
+      const info = await backend.get(urlPrefix + '/group/list')
       return info as any
     },
 
     async groupSetOne(data: any) {
-      const info = await backend.post(urlPrefix+'/group/set_one', data)
+      const info = await backend.post(urlPrefix + '/group/set_one', data)
       return info as any
     },
 
     async setGroupQuit(data: any) {
-      const info = await backend.post(urlPrefix+'/group/quit_one', data)
+      const info = await backend.post(urlPrefix + '/group/quit_one', data)
       return info
     },
 
     // 牌堆
     async deckList() {
-      const info = await backend.get(urlPrefix+'/deck/list')
+      const info = await backend.get(urlPrefix + '/deck/list')
       return info as any
     },
 
     async deckReload() {
-      const info = await backend.post(urlPrefix+'/deck/reload')
+      const info = await backend.post(urlPrefix + '/deck/reload')
       return info as any
     },
 
     async deckSetEnable({ index, enable }: any) {
-      const info = await backend.post(urlPrefix+'/deck/enable', { index, enable })
+      const info = await backend.post(urlPrefix + '/deck/enable', { index, enable })
       return info as any
     },
 
     async deckDelete({ index }: any) {
-      const info = await backend.post(urlPrefix+'/deck/delete', { index })
+      const info = await backend.post(urlPrefix + '/deck/delete', { index })
       return info as any
     },
 
     async deckUpload({ form }: any) {
-      const info = await backend.post(urlPrefix+'/deck/upload', form)
+      const info = await backend.post(urlPrefix + '/deck/upload', form)
       return info as any
     },
 
     async jsList(): Promise<JsScriptInfo[]> {
-      return await apiFetch(urlPrefix+'/js/list', { method: 'GET', headers: {
-        token: this.token
-      }})
+      return await apiFetch(urlPrefix + '/js/list', {
+        method: 'GET', headers: {
+          token: this.token
+        }
+      })
     },
     async jsGetRecord() {
-      return await apiFetch(urlPrefix+'/js/get_record', { method: 'GET', headers: {
-        token: this.token
-      }}) as {
+      return await apiFetch(urlPrefix + '/js/get_record', {
+        method: 'GET', headers: {
+          token: this.token
+        }
+      }) as {
         outputs: string[]
       }
     },
     async jsUpload({ form }: any) {
-      const info = await backend.post(urlPrefix+'/js/upload', form)
+      const info = await backend.post(urlPrefix + '/js/upload', form)
       return info as any
     },
     async jsDelete({ index }: any) {
-      const info = await backend.post(urlPrefix+'/js/delete', { index })
+      const info = await backend.post(urlPrefix + '/js/delete', { index })
       return info as any
     },
     async jsReload() {
-      return await apiFetch(urlPrefix+'/js/reload', {
+      return await apiFetch(urlPrefix + '/js/reload', {
         headers: {
           token: this.token
         }
       })
     },
     async jsExec(code: string) {
-      return await apiFetch(urlPrefix+'/js/execute', {body: { value: code }}) as {
+      return await apiFetch(urlPrefix + '/js/execute', { body: { value: code } }) as {
         ret: any,
         outputs: string[],
         err: string,
       }
     },
 
+
     async toolOnebot() {
-      return await apiFetch(urlPrefix+'/tool/onebot', {
+      return await apiFetch(urlPrefix + '/tool/onebot', {
         headers: {
           token: this.token
         }
@@ -439,13 +446,13 @@ export const useStore = defineStore('main', {
     },
 
     async upgrade() {
-      const info = await backend.post(urlPrefix+'/dice/upgrade', null, { timeout: 120000 })
+      const info = await backend.post(urlPrefix + '/dice/upgrade', null, { timeout: 120000 })
       return info
     },
 
     async signIn(password: string) {
       try {
-        const ret = await backend.post(urlPrefix+'/signin', { password })
+        const ret = await backend.post(urlPrefix + '/signin', { password })
         const token = (ret as any).token
         this.token = token
         backend.defaults.headers.common['token'] = token
@@ -457,15 +464,15 @@ export const useStore = defineStore('main', {
     },
 
     async checkSecurity(): Promise<boolean> {
-      return (await backend.get(urlPrefix+'/checkSecurity') as any).isOk
+      return (await backend.get(urlPrefix + '/checkSecurity') as any).isOk
     },
 
     async trySignIn(): Promise<boolean> {
-      this.salt = (await backend.get(urlPrefix+'/signin/salt') as any).salt
+      this.salt = (await backend.get(urlPrefix + '/signin/salt') as any).salt
       let token = localStorage.getItem('t')
       try {
-        await backend.get(urlPrefix+'/hello', {
-          headers: {token: token as string}
+        await backend.get(urlPrefix + '/hello', {
+          headers: { token: token as string }
         })
         this.token = token as string
         backend.defaults.headers.common['token'] = this.token
