@@ -26,6 +26,8 @@ export interface AdapterQQ {
   goCqHttpLoginDeviceLockUrl: string;
   ignoreFriendRequest: boolean;
   goCqHttpSmsNumberTip: string;
+  useSignServer: boolean;
+  signServerConfig: any;
 }
 
 interface TalkLogItem {
@@ -72,7 +74,7 @@ interface DiceServer {
   conns: DiceConnection[]
   baseInfo: DiceBaseInfo
   qrcodes: { [key: string]: string }
-};
+}
 
 interface DiceBaseInfo {
   version: string
@@ -163,19 +165,24 @@ export const useStore = defineStore('main', {
       return info as any as DiceConnection
     },
 
-    async news() {
+    async news(): Promise<{ result: true, checked: boolean, news: string, newsMark: string } | { result: false, err?: string }> {
       const info = await backend.get(urlPrefix + '/utils/news')
       return info as any
     },
 
-    async addImConnection(form: { accountType: number, account: string, password: string, protocol: number, token: string, proxyURL: string, url: string, clientID: string, implementation: string, connectUrl: string, relWorkDir: string }) {
-      const { accountType, account, password, protocol, token, proxyURL, url, clientID, implementation, relWorkDir, connectUrl } = form
+    async checkNews(newsMark: string): Promise<{ result: true; newsMark: string; } | { result: false }> {
+      const info = await backend.post(urlPrefix + '/utils/check_news', { newsMark }, { timeout: 5000 })
+      return info as any
+    },
+
+    async addImConnection(form: { accountType: number, account: string, password: string, protocol: number, token: string, proxyURL: string, url: string, clientID: string, implementation: string, connectUrl: string, accessToken: string, relWorkDir: string, useSignServer: boolean, signServerConfig: any }) {
+      const { accountType, account, password, protocol, token, proxyURL, url, clientID, implementation, relWorkDir, connectUrl, accessToken, useSignServer, signServerConfig } = form
       let info = null
       switch (accountType) {
         //QQ
         case 0:
           if (implementation === 'gocq') {
-            info = await backend.post(urlPrefix + '/im_connections/add', { account, password, protocol }, { timeout: 65000 })
+            info = await backend.post(urlPrefix + '/im_connections/add', { account, password, protocol, useSignServer, signServerConfig }, { timeout: 65000 })
           } else if (implementation === 'walle-q') {
             info = await backend.post(urlPrefix + '/im_connections/addWalleQ', { account, password, protocol }, { timeout: 65000 })
           }
@@ -195,7 +202,7 @@ export const useStore = defineStore('main', {
         case 5:
           info = await backend.post(urlPrefix + '/im_connections/addDodo', { clientID, token }, { timeout: 65000 })
         case 6:
-          info = await backend.post(urlPrefix + '/im_connections/addGocqSeparate', { relWorkDir, connectUrl, account }, { timeout: 65000 })
+          info = await backend.post(urlPrefix + '/im_connections/addGocqSeparate', { relWorkDir, connectUrl, accessToken, account }, { timeout: 65000 })
       }
       return info as any as DiceConnection
     },
@@ -220,8 +227,8 @@ export const useStore = defineStore('main', {
       return info as any as DiceConnection
     },
 
-    async getImConnectionsSetData(i: DiceConnection, { protocol, ignoreFriendRequest }: { protocol: number, ignoreFriendRequest: boolean }) {
-      const info = await backend.post(urlPrefix + '/im_connections/set_data', { id: i.id, protocol, ignoreFriendRequest })
+    async getImConnectionsSetData(i: DiceConnection, { protocol, ignoreFriendRequest, useSignServer, signServerConfig }: { protocol: number, ignoreFriendRequest: boolean, useSignServer?: boolean, signServerConfig?: any }) {
+      const info = await backend.post(urlPrefix + '/im_connections/set_data', { id: i.id, protocol, ignoreFriendRequest, useSignServer, signServerConfig })
       return info as any as DiceConnection
     },
 
@@ -393,6 +400,10 @@ export const useStore = defineStore('main', {
       return info as any
     },
 
+    async jsStatus(): Promise<boolean> {
+      const resp = await apiFetch(urlPrefix + '/js/status', { method: 'GET' })
+      return resp.status
+    },
     async jsList(): Promise<JsScriptInfo[]> {
       return await apiFetch(urlPrefix + '/js/list', {
         method: 'GET', headers: {
@@ -424,6 +435,13 @@ export const useStore = defineStore('main', {
         }
       })
     },
+    async jsShutdown() {
+      return await apiFetch(urlPrefix + '/js/shutdown', {
+        headers: {
+          token: this.token
+        }
+      })
+    },
     async jsExec(code: string) {
       return await apiFetch(urlPrefix + '/js/execute', { body: { value: code } }) as {
         ret: any,
@@ -431,7 +449,22 @@ export const useStore = defineStore('main', {
         err: string,
       }
     },
-
+    async jsEnable(body: any) {
+      return await apiFetch(urlPrefix + '/js/enable', {
+        headers: {
+          token: this.token
+        },
+        body
+      })
+    },
+    async jsDisable(body: any) {
+      return await apiFetch(urlPrefix + '/js/disable', {
+        headers: {
+          token: this.token
+        },
+        body
+      })
+    },
 
     async toolOnebot() {
       return await apiFetch(urlPrefix + '/tool/onebot', {
@@ -469,7 +502,7 @@ export const useStore = defineStore('main', {
 
     async trySignIn(): Promise<boolean> {
       this.salt = (await backend.get(urlPrefix + '/signin/salt') as any).salt
-      let token = localStorage.getItem('t')
+      const token = localStorage.getItem('t')
       try {
         await backend.get(urlPrefix + '/hello', {
           headers: { token: token as string }
@@ -483,6 +516,45 @@ export const useStore = defineStore('main', {
         await this.signIn('defaultSignin')
       }
       return this.token != ''
-    }
+    },
+
+    async helpDocTree(): Promise<{ result: true, data: HelpDoc[] } | { result: false, err?: string }> {
+      return await apiFetch(urlPrefix + '/helpdoc/tree', {
+        method: 'GET', headers: {
+          token: this.token
+        }
+      })
+    },
+
+    async helpDocReload(): Promise<{ result: true } | { result: false, err?: string }> {
+      return await apiFetch(urlPrefix + '/helpdoc/reload', {
+        method: 'POST', headers: {
+          token: this.token
+        }
+      })
+    },
+
+    async helpDocUpload(form: any): Promise<{ result: true } | { result: false, err?: string }> {
+      return await apiFetch(urlPrefix + '/helpdoc/upload', {
+        method: 'POST', headers: {
+          token: this.token
+        }, body: form
+      })
+    },
+
+    async helpDocDelete(keys: string[]): Promise<{ result: true } | { result: false, err?: string }> {
+      return await apiFetch(urlPrefix + '/helpdoc/delete', {
+        method: 'POST',
+        headers: { token: this.token },
+        body: { keys: keys }
+      })
+    },
+
+    async helpGetTextItemPage(param: HelpTextItemQuery): Promise<{ result: true; total: number; data: HelpTextItem[] } | { result: false; err?: string }> {
+      return await apiFetch(urlPrefix + "/helpdoc/textitem/get_page", {
+        method: "POST",
+        body: param,
+      });
+    },
   }
 })

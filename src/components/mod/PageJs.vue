@@ -1,88 +1,93 @@
 <template>
-  <el-tabs v-model="mode" class="demo-tabs">
-    <el-tab-pane label="控制台" name="console"></el-tab-pane>
-    <el-tab-pane label="插件列表" name="list"></el-tab-pane>
-  </el-tabs>
+  <header class="page-header">
+    <el-switch v-model="jsEnable" active-text="启用" inactive-text="关闭" />
+    <el-button v-show="jsEnable" @click="jsReload" type="primary" :icon="Refresh">重载JS</el-button>
+  </header>
 
-  <div v-show="mode == 'console'">
-    <p style="color: #999"><small>注意: 延迟执行的代码，其输出不会立即出现</small></p>
-    <div>
-      <div style="word-break: break-all; margin-bottom: 1rem; white-space: pre-line;">
-        <div v-for="i in jsLines">{{ i }}</div>
-      </div>
-
-      <div ref="editorBox">
-      </div>
-
-      <div>
-        <div style="margin-top: 1rem">
-          <!-- <el-button @click="doSave">上传牌堆(json/yaml/zip)</el-button> -->
-          <el-button @click="doExecute">执行代码</el-button>
-          <el-button @click="jsReload">重载JS</el-button>
-        </div>
-      </div>
+  <el-affix :offset="70" v-if="needReload">
+    <div class="tip-danger">
+      <el-text type="danger" size="large" tag="strong">存在修改，需要重载后生效！</el-text>
     </div>
-  </div>
+  </el-affix>
 
-  <div v-show="mode == 'list'">
-    <el-space style="margin-bottom: 2rem;">
-      <el-upload action="" multiple accept="application/javascript, .js" class="upload" :before-upload="beforeUpload"
-        :file-list="uploadFileList">
-        <el-button type="">上传插件</el-button>
-      </el-upload>
+  <el-row>
+    <el-col :span="24">
+      <el-tabs v-model="mode" class="demo-tabs" :stretch=true>
+        <el-tab-pane label="控制台" name="console">
+          <div>
+            <div ref="editorBox">
+            </div>
+            <div>
+              <div style="margin-top: 1rem">
+                <el-button @click="doExecute" type="success" :icon="CaretRight" :disabled="!jsEnable">执行代码</el-button>
+              </div>
+            </div>
+            <el-text type="danger" tag="p" style="padding: 1rem 0;">注意：延迟执行的代码，其输出不会立即出现</el-text>
+            <div style="word-break: break-all; margin-bottom: 1rem; white-space: pre-line;">
+              <div v-for="i in jsLines">{{ i }}</div>
+            </div>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="插件列表" name="list">
+          <header class="js-list-header">
+            <el-space>
+              <el-upload action="" multiple accept="application/javascript, .js" class="upload"
+                :before-upload="beforeUpload" :file-list="uploadFileList">
+                <el-button type="primary" :icon="Upload">上传插件</el-button>
+              </el-upload>
+              <el-button type="info" :icon="Search" size="small" link tag="a" target="_blank"
+                style="text-decoration: none;" href="https://github.com/sealdice/javascript">获取插件</el-button>
+            </el-space>
+          </header>
+          <main class="js-list-main">
+            <el-card class="js-item" v-for="i, index in jsList" :key="index" shadow="hover">
+              <template #header>
+                <div class="js-item-header">
+                  <el-space>
+                    <el-switch v-model="i.enable" @change="changejsScriptStatus(i.name, i.enable)"
+                      style="--el-switch-on-color: #67C23A; --el-switch-off-color: #F56C6C" />
+                    <el-text size="large" tag="b">{{ i.name }}</el-text>
+                    <el-text>{{ i.version || '<未定义>' }}</el-text>
+                  </el-space>
+                  <el-space>
+                    <el-button @click="doDelete(i, index)" :icon="Delete" type="danger" size="small" plain>删除</el-button>
+                  </el-space>
+                </div>
+              </template>
+              <el-descriptions>
+                <el-descriptions-item :span="3" label="作者">{{ i.author || '<佚名>' }}</el-descriptions-item>
+                <el-descriptions-item :span="3" label="介绍">{{ i.desc || '<暂无>' }}</el-descriptions-item>
+                <el-descriptions-item :span="3" label="主页">{{ i.homepage || '<暂无>' }}</el-descriptions-item>
+                <el-descriptions-item label="许可协议">{{ i.license || '<暂无>' }}</el-descriptions-item>
+                <el-descriptions-item label="安装时间">{{ dayjs.unix(i.installTime).fromNow() }}</el-descriptions-item>
+                <el-descriptions-item label="更新时间">
+                  {{ i.updateTime ? dayjs.unix(i.updateTime).fromNow() : '' || '<暂无>' }}
+                </el-descriptions-item>
+                <el-descriptions-item label="报错信息" :span="3" v-if="i.errText">{{ i.errText }}</el-descriptions-item>
+              </el-descriptions>
+            </el-card>
+          </main>
+        </el-tab-pane>
+      </el-tabs>
+    </el-col>
 
-      <!-- <el-button @click="jsVisitDir">浏览目录</el-button> -->
-      <el-button @click="jsReload">重载JS</el-button>
-      <el-button><el-link href="https://github.com/sealdice/javascript" target="_blank">获取插件</el-link></el-button>
-    </el-space>
-
-    <el-space direction="vertical" :fill="true" wrap style="width: 100%">
-      <div v-for="i, index in jsList">
-        <el-descriptions :title="i.name" :border="false" class="js-item">
-          <template #title>
-            <span>{{ i.name }}</span>
-            <el-button style="float:right" @click="doDelete(i, index)">删除</el-button>
-          </template>
-          <el-descriptions-item label="作者">{{ i.author || '<佚名>' }}</el-descriptions-item>
-          <el-descriptions-item label="版本">{{ i.version || '<未定义>' }}</el-descriptions-item>
-          <el-descriptions-item label="安装时间">{{ dayjs.unix(i.installTime).fromNow() }}</el-descriptions-item>
-          <el-descriptions-item label="许可协议">{{ i.license || '<暂无>' }}</el-descriptions-item>
-          <el-descriptions-item label="主页">{{ i.homepage || '<暂无>' }}</el-descriptions-item>
-          <el-descriptions-item label="更新时间">{{ i.updateTime ? dayjs.unix(i.updateTime).fromNow() : '' || '<暂无>' }}</el-descriptions-item>
-          <el-descriptions-item label="介绍" :span="3">{{ i.desc || '<暂无>' }}</el-descriptions-item>
-          <el-descriptions-item label="报错信息" :span="3" v-if="i.errText">{{ i.errText }}</el-descriptions-item>
-        </el-descriptions>
-      </div>
-    </el-space>
-  </div>
+  </el-row>
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeMount, onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useStore } from '~/store'
-import { urlBase } from '~/backend'
-import filesize from 'filesize'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Refresh, CaretRight, Upload, Search, Delete } from '@element-plus/icons-vue'
 import * as dayjs from 'dayjs'
-
-// import type { UploadProps, UploadUserFile } from 'element-plus'
-import {
-  Location,
-  Document,
-  Menu as IconMenu,
-  Setting,
-  CirclePlusFilled,
-  CircleClose,
-  QuestionFilled,
-  BrushFilled
-} from '@element-plus/icons-vue'
 import { EditorView, basicSetup } from "codemirror"
 import { javascript } from "@codemirror/lang-javascript"
 
-
 const store = useStore()
+const jsEnable = ref(false)
 const editorBox = ref(null);
 const mode = ref('console');
+const needReload = ref(false)
 let editor: EditorView
 
 const jsLines = ref([] as string[])
@@ -137,6 +142,20 @@ const doExecute = async () => {
 let timerId: number
 
 onMounted(async () => {
+  jsEnable.value = await jsStatus()
+  watch(jsEnable, async (newStatus, oldStatus) => {
+    console.log("new:", newStatus, " old:", oldStatus)
+    if (oldStatus !== undefined) {
+      if (newStatus) {
+        console.log("reload")
+        await jsReload()
+      } else {
+        console.log("shutdown")
+        await jsShutdown()
+      }
+    }
+  })
+
   const el = editorBox.value as any as HTMLElement;
   editor = new EditorView({
     extensions: [basicSetup, javascript(), EditorView.lineWrapping,],
@@ -178,6 +197,10 @@ const jsVisitDir = async () => {
   // await store.jsVisitDir();
 }
 
+const jsStatus = async () => {
+  return store.jsStatus()
+}
+
 const refreshList = async () => {
   const lst = await store.jsList();
   jsList.value = lst;
@@ -190,7 +213,21 @@ const jsReload = async () => {
   } else {
     ElMessage.success('已重载')
     await refreshList()
+    needReload.value = false
   }
+  jsEnable.value = await jsStatus()
+}
+
+const jsShutdown = async () => {
+  const ret = await store.jsShutdown()
+  if (ret?.testMode) {
+    ElMessage.success('展示模式无法关闭')
+  } else if (ret?.result === true) {
+    ElMessage.success('已关闭JS支持')
+    jsLines.value = []
+    await refreshList()
+  }
+  jsEnable.value = await jsStatus()
 }
 
 const beforeUpload = async (file: any) => { // UploadRawFile
@@ -199,6 +236,7 @@ const beforeUpload = async (file: any) => { // UploadRawFile
   await store.jsUpload({ form: fd })
   refreshList();
   ElMessage.success('上传完成，请在全部操作完成后，手动重载插件')
+  needReload.value = true
 }
 
 const doDelete = async (data: any, index: number) => {
@@ -217,7 +255,30 @@ const doDelete = async (data: any, index: number) => {
       refreshList()
     }, 1000);
     ElMessage.success('插件已删除，请手动重载后生效')
+    needReload.value = true
   })
+}
+
+const changejsScriptStatus = async (name: string, status: boolean) => {
+  if (status) {
+    const ret = await store.jsEnable({ name })
+    setTimeout(() => {
+      refreshList()
+    }, 1000);
+    if (ret.result) {
+      ElMessage.success('插件已启用，请手动重载后生效')
+    }
+  } else {
+    const ret = await store.jsDisable({ name })
+    setTimeout(() => {
+      refreshList()
+    }, 1000);
+    if (ret.result) {
+      ElMessage.success('插件已禁用，请手动重载后生效')
+    }
+  }
+  needReload.value = true
+  return true
 }
 </script>
 
@@ -260,17 +321,35 @@ const doDelete = async (data: any, index: number) => {
   }
 }
 
+.js-list-header {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.js-list-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem
+}
+
+.js-item-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.js-item-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
 .js-item {
-  .el-descriptions__label {
-    font-weight: bolder;
-  }
-
-  .el-descriptions__title {
-    flex: 1;
-  }
-
-  >.el-descriptions__body {
-    padding: 1.5rem;
-  }
+  min-width: 100%;
 }
 </style>

@@ -1,11 +1,7 @@
 <template>
   <el-affix :offset="60" v-if="modified">
-    <div class="tip">
-      <!-- <p class="title">TIP</p> -->
-      <div style="display: flex; justify-content: space-between; align-content: center; align-items: center">
-        <span>内容已修改，不要忘记保存</span>
-        <!-- <el-button class="button" type="primary" @click="save" :disabled="!modified">点我保存</el-button> -->
-      </div>
+    <div class="tip-danger">
+      <el-text type="danger" size="large" tag="strong">内容已修改，不要忘记保存！</el-text>
     </div>
   </el-affix>
 
@@ -601,7 +597,7 @@ const nameWrapUncheck = (v: boolean) => {
         type: 'warning',
       }
     ).catch(e => {
-      config.playerNameWrapEnable = true;
+      config.value.playerNameWrapEnable = true;
     })
   }
 }
