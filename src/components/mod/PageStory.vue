@@ -225,7 +225,7 @@ onBeforeMount(() => {
             <ElButton @click="logs.forEach(v => v.pitch = v.pitch ? false : true)" :icon="Select">全选</ElButton>
             <ElButton :icon="Delete" @click="DelLogs()"></ElButton>
         </ElButtonGroup>
-        <template v-for="i in logs">
+        <template v-for="i in logs" :key="i.id">
             <ElCard style="margin-top: 10px;" shadow="hover">
                 <span style="padding-right: 1rem;">日志名：{{ i.name }}</span>
                 <ElCheckbox v-model="i.pitch" style="float: right;" />
@@ -261,10 +261,10 @@ onBeforeMount(() => {
                 </ElCollapseItem>
             </ElCollapse>
         </ElCard>
-        <template v-for="v in items">
+        <template v-for="v, i1 in items" :key="i1">
             <p :style="{ color: users[v.IMUserId][0] }">
                 <span>{{ v.nickname }}：</span>
-                <template v-for="p1 in v.message.split('\n')">
+                <template v-for="p1, i2 in v.message.split('\n')" :key="i2">
                     <span>{{ p1 }}</span><br>
                 </template>
             </p>
