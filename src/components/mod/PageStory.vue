@@ -5,7 +5,7 @@ import { useStore, urlPrefix } from '~/store'
 import { apiFetch, backend } from '~/backend'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 interface Log {
     id: number
@@ -122,32 +122,52 @@ const handleLogPageChange = async (val: number) => {
 }
 
 async function DelLog(v: Log, flag = true) {
-    let info = await delLog(v)
-    if (info === true) {
-        ElMessage({
-            message: '删除成功',
-            type: 'success',
-        })
-        if (flag) await refreshLogs();
-    } else {
-        ElMessage({
-            message: '删除失败',
-            type: 'success',
-        })
-    }
+    await ElMessageBox.confirm(
+        '是否删除此跑团日志？',
+        '删除',
+        {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+        }
+    ).then(async () => {
+        let info = await delLog(v)
+        if (info === true) {
+            ElMessage({
+                message: '删除成功',
+                type: 'success',
+            })
+            if (flag) await refreshLogs();
+        } else {
+            ElMessage({
+                message: '删除失败',
+                type: 'success',
+            })
+        }
+    })
 }
 
-function DelLogs() {
-    let ls = []
-    for (const v of logs.value) {
-        if (v.pitch == true) {
-            ls.push(v)
+async function DelLogs() {
+    await ElMessageBox.confirm(
+        '是否删除所选跑团日志？',
+        '删除',
+        {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
         }
-    }
-    for (const v of ls) {
-        DelLog(v, false)
-    }
-    refreshLogs()
+    ).then(async () => {
+        let ls = []
+        for (const v of logs.value) {
+            if (v.pitch == true) {
+                ls.push(v)
+            }
+        }
+        for (const v of ls) {
+            DelLog(v, false)
+        }
+        await refreshLogs()
+    })
 }
 
 async function UploadLog(v: Log) {
@@ -288,8 +308,8 @@ onBeforeMount(() => {
         </main>
         <div style="display: flex; justify-content: center;">
             <el-pagination class="pagination" :page-size="queryLogPage.pageSize" :current-page="queryLogPage.pageNum"
-                :pager-count=6 :total="cur_item" @current-change="handleLogPageChange" layout="prev, pager, next"
-                background />
+                :pager-count=5 :total="cur_item" @current-change="handleLogPageChange" layout="prev, pager, next" background
+                hide-on-single-page />
         </div>
     </template>
     <template v-if="mode == 'items'">
@@ -321,7 +341,7 @@ onBeforeMount(() => {
         </template>
         <div style="display: flex; justify-content: center;">
             <el-pagination class="pagination" :page-size="logItemPage.pageSize" :current-page="logItemPage.pageNum"
-                :pager-count=6 :total="logItemPage.size" @current-change="handleItemPageChange" layout="prev, pager, next"
+                :pager-count=5 :total="logItemPage.size" @current-change="handleItemPageChange" layout="prev, pager, next"
                 background hide-on-single-page />
         </div>
     </template>
