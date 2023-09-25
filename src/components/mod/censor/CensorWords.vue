@@ -1,7 +1,7 @@
 <template>
-  <header>
-    <el-button type="primary" :icon="Refresh" @click="refreshWords" plain>刷新列表</el-button>
-  </header>
+<!--  <header>-->
+<!--    <el-button type="primary" :icon="Refresh" @click="refreshWords" plain>刷新列表</el-button>-->
+<!--  </header>-->
   <main style="margin-top: 1rem;">
     <el-table table-layout="auto" :data="words" :default-sort="{ prop: 'level', order: 'ascending' }">
       <el-table-column label="级别" width="80px">
@@ -26,16 +26,19 @@
   </main>
 </template>
 <script setup lang="ts">
-import {urlPrefix} from "~/store";
+import {urlPrefix, useStore} from "~/store";
 import {backend} from "~/backend";
 import {onMounted, ref} from "vue";
-import {Refresh} from "@element-plus/icons-vue";
+import {useCensorStore} from "~/components/mod/censor/censor";
 
 onMounted(() => {
   refreshWords()
 })
 
 const url = (p: string) => urlPrefix + "/censor/" + p;
+const censorStore = useCensorStore()
+const store = useStore()
+const token = store.token
 
 interface SensitiveRelatedWord {
   word: string
@@ -50,11 +53,18 @@ interface SensitiveWord {
 
 const words = ref<SensitiveWord[]>()
 
+censorStore.$subscribe(async (_, state) => {
+  if (state.wordsNeedRefresh === true) {
+    await refreshWords()
+    state.wordsNeedRefresh = false
+  }
+})
+
 const refreshWords = async () => {
   const c: { result: false } | {
     result: true,
     data: SensitiveWord[]
-  } = await backend.get(url("words"))
+  } = await backend.get(url("words"), {headers: {token}})
   if (c.result) {
     words.value = c.data
   }

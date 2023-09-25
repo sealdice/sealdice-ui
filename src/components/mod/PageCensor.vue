@@ -7,9 +7,9 @@
     </el-button>
   </header>
 
-  <el-affix :offset="60" v-if="modified">
+  <el-affix :offset="60" v-if="censorStore.needReload">
     <div class="tip-danger">
-      <el-text type="danger" size="large" tag="strong">内容已修改，不要忘记保存！</el-text>
+      <el-text type="danger" size="large" tag="strong">存在修改，需要重载后生效！</el-text>
     </div>
   </el-affix>
 
@@ -42,19 +42,21 @@ import {Refresh} from '@element-plus/icons-vue';
 import {onBeforeMount, ref} from 'vue';
 import {urlPrefix, useStore} from '~/store';
 import {backend} from '~/backend'
-import {b} from "ofetch/dist/shared/ofetch.0b644faf";
 
 onBeforeMount(() => {
   refreshCensorStatus()
 })
 
 import CensorFiles from "~/components/mod/censor/CensorFiles.vue";
+import {useCensorStore} from "~/components/mod/censor/censor";
 
 const store = useStore()
 const token = store.token
 
 const url = (p: string) => urlPrefix + "/censor/" + p;
 const censorEnable = ref<boolean>(false)
+
+const censorStore = useCensorStore()
 
 const refreshCensorStatus = async () => {
   const status: { result: false } | {
@@ -72,9 +74,10 @@ const restartCensor = async () => {
     result: true,
     enable: boolean,
     isLoading: boolean
-  } = await backend.post(url("restart"), {});
+  } = await backend.post(url("restart"), {token});
   if (restart.result) {
     censorEnable.value = restart.enable
+    censorStore.reload()
   }
 }
 const enableChange = async (value: boolean) => {
@@ -82,8 +85,6 @@ const enableChange = async (value: boolean) => {
     await restartCensor()
   }
 }
-
-const modified = ref<boolean>(false)
 
 const tab = ref("setting")
 

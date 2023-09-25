@@ -28,10 +28,14 @@
 <script lang="ts" setup>
 import {onMounted, ref} from "vue";
 import {backend} from "~/backend";
-import {urlPrefix} from "~/store";
+import {urlPrefix, useStore} from "~/store";
 import dayjs from "dayjs";
+import {useCensorStore} from "~/components/mod/censor/censor";
 
 const url = (p: string) => urlPrefix + "/censor/" + p;
+const censorStore = useCensorStore()
+const store = useStore()
+const token = store.token
 
 interface CensorLog {
   id: number
@@ -45,11 +49,18 @@ interface CensorLog {
 
 const logs = ref<CensorLog[]>()
 
+censorStore.$subscribe(async (_, state) => {
+  if (state.logsNeedRefresh === true) {
+    await refreshCensorLog()
+    state.logsNeedRefresh = false
+  }
+})
+
 const refreshCensorLog = async () => {
   const c: { result: false } | {
     result: true,
     data: CensorLog[]
-  } = await backend.get(url("logs/page"))
+  } = await backend.get(url("logs/page"), {headers: {token}})
   if (c.result) {
     logs.value = c.data
   }

@@ -1,7 +1,9 @@
 <template>
   <header>
-    <el-button type="primary" :icon="Upload">导入</el-button>
-<!--    <el-button type="primary" :icon="Refresh" @click="refreshFiles" plain>刷新文件</el-button>-->
+    <el-upload action="" multiple accept="application/text,.text,application/toml,.toml"
+               :before-upload="beforeUpload">
+      <el-button type="primary" :icon="Upload">导入</el-button>
+    </el-upload>
   </header>
   <main style="margin-top: 1rem;">
     <el-table table-layout="auto" :data="files">
@@ -38,30 +40,57 @@
 </template>
 
 <script setup lang="ts">
-import {Delete, Refresh, Upload} from "@element-plus/icons-vue";
-import {urlPrefix} from "~/store";
+import {Delete, Upload} from "@element-plus/icons-vue";
+import {urlPrefix, useStore} from "~/store";
 import {backend} from "~/backend";
 import {onBeforeMount, ref} from "vue";
+import {useCensorStore} from "~/components/mod/censor/censor";
+import {ElMessage, UploadUserFile} from "element-plus";
 
 onBeforeMount(() => {
   refreshFiles()
 })
 
+const store = useStore()
 const url = (p: string) => urlPrefix + "/censor/" + p;
+const token = store.token
+const censorStore = useCensorStore()
 
 interface SensitiveWordFile {
   path: string,
   counter: number[]
 }
+
 const files = ref<SensitiveWordFile[]>()
+
+censorStore.$subscribe(async (_, state) => {
+  if (state.filesNeedRefresh === true) {
+    await refreshFiles()
+    state.filesNeedRefresh = false
+  }
+})
 
 const refreshFiles = async () => {
   const c: { result: false } | {
     result: true,
     data: SensitiveWordFile[]
-  } = await backend.get(url("files"))
+  } = await backend.get(url("files"), {headers: {token}})
   if (c.result) {
     files.value = c.data
+  }
+}
+
+const beforeUpload = async (file: UploadUserFile) => {
+  let fd = new FormData()
+  fd.append('file', file as Blob)
+
+  const c = await censorStore.fileUpload({form: fd})
+  if (c.result) {
+    await refreshFiles()
+    ElMessage.success('上传完成，请在全部操作完成后，手动重载拦截')
+    censorStore.markReload()
+  } else {
+    ElMessage.error('上传失败！' + c.err)
   }
 }
 

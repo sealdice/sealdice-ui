@@ -7,6 +7,13 @@
   </header>
   <el-form label-width="100px">
     <h4>匹配选项</h4>
+    <el-form-item label="拦截模式">
+      <el-radio-group v-model="config.mode">
+        <el-radio-button :label="Mode.All">{{ "全部" }}</el-radio-button>
+        <el-radio-button :label="Mode.OnlyCommand">{{ "仅命令" }}</el-radio-button>
+        <el-radio-button :label="Mode.OnlyReply">{{ "仅回复" }}</el-radio-button>
+      </el-radio-group>
+    </el-form-item>
     <el-form-item label="大小写敏感">
       <el-checkbox label="开启" v-model="config.caseSensitive"/>
     </el-form-item>
@@ -30,7 +37,7 @@
       </el-space>
       <el-space direction="vertical" alignment="normal">
         <div>
-          <el-checkbox-group v-model="noticeHandlers">
+          <el-checkbox-group v-model="config.levelConfig.notice.handlers">
             <el-checkbox v-for="handle in defaultHandles" :label="handle.key">
               {{ handle.name }}
             </el-checkbox>
@@ -53,7 +60,7 @@
       </el-space>
       <el-space direction="vertical" alignment="normal">
         <div>
-          <el-checkbox-group v-model="cautionHandlers">
+          <el-checkbox-group v-model="config.levelConfig.caution.handlers">
             <el-checkbox v-for="handle in defaultHandles" :label="handle.key">
               {{ handle.name }}
             </el-checkbox>
@@ -76,7 +83,7 @@
       </el-space>
       <el-space direction="vertical" alignment="normal">
         <div>
-          <el-checkbox-group v-model="warningHandlers">
+          <el-checkbox-group v-model="config.levelConfig.warning.handlers">
             <el-checkbox v-for="handle in defaultHandles" :label="handle.key">
               {{ handle.name }}
             </el-checkbox>
@@ -99,7 +106,7 @@
       </el-space>
       <el-space direction="vertical" alignment="normal">
         <div>
-          <el-checkbox-group v-model="dangerHandlers">
+          <el-checkbox-group v-model="config.levelConfig.danger.handlers">
             <el-checkbox v-for="handle in defaultHandles" :label="handle.key">
               {{ handle.name }}
             </el-checkbox>
@@ -116,22 +123,38 @@
 
 <script lang="ts" setup>
 
-import {onBeforeMount, ref, toRaw, watch} from "vue";
+import {nextTick, onBeforeMount, onBeforeUnmount, ref, watch} from "vue";
 import {backend} from "~/backend";
-import {urlPrefix} from "~/store";
-import {objDiff} from "~/utils";
+import {urlPrefix, useStore} from "~/store";
 import {DocumentChecked} from "@element-plus/icons-vue";
 import {isArray, isEqual, isObject, transform} from "lodash-es";
 import {ElMessage} from "element-plus";
-import * as trace_events from "trace_events";
+import {useCensorStore} from "~/components/mod/censor/censor";
 
-onBeforeMount(() => {
-  refreshCensorConfig()
+onBeforeMount(async () => {
+  await refreshCensorConfig()
+  nextTick(() => {
+    modified.value = false
+  })
 })
 
+onBeforeUnmount(() => {
+  clearInterval(timerId)
+})
+
+const store = useStore()
 const url = (p: string) => urlPrefix + "/censor/" + p;
+const token = store.token
+const censorStore = useCensorStore()
+
+const enum Mode {
+  All = 0,
+  OnlyCommand,
+  OnlyReply,
+}
 
 interface Config {
+  mode: Mode
   caseSensitive: boolean
   matchPinyin: boolean
   filterRegex: string
@@ -139,6 +162,7 @@ interface Config {
 }
 
 const config = ref<Config>({
+  mode: Mode.All,
   caseSensitive: false,
   matchPinyin: false,
   filterRegex: "",
@@ -149,10 +173,6 @@ const config = ref<Config>({
     danger: {threshold: 0, handlers: [], score: 0},
   },
 })
-const noticeHandlers = ref<string[]>([])
-const cautionHandlers = ref<string[]>([])
-const warningHandlers = ref<string[]>([])
-const dangerHandlers = ref<string[]>([])
 
 interface LevelConfigs {
   notice: LevelConfig
@@ -181,42 +201,31 @@ const modified = ref<boolean>(false)
 watch(config, () => {
   modified.value = true
 }, {deep: true});
-watch(noticeHandlers, () => {
-  modified.value = true
-}, {deep: true});
-watch(cautionHandlers, () => {
-  modified.value = true
-}, {deep: true});
-watch(warningHandlers, () => {
-  modified.value = true
-}, {deep: true});
-watch(dangerHandlers, () => {
-  modified.value = true
-}, {deep: true});
 
 const getCensorConfig = async () => {
-  const c: { result: false } | {
-    result: true
-    caseSensitive: boolean
-    matchPinyin: boolean
-    filterRegex: string
-    levelConfig: LevelConfigs
-  } = await backend.get(url("config"));
+  const c = await censorStore.getConfig()
   if (c.result) {
     return c
   }
 }
 
+censorStore.$subscribe(async (_, state) => {
+  if (state.settingsNeedRefresh === true) {
+    await refreshCensorConfig()
+    state.settingsNeedRefresh = false
+  }
+})
+
+let timerId: number
 const refreshCensorConfig = async () => {
   const c = await getCensorConfig()
   if (c) {
     config.value = c
-    noticeHandlers.value = c.levelConfig.notice.handlers
-    cautionHandlers.value = c.levelConfig.caution.handlers
-    warningHandlers.value = c.levelConfig.warning.handlers
-    dangerHandlers.value = c.levelConfig.danger.handlers
-    modified.value = false
   }
+  modified.value = false
+  await nextTick(() => {
+    modified.value = false
+  })
 }
 
 const confDiff = (object: any, base: any) => {
@@ -233,22 +242,21 @@ const confDiff = (object: any, base: any) => {
 }
 
 const submit = async () => {
-  config.value.levelConfig.notice.handlers = noticeHandlers.value
-  config.value.levelConfig.caution.handlers = cautionHandlers.value
-  config.value.levelConfig.warning.handlers = warningHandlers.value
-  config.value.levelConfig.danger.handlers = dangerHandlers.value
   const conf = await getCensorConfig()
   const modify = confDiff(config.value, conf)
 
-  const resp : {result: true} | {result: false, err: string} = await backend.post(url("config"), modify);
+  const resp = await censorStore.saveConfig(modify);
   if (resp.result) {
     ElMessage.success("保存设置成功")
   } else {
     ElMessage.error("保存设置失败，" + resp.err)
   }
 
-
   await refreshCensorConfig()
+  censorStore.markReload()
   modified.value = false
+  await nextTick(() => {
+    modified.value = false
+  })
 }
 </script>
