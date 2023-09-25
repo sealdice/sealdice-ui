@@ -5,9 +5,23 @@
       内容已修改，不要忘记保存！
     </el-text>
   </header>
-  <el-form label-width="100px">
+  <el-form label-width="130px">
     <h4>匹配选项</h4>
-    <el-form-item label="拦截模式">
+    <el-form-item>
+      <template #label>
+        <el-text>拦截模式</el-text>
+        <el-tooltip raw-content
+                    content="">
+          <template #content>
+            全部：会对所有收到的消息进行检查，命中时拒绝回复，<el-tag size="small" type="info" disable-transitions>拦截_拦截提示_全部模式</el-tag>不为空时会发送提醒。<br />
+            仅命令：只会对收到的以 <strong>指令前缀</strong> 开头的消息进行检查，命中时拒绝回复，<el-tag size="small" type="info" disable-transitions>拦截_拦截提示_仅命令模式</el-tag>不为空时会发送提醒。<br />
+            仅回复：只检查回复内容，命中时回复将替换为<el-tag size="small" type="info" disable-transitions>拦截_拦截提示_仅回复模式</el-tag>的内容。
+          </template>
+          <el-icon>
+            <question-filled/>
+          </el-icon>
+        </el-tooltip>
+      </template>
       <el-radio-group v-model="config.mode">
         <el-radio-button :label="Mode.All">{{ "全部" }}</el-radio-button>
         <el-radio-button :label="Mode.OnlyCommand">{{ "仅命令" }}</el-radio-button>
@@ -17,21 +31,43 @@
     <el-form-item label="大小写敏感">
       <el-checkbox label="开启" v-model="config.caseSensitive"/>
     </el-form-item>
-    <el-form-item label="匹配拼音">
+    <el-form-item>
+      <template #label>
+        <el-text>匹配拼音</el-text>
+        <el-tooltip
+            content="匹配敏感词拼音，勾选大小写敏感时该项无效。">
+          <el-icon>
+            <question-filled/>
+          </el-icon>
+        </el-tooltip>
+      </template>
       <el-checkbox label="开启" v-model="config.matchPinyin"/>
     </el-form-item>
-    <el-form-item label="过滤字符正则">
+    <el-form-item>
+      <template #label>
+        <el-text>过滤字符正则</el-text>
+        <el-tooltip
+            content='判断敏感词时，忽略过滤字符。如敏感词为"114514"，指定过滤字符为空白，则"114   514"也会命中敏感词。'>
+          <el-icon>
+            <question-filled/>
+          </el-icon>
+        </el-tooltip>
+      </template>
       <el-input v-model="config.filterRegex" style="width: 12rem;"/>
     </el-form-item>
-
-    <h4>响应设置</h4>
+  </el-form>
+  <div>
+    <h4 style="display: inline;">响应设置</h4>
+    <el-text style="display: block; margin: 1rem 0;" type="warning" size="small">注：超过阈值时，对应用户该等级的计数会被清空重新计算。</el-text>
+  </div>
+  <el-form >
     <el-form-item>
       <template #label>
         <el-tag type="info" style="align-self: center">提醒</el-tag>
       </template>
       <el-space wrap>
         <el-text>用户触发超过</el-text>
-        <el-input-number v-model="config.levelConfig.notice.threshold" style="margin: 0 0.5rem;" size="small" :step="1"
+        <el-input-number v-model="config.levelConfig.notice.threshold" style="margin: 0 0.5rem;" size="small" :step="1" :min="0"
                          step-strictly/>
         <el-text>次时：</el-text>
       </el-space>
@@ -43,7 +79,7 @@
             </el-checkbox>
           </el-checkbox-group>
           <el-text>怒气值</el-text>
-          <el-input-number v-model="config.levelConfig.notice.score" style="margin-left: 1rem;" size="small" :step="1"
+          <el-input-number v-model="config.levelConfig.notice.score" style="margin-left: 1rem;" size="small" :step="1" :min="0"
                            step-strictly/>
         </div>
       </el-space>
@@ -54,7 +90,7 @@
       </template>
       <el-space wrap>
         <el-text>用户触发超过</el-text>
-        <el-input-number v-model="config.levelConfig.caution.threshold" style="margin: 0 0.5rem;" size="small" :step="1"
+        <el-input-number v-model="config.levelConfig.caution.threshold" style="margin: 0 0.5rem;" size="small" :step="1" :min="0"
                          step-strictly/>
         <el-text>次时：</el-text>
       </el-space>
@@ -66,7 +102,7 @@
             </el-checkbox>
           </el-checkbox-group>
           <el-text>怒气值</el-text>
-          <el-input-number v-model="config.levelConfig.caution.score" style="margin-left: 1rem;" size="small" :step="1"
+          <el-input-number v-model="config.levelConfig.caution.score" style="margin-left: 1rem;" size="small" :step="1" :min="0"
                            step-strictly/>
         </div>
       </el-space>
@@ -77,7 +113,7 @@
       </template>
       <el-space wrap>
         <el-text>用户触发超过</el-text>
-        <el-input-number v-model="config.levelConfig.warning.threshold" style="margin: 0 0.5rem;" size="small" :step="1"
+        <el-input-number v-model="config.levelConfig.warning.threshold" style="margin: 0 0.5rem;" size="small" :step="1" :min="0"
                          step-strictly/>
         <el-text>次时：</el-text>
       </el-space>
@@ -89,7 +125,7 @@
             </el-checkbox>
           </el-checkbox-group>
           <el-text>怒气值</el-text>
-          <el-input-number v-model="config.levelConfig.warning.score" style="margin-left: 1rem;" size="small" :step="1"
+          <el-input-number v-model="config.levelConfig.warning.score" style="margin-left: 1rem;" size="small" :step="1" :min="0"
                            step-strictly/>
         </div>
       </el-space>
@@ -100,7 +136,7 @@
       </template>
       <el-space wrap>
         <el-text>用户触发超过</el-text>
-        <el-input-number v-model="config.levelConfig.danger.threshold" style="margin: 0 0.5rem;" size="small" :step="1"
+        <el-input-number v-model="config.levelConfig.danger.threshold" style="margin: 0 0.5rem;" size="small" :step="1" :min="0"
                          step-strictly/>
         <el-text>次时：</el-text>
       </el-space>
@@ -112,7 +148,7 @@
             </el-checkbox>
           </el-checkbox-group>
           <el-text>怒气值</el-text>
-          <el-input-number v-model="config.levelConfig.danger.score" style="margin-left: 1rem;" size="small" :step="1"
+          <el-input-number v-model="config.levelConfig.danger.score" style="margin-left: 1rem;" size="small" :step="1" :min="0"
                            step-strictly/>
         </div>
       </el-space>
@@ -126,7 +162,7 @@
 import {nextTick, onBeforeMount, onBeforeUnmount, ref, watch} from "vue";
 import {backend} from "~/backend";
 import {urlPrefix, useStore} from "~/store";
-import {DocumentChecked} from "@element-plus/icons-vue";
+import {DocumentChecked, QuestionFilled} from "@element-plus/icons-vue";
 import {isArray, isEqual, isObject, transform} from "lodash-es";
 import {ElMessage} from "element-plus";
 import {useCensorStore} from "~/components/mod/censor/censor";

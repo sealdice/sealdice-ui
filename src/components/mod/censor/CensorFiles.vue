@@ -1,4 +1,29 @@
 <template>
+  <div class="tip">
+    <el-collapse class="filetips">
+      <el-collapse-item name="txt-template">
+        <template #title>
+          <el-text tag="strong">敏感词库模板</el-text>
+        </template>
+        <el-text tag="p">
+          <strong>敏感词库为 .txt 文件，内容示例如下：</strong><br/>
+          <br/>
+          #notice<br/>
+          提醒级词汇1<br/>
+          提醒级词汇2<br/>
+          #caution<br/>
+          注意级词汇1<br/>
+          注意级词汇2<br/>
+          #warning<br/>
+          警告级词汇<br/>
+          #danger<br/>
+          危险级词汇<br/>
+          <br/>
+          <em>其中每一行代表一个词汇。</em>
+        </el-text>
+      </el-collapse-item>
+    </el-collapse>
+  </div>
   <header>
     <el-upload action="" multiple accept="application/text,.text,application/toml,.toml"
                :before-upload="beforeUpload">
@@ -30,7 +55,7 @@
       </el-table-column>
       <el-table-column fixed="right">
         <template #default="scope">
-          <el-button size="small" type="danger" :icon="Delete" plain>
+          <el-button size="small" type="danger" :icon="Delete" plain @click="deleteFile(scope.row.key)">
             删除
           </el-button>
         </template>
@@ -45,7 +70,7 @@ import {urlPrefix, useStore} from "~/store";
 import {backend} from "~/backend";
 import {onBeforeMount, ref} from "vue";
 import {useCensorStore} from "~/components/mod/censor/censor";
-import {ElMessage, UploadUserFile} from "element-plus";
+import {ElMessage, ElMessageBox, UploadUserFile} from "element-plus";
 
 onBeforeMount(() => {
   refreshFiles()
@@ -57,6 +82,7 @@ const token = store.token
 const censorStore = useCensorStore()
 
 interface SensitiveWordFile {
+  key: string
   path: string,
   counter: number[]
 }
@@ -94,4 +120,42 @@ const beforeUpload = async (file: UploadUserFile) => {
   }
 }
 
+const deleteFile = async (key: string) => {
+  await ElMessageBox.confirm(
+      '是否删除此词库？',
+      '删除',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+  ).then(async () => {
+    const c: { result: true } | { result: false, err: string }
+        = await backend.delete(url("files"), {
+      headers: {token},
+      data: {keys: [key]}
+    })
+    if (c.result) {
+      ElMessage.success('删除词库完成，请在全部操作完成后，手动重载拦截')
+      censorStore.markReload()
+    } else {
+      ElMessage.error('删除词库失败！' + c.err)
+    }
+  })
+}
+
 </script>
+
+<style scoped>
+.filetips {
+  background-color: #f3f5f7;
+}
+
+.filetips :deep().el-collapse-item__header {
+  background-color: #f3f5f7;
+}
+
+.filetips :deep().el-collapse-item__wrap {
+  background-color: #f3f5f7;
+}
+</style>

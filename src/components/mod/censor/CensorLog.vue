@@ -1,5 +1,8 @@
 <template>
-  <el-table table-layout="auto" :data="logs">
+  <header>
+    <el-button type="primary" :icon="Refresh" @click="refreshCensorLog">刷新</el-button>
+  </header>
+  <el-table style="margin-top: 1rem;" table-layout="auto" :data="logs">
     <el-table-column label="命中级别" width="60px">
       <template #default="scope">
         <el-tag v-if="scope.row.highestLevel === 1" type="info" size="small" disable-transitions>提醒</el-tag>
@@ -31,6 +34,7 @@ import {backend} from "~/backend";
 import {urlPrefix, useStore} from "~/store";
 import dayjs from "dayjs";
 import {useCensorStore} from "~/components/mod/censor/censor";
+import {Refresh} from "@element-plus/icons-vue";
 
 const url = (p: string) => urlPrefix + "/censor/" + p;
 const censorStore = useCensorStore()
