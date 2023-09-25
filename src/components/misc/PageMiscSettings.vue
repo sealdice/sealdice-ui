@@ -365,7 +365,6 @@
       </template>
       <el-input v-model="config.maxCocCardGen" clearable style="width: 14rem;" />
     </el-form-item>
-
     <el-form-item>
       <template #label>
         <div>
