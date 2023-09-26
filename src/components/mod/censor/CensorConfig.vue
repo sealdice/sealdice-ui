@@ -14,8 +14,8 @@
                     content="">
           <template #content>
             仅回复：只检查回复内容，命中时回复将替换为<el-tag size="small" type="info" disable-transitions>拦截_拦截提示_仅回复模式</el-tag>的内容。<br />
-            仅命令：只会对收到的以 <strong>指令前缀</strong> 开头的消息进行检查，命中时拒绝回复，<el-tag size="small" type="info" disable-transitions>拦截_拦截提示_仅命令模式</el-tag>不为空时会发送提醒。<br />
-            全部：会对所有收到的消息进行检查，命中时拒绝回复，<el-tag size="small" type="info" disable-transitions>拦截_拦截提示_全部模式</el-tag>不为空时会发送提醒。
+            仅命令：只会对收到的以 <strong>指令前缀</strong> 开头的消息进行检查，命中时拒绝回复，<el-tag size="small" type="info" disable-transitions>拦截_拦截提示_仅命令模式</el-tag>不为空时会发送拦截提示。<br />
+            全部：会对所有收到的消息进行检查，命中时拒绝回复，<el-tag size="small" type="info" disable-transitions>拦截_拦截提示_全部模式</el-tag>不为空时会发送拦截提示。
           </template>
           <el-icon>
             <question-filled/>
@@ -23,8 +23,8 @@
         </el-tooltip>
       </template>
       <el-radio-group v-model="config.mode">
-        <el-radio-button :label="Mode.OnlyCommand">{{ "仅命令" }}</el-radio-button>
         <el-radio-button :label="Mode.OnlyReply">{{ "仅回复" }}</el-radio-button>
+        <el-radio-button :label="Mode.OnlyCommand">{{ "仅命令" }}</el-radio-button>
         <el-radio-button :label="Mode.All">{{ "全部" }}</el-radio-button>
       </el-radio-group>
     </el-form-item>
