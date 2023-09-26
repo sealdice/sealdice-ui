@@ -1,4 +1,5 @@
 <template>
+  <h4>敏感词列表</h4>
 <!--  <header>-->
 <!--    <el-button type="primary" :icon="Refresh" @click="refreshWords" plain>刷新列表</el-button>-->
 <!--  </header>-->
