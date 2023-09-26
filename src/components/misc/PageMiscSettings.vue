@@ -281,7 +281,7 @@
           <span>刷屏警告速率</span>
         </div>
       </template>
-      补充速率 <el-tooltip raw-content content="支持以下格式，单位必须是秒: <br/>@every 3s 每3秒一个<br/>3 每秒3个">
+      补充速率 <el-tooltip raw-content content="支持以下格式: <br/>@every 3s 每3秒一个<br/>3 每秒3个">
         <el-icon><question-filled /></el-icon>
       </el-tooltip>
       <el-input v-model="config.customReplenishRate" clearable style="width: 14rem;" /> <br/>
@@ -292,8 +292,8 @@
     </el-form-item>
 
     <el-form-item>
-      <div>刷屏警告工作原理如下：</div>
       <div>
+        刷屏警告工作原理如下：
         <ul>
           <li>有一个装令牌的桶，桶最多能装【上限】枚令牌</li>
           <li>每次指令视作拿走一枚令牌</li>
@@ -302,7 +302,7 @@
         </ul>
       </div>
       <div>如果您感觉难以理解，为了稳定性还是不要更改比较好！</div>
-      <div>对频率限制的所有更改<b>重启后生效</b></div>
+      <div>对速率限制的所有更改<b>重启后生效</b></div>
     </el-form-item>
 
     <h2>访问控制</h2>
