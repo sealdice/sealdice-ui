@@ -181,7 +181,7 @@
     <el-form-item>
       <template #label>
         <div>
-          <span>不响应群聊.bot裸指令</span>
+          <span>忽略.bot裸指令</span>
           <el-tooltip raw-content content="默认关闭。开启后在群聊中只有@骰子才会响应.bot">
             <el-icon><question-filled /></el-icon>
           </el-tooltip>
