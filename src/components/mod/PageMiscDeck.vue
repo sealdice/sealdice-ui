@@ -34,6 +34,7 @@
                 <el-space size="small" alignment="center">
                   <el-text size="large" tag="b">{{ i.name }}</el-text>
                   <el-text>{{ i.version }}</el-text>
+                  <el-tag size="small" :type="i.fileFormat === 'toml' ? 'success' : ''">{{ i.fileFormat }}</el-tag>
                 </el-space>
                 <el-text v-if="i.cloud" type="primary" size="small">
                   <el-icon><MostlyCloudy /></el-icon>
