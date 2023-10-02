@@ -42,7 +42,7 @@
                 </el-text>
               </el-space>
               <el-space>
-                <el-popconfirm v-if="i.updateUrls" width="220"
+                <el-popconfirm v-if="i.updateUrls && i.updateUrls.length > 0" width="220"
                                confirm-button-text="确认"
                                cancel-button-text="取消"
                                @confirm="doCheckUpdate(i, index)"
