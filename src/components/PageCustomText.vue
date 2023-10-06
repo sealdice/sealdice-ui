@@ -55,8 +55,7 @@
     </el-collapse>
   </div>
 
-  <el-space style="margin: 1rem 0" size="small" wrap>
-    <el-text>筛选：</el-text>
+  <el-space style="margin: 1rem 0" wrap>
     <el-radio-group v-model="filterMode" @change="handleFilterModeChange">
       <el-radio v-for="mode of filterModes" :key="mode.value" :label="mode.value">
         <template #default>{{ mode.desc }}</template>
@@ -181,6 +180,9 @@ const doSort = (category: string) => {
 
   switch (filterMode.value) {
     case 'all':
+      break
+    case 'unmodified':
+      items = items.filter(item => !helpInfo[item[0]].modified)
       break
     case 'modified':
       items = items.filter(item => helpInfo[item[0]].modified)
@@ -358,6 +360,7 @@ interface FilterMode {
 
 const filterModes: FilterMode[] = [
   { value: "all", desc: "全部" },
+  { value: "unmodified", desc: "默认文案" },
   { value: "modified", desc: "修改过" },
   { value: "group", desc: "指定分组" },
   { value: "name", desc: "搜索文案名称" },
