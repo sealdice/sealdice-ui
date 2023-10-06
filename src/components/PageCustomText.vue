@@ -69,8 +69,8 @@
       </el-select>
     </div>
     <div v-if="filterMode === 'name'">
-      <el-text>文案名：</el-text>
-      <el-input style="display: inline;" v-model="currentFilterName"></el-input>
+      <el-text>文案名称：</el-text>
+      <el-input style="display: inline;" v-model="currentFilterName" clearable></el-input>
     </div>
   </el-space>
 
@@ -361,7 +361,7 @@ const filterModes: FilterMode[] = [
   { value: "modified", desc: "修改过" },
   { value: "deprecated", desc: "已移除" },
   { value: "group", desc: "指定分组" },
-  { value: "name", desc: "文案名称" },
+  { value: "name", desc: "搜索文案名称" },
 ]
 const filterMode = ref<string>("all")
 const filterGroups = ref<string[]>([])
