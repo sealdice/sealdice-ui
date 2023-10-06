@@ -64,6 +64,7 @@ interface DiceServer {
         origin: (string[])[],
         vars: string[],
         modified: boolean,
+        notBuiltin: boolean,
         topOrder: number,
         subType: string,
       }

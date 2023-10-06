@@ -6,8 +6,8 @@
     </div>
   </el-affix>
 
-  <div style="margin-bottom: 2rem;">
-    <el-button style="float: right; height: 3rem; margin-left: .5rem;" @click="dialogImportVisible = true">导入/导出</el-button>
+  <div style="margin-bottom: 1rem;">
+    <el-button type="primary" style="float: right; height: 3rem; margin-left: .5rem;" @click="dialogImportVisible = true">导入/导出</el-button>
 
     <el-collapse>
         <el-collapse-item name="1">
@@ -55,17 +55,29 @@
     </el-collapse>
   </div>
 
+  <el-space style="margin: 1rem 0" wrap>
+    <el-text>筛选：</el-text>
+    <el-radio-group v-model="filterMode" @change="handleFilterModeChange">
+      <el-radio v-for="mode of filterModes" :key="mode.value" :label="mode.value">
+        <template #default>{{ mode.desc }}</template>
+      </el-radio>
+    </el-radio-group>
+    <el-select v-if="filterMode === 'group'" v-model="currentFilterGroup" filterable allow-create>
+      <el-option v-for="group of filterGroups" :key="group" :label="group" :value="group"></el-option>
+    </el-select>
+  </el-space>
+
   <el-row :gutter="20">
-    <el-col :xs="24" :span="12" v-for="[k, v] in reactive(doSort(category))">
+    <el-col :xs="24" :span="12" v-for="[k, v] in reactive(doSort(category, currentFilterGroup))">
       <el-form ref="form" label-width="auto" label-position="top">
         <el-form-item>
           <template #label>
             <div>
-              <el-tag effect="dark" type="info" style="margin-right: .5rem;">
-                {{((store.curDice.customTextsHelpInfo[category][k.toString()]) as any).subType || (((store.curDice.customTextsHelpInfo[category][k.toString()]) as any).notBuiltin ? '旧版文本' : '其它') }}
+              <el-tag effect="dark" type="info" style="margin-right: .5rem;" disable-transitions>
+                {{(store.curDice.customTextsHelpInfo[category][k.toString()]).subType || ((store.curDice.customTextsHelpInfo[category][k.toString()]).notBuiltin ? '旧版文本' : '其它') }}
               </el-tag>{{ k.toString() }}
 
-              <template v-if="((store.curDice.customTextsHelpInfo[category][k.toString()]) as any).notBuiltin">
+              <template v-if="(store.curDice.customTextsHelpInfo[category][k.toString()]).notBuiltin">
                 <el-tooltip content="移除 - 这个文本在新版的默认配置中不被使用，<br />但升级而来时仍可能被使用，请确认无用后删除" raw-content placement="bottom-end">
                   <el-icon style="float: right; margin-left: 1rem;" @click="askDeleteValue(category, k.toString())">
                     <delete-filled />
@@ -104,7 +116,7 @@
             </el-row>
           </div>
           <div>
-            <el-tag v-for="i in store.curDice.customTextsHelpInfo[category][k.toString()].vars">{{i}}</el-tag>
+            <el-tag size="small" disable-transitions v-for="i in store.curDice.customTextsHelpInfo[category][k.toString()].vars">{{i}}</el-tag>
             <!-- {{ store.curDice.customTextsHelpInfo[category][k.toString()] }} -->
           </div>
         </el-form-item>
@@ -134,23 +146,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onBeforeMount, onDeactivated, watch, nextTick } from "vue";
+import {ref, reactive, onBeforeMount, onDeactivated, watch, nextTick, computed} from "vue";
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useStore } from '~/store'
-import {Management, DeleteFilled, DocumentChecked} from '@element-plus/icons-vue'
+import { DeleteFilled, DocumentChecked } from '@element-plus/icons-vue'
 
 import {
-  Location,
-  Document,
-  Menu as IconMenu,
-  Setting,
   CirclePlusFilled,
   CircleClose,
   QuestionFilled,
-  BrushFilled,
-  VideoPlay
+  BrushFilled
 } from '@element-plus/icons-vue'
-import { cloneDeep } from "lodash-es";
+import { cloneDeep, uniq, startsWith } from "lodash-es";
 import ClipboardJS from 'clipboard'
 
 const store = useStore()
@@ -161,9 +168,24 @@ const importOnlyCurrent = ref(true)
 const importImpact = ref(true)
 const dialogImportVisible = ref(false)
 
-const doSort = (category: string) => {
-  const items = Object.entries(store.curDice.customTexts[category]);
+const doSort = (category: string, curFilterGroup: string) => {
+  let items = Object.entries(store.curDice.customTexts[category]);
   const helpInfo = store.curDice.customTextsHelpInfo[category];
+
+  switch (filterMode.value) {
+    case 'all':
+      break
+    case 'modified':
+      items = items.filter(item => helpInfo[item[0]].modified)
+      break
+    case 'deprecated':
+      items = items.filter(item => helpInfo[item[0]].notBuiltin)
+      break
+    case 'group':
+      filterGroups.value = uniq(Object.values(helpInfo).map(info => info.subType))
+      items = items.filter(item => startsWith(helpInfo[item[0]].subType, curFilterGroup))
+      break
+  }
 
   const out = items.sort((a, b) => {
     const ia = helpInfo[a[0]];
@@ -179,7 +201,6 @@ const doSort = (category: string) => {
 
     return 0;
   });
-  console.log(22, out);
   return out;
 }
 
@@ -317,6 +338,31 @@ const askResetValue = async (category: string, keyName: string) => {
 }
 
 const modified = ref(false)
+
+interface FilterMode {
+  value: string,
+  desc: string,
+}
+
+const filterModes: FilterMode[] = [
+  { value: "all", desc: "全部" },
+  { value: "modified", desc: "修改过" },
+  { value: "deprecated", desc: "已移除" },
+  { value: "group", desc: "指定分组" },
+]
+const filterMode = ref<string>("all")
+const filterGroups = ref<string[]>([])
+const currentFilterGroup = ref<string>("")
+
+const handleFilterModeChange = (newMode: string) => {
+  if (newMode === 'group') {
+    nextTick(() => {
+      currentFilterGroup.value = filterGroups.value[0]
+    })
+  } else {
+    currentFilterGroup.value = ''
+  }
+}
 
 onBeforeMount(async () => {
   modified.value = false
