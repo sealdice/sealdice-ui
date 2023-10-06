@@ -55,20 +55,27 @@
     </el-collapse>
   </div>
 
-  <el-space style="margin: 1rem 0" wrap>
+  <el-space style="margin: 1rem 0" size="small" wrap>
     <el-text>筛选：</el-text>
     <el-radio-group v-model="filterMode" @change="handleFilterModeChange">
       <el-radio v-for="mode of filterModes" :key="mode.value" :label="mode.value">
         <template #default>{{ mode.desc }}</template>
       </el-radio>
     </el-radio-group>
-    <el-select v-if="filterMode === 'group'" v-model="currentFilterGroup" filterable allow-create>
-      <el-option v-for="group of filterGroups" :key="group" :label="group" :value="group"></el-option>
-    </el-select>
+    <div v-if="filterMode === 'group'">
+      <el-text>分组：</el-text>
+      <el-select v-model="currentFilterGroup" filterable allow-create>
+        <el-option v-for="group of filterGroups" :key="group" :label="group" :value="group"></el-option>
+      </el-select>
+    </div>
+    <div v-if="filterMode === 'name'">
+      <el-text>文案名：</el-text>
+      <el-input style="display: inline;" v-model="currentFilterName"></el-input>
+    </div>
   </el-space>
 
   <el-row :gutter="20">
-    <el-col :xs="24" :span="12" v-for="[k, v] in reactive(doSort(category, currentFilterGroup))">
+    <el-col :xs="24" :span="12" v-for="[k, v] in reactive(doSort(category))">
       <el-form ref="form" label-width="auto" label-position="top">
         <el-form-item>
           <template #label>
@@ -168,7 +175,7 @@ const importOnlyCurrent = ref(true)
 const importImpact = ref(true)
 const dialogImportVisible = ref(false)
 
-const doSort = (category: string, curFilterGroup: string) => {
+const doSort = (category: string) => {
   let items = Object.entries(store.curDice.customTexts[category]);
   const helpInfo = store.curDice.customTextsHelpInfo[category];
 
@@ -183,7 +190,12 @@ const doSort = (category: string, curFilterGroup: string) => {
       break
     case 'group':
       filterGroups.value = sortBy(uniq(Object.values(helpInfo).map(info => trim(info.subType)).filter(subType => subType !== "")))
-      items = items.filter(item => startsWith(trim(helpInfo[item[0]].subType), curFilterGroup))
+      items = items.filter(item => startsWith(trim(helpInfo[item[0]].subType), currentFilterGroup.value))
+      break
+    case 'name':
+      if (currentFilterName.value != "") {
+        items = items.filter(item => item[0].includes(currentFilterName.value))
+      }
       break
   }
 
@@ -349,18 +361,22 @@ const filterModes: FilterMode[] = [
   { value: "modified", desc: "修改过" },
   { value: "deprecated", desc: "已移除" },
   { value: "group", desc: "指定分组" },
+  { value: "name", desc: "文案名称" },
 ]
 const filterMode = ref<string>("all")
 const filterGroups = ref<string[]>([])
 const currentFilterGroup = ref<string>("")
+const currentFilterName = ref<string>("")
 
 const handleFilterModeChange = (newMode: string) => {
   if (newMode === 'group') {
     nextTick(() => {
       currentFilterGroup.value = filterGroups.value[0]
+      currentFilterName.value = ''
     })
   } else {
     currentFilterGroup.value = ''
+    currentFilterName.value = ''
   }
 }
 
