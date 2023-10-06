@@ -383,6 +383,10 @@ const handleFilterModeChange = (newMode: string) => {
 onBeforeMount(async () => {
   modified.value = false
 })
+
+watch(props, () => {
+  filterMode.value = 'all'
+})
 </script>
 
 <style>
