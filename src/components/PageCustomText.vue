@@ -146,7 +146,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, reactive, onBeforeMount, onDeactivated, watch, nextTick, computed} from "vue";
+import {ref, reactive, onBeforeMount, watch, nextTick} from "vue";
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useStore } from '~/store'
 import { DeleteFilled, DocumentChecked } from '@element-plus/icons-vue'
@@ -157,7 +157,7 @@ import {
   QuestionFilled,
   BrushFilled
 } from '@element-plus/icons-vue'
-import { cloneDeep, uniq, startsWith } from "lodash-es";
+import {cloneDeep, uniq, sortBy, trim, startsWith} from "lodash-es";
 import ClipboardJS from 'clipboard'
 
 const store = useStore()
@@ -182,8 +182,8 @@ const doSort = (category: string, curFilterGroup: string) => {
       items = items.filter(item => helpInfo[item[0]].notBuiltin)
       break
     case 'group':
-      filterGroups.value = uniq(Object.values(helpInfo).map(info => info.subType))
-      items = items.filter(item => startsWith(helpInfo[item[0]].subType, curFilterGroup))
+      filterGroups.value = sortBy(uniq(Object.values(helpInfo).map(info => trim(info.subType)).filter(subType => subType !== "")))
+      items = items.filter(item => startsWith(trim(helpInfo[item[0]].subType), curFilterGroup))
       break
   }
 
