@@ -371,7 +371,7 @@ const filterGroups = ref<string[]>([])
 const currentFilterGroup = ref<string>("")
 const currentFilterName = ref<string>("")
 
-const handleFilterModeChange = (newMode: string) => {
+const handleFilterModeChange = (newMode: any) => {
   if (newMode === 'group') {
     nextTick(() => {
       currentFilterGroup.value = filterGroups.value[0]
