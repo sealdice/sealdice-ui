@@ -359,9 +359,9 @@ interface FilterMode {
 const filterModes: FilterMode[] = [
   { value: "all", desc: "全部" },
   { value: "modified", desc: "修改过" },
-  { value: "deprecated", desc: "已移除" },
   { value: "group", desc: "指定分组" },
   { value: "name", desc: "搜索文案名称" },
+  { value: "deprecated", desc: "已移除" },
 ]
 const filterMode = ref<string>("all")
 const filterGroups = ref<string[]>([])
