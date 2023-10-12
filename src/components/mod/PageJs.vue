@@ -111,74 +111,74 @@
         </el-tab-pane>
         <el-tab-pane label="插件设置" name="config">
           <main>
-              <el-card class="js-item" v-for="i in jsConfig">
+              <el-card class="js-item" v-for="i in jsConfig" >
                   <template #header>
                       <div class="js-item-header">
                           <el-space>
-                              <el-text size="large">{{ i.pluginName }}</el-text>
+                              <el-text size="large">{{ (i as unknown as JsPluginConfig)['pluginName'] }}</el-text>
                           </el-space>
                       </div>
                   </template>
 
-                  <el-form v-for="c in i.configs">
+                  <el-form v-for="c in (i as unknown as JsPluginConfig)['configs']" >
                       <template #header>
                           <div class="js-item-header">
                               <el-space>
-                                  <el-text size="large">{{ c.key }}</el-text>
+                                  <el-text size="large">{{ (c as unknown as JsPluginConfigItem).key }}</el-text>
                               </el-space>
                           </div>
                       </template>
-                      <el-form-item v-if="c.type == 'string'">
-                          <el-form-item label="字符串配置项:">{{c.key}}</el-form-item>
+                      <el-form-item v-if="(c as unknown as JsPluginConfigItem).type == 'string'">
+                          <el-form-item label="字符串配置项:">{{(c as unknown as JsPluginConfigItem).key}}</el-form-item>
                           <el-form-item :span="30">
-                              <el-input v-model="c.value" @change="doJsConfigChanged()"></el-input>
+                              <el-input v-model="(c as unknown as JsPluginConfigItem).value" @change="doJsConfigChanged()"></el-input>
                           </el-form-item>
-                          <template v-if="c.deprecated">
+                          <template v-if="(c as unknown as JsPluginConfigItem).deprecated">
                               <el-tooltip content="移除 - 这个配置在新版的默认配置中不被使用，<br />但升级而来时仍可能被使用，请确认无用后删除" raw-content
                                           placement="bottom-end">
-                                  <el-icon style="float: right; margin-left: 1rem;" @click="">
+                                  <el-icon style="float: right; margin-left: 1rem;" @click="doDeleteUnusedConfig((i as unknown as JsPluginConfig)['configs'], (c as unknown as JsPluginConfigItem).key)">
                                       <delete-filled />
                                   </el-icon>
                               </el-tooltip>
                           </template>
                       </el-form-item>
-                      <el-form-item v-if="c.type == 'int'">
-                          <el-form-item label="整数配置项:">{{c.key}}</el-form-item>
+                      <el-form-item v-if="(c as unknown as JsPluginConfigItem).type == 'int'">
+                          <el-form-item label="整数配置项:">{{(c as unknown as JsPluginConfigItem).key}}</el-form-item>
                           <el-form-item :span="30">
-                              <el-input-number v-model="c.value" type="number" @change="doJsConfigChanged()"></el-input-number>
+                              <el-input-number v-model="(c as unknown as JsPluginConfigItem).value" type="number" @change="doJsConfigChanged()"></el-input-number>
                           </el-form-item>
-                          <template v-if="c.deprecated">
+                          <template v-if="(c as unknown as JsPluginConfigItem).deprecated">
                               <el-tooltip content="移除 - 这个配置在新版的默认配置中不被使用，<br />但升级而来时仍可能被使用，请确认无用后删除" raw-content
                                           placement="bottom-end">
-                                  <el-icon style="float: right; margin-left: 1rem;" @click="">
+                                  <el-icon style="float: right; margin-left: 1rem;" @click="doDeleteUnusedConfig((i as unknown as JsPluginConfig)['configs'], (c as unknown as JsPluginConfigItem).key)">
                                       <delete-filled />
                                   </el-icon>
                               </el-tooltip>
                           </template>
                       </el-form-item>
-                      <el-form-item v-if="c.type == 'float'">
-                          <el-form-item label="浮点数配置项:">{{c.key}}</el-form-item>
+                      <el-form-item v-if="(c as unknown as JsPluginConfigItem).type == 'float'">
+                          <el-form-item label="浮点数配置项:">{{(c as unknown as JsPluginConfigItem).key}}</el-form-item>
                           <el-form-item :span="30">
-                              <el-input-number v-model="c.value" type="number" @change="doJsConfigChanged()"></el-input-number>
+                              <el-input-number v-model="(c as unknown as JsPluginConfigItem).value" type="number" @change="doJsConfigChanged()"></el-input-number>
                           </el-form-item>
-                          <template v-if="c.deprecated">
+                          <template v-if="(c as unknown as JsPluginConfigItem).deprecated">
                               <el-tooltip content="移除 - 这个配置在新版的默认配置中不被使用，<br />但升级而来时仍可能被使用，请确认无用后删除" raw-content
                                           placement="bottom-end">
-                                  <el-icon style="float: right; margin-left: 1rem;" @click="">
+                                  <el-icon style="float: right; margin-left: 1rem;" @click="doDeleteUnusedConfig((i as unknown as JsPluginConfig)['configs'], (c as unknown as JsPluginConfigItem).key)">
                                       <delete-filled />
                                   </el-icon>
                               </el-tooltip>
                           </template>
                       </el-form-item>
-                      <el-form-item v-if="c.type == 'bool'">
-                          <el-form-item label="布尔配置项:">{{c.key}}</el-form-item>
+                      <el-form-item v-if="(c as unknown as JsPluginConfigItem).type == 'bool'">
+                          <el-form-item label="布尔配置项:">{{(c as unknown as JsPluginConfigItem).key}}</el-form-item>
                           <el-form-item :span="30">
-                              <el-switch v-model="c.value" @change="doJsConfigChanged()"></el-switch>
+                              <el-switch v-model="(c as unknown as JsPluginConfigItem).value" @change="doJsConfigChanged()"></el-switch>
                           </el-form-item>
-                          <template v-if="c.deprecated">
+                          <template v-if="(c as unknown as JsPluginConfigItem).deprecated">
                               <el-tooltip content="移除 - 这个配置在新版的默认配置中不被使用，<br />但升级而来时仍可能被使用，请确认无用后删除" raw-content
                                           placement="bottom-end">
-                                  <el-icon style="float: right; margin-left: 1rem;" @click="">
+                                  <el-icon style="float: right; margin-left: 1rem;" @click="doDeleteUnusedConfig((i as unknown as JsPluginConfig)['configs'], (c as unknown as JsPluginConfigItem).key)">
                                       <delete-filled />
                                   </el-icon>
                               </el-tooltip>
@@ -284,7 +284,7 @@ const doJsConfigChanged = () => {
 
 const doDeleteUnusedConfig = (pluginName: any, key: any) => {
   ElMessageBox.confirm(
-    `删除插件《${pluginName}》的配置项《${key}》，确定吗？`,
+    `删除插件 ${pluginName} 的配置项 ${key} ，确定吗？`,
     '删除',
     {
       confirmButtonText: '确定',
@@ -292,7 +292,7 @@ const doDeleteUnusedConfig = (pluginName: any, key: any) => {
       type: 'warning',
     }
   ).then(async (data) => {
-    await store.jsDeleteUnusedConfig({ pluginName, key })
+    await store.jsDeleteUnusedConfig(pluginName, key )
     setTimeout(() => {
       // 稍等等再重载，以免出现没删掉
       refreshConfig()
@@ -359,7 +359,7 @@ onBeforeUnmount(() => {
 
 
 const jsList = ref<JsScriptInfo[]>([]);
-const jsConfig = ref<Map<string, JsPluginConfig>>(new Map());
+const jsConfig = ref<Map<string, JsPluginConfig>>(new Map<string, JsPluginConfig>());
 const uploadFileList = ref<any[]>([]);
 
 const jsVisitDir = async () => {
