@@ -111,7 +111,7 @@
         </el-tab-pane>
         <el-tab-pane label="插件设置" name="config">
           <main>
-              <el-card class="js-item" v-for="i in jsConfig">
+              <el-card class="js-item" v-for="i in jsConfig.values()">
                   <template #header>
                       <div class="js-item-header">
                           <el-space>
@@ -119,7 +119,7 @@
                           </el-space>
                       </div>
                   </template>
-                  <el-row v-for="c in i.configs">
+                  <el-row v-for="c in i.configs.values()">
                       <template #header>
                           <div class="js-item-header">
                               <el-space>
@@ -235,7 +235,7 @@ const doExecute = async () => {
 }
 
 let jsConfigEdited = ref(false)
-const doJsConfigChanged = (pluginName, key, value) => {
+const doJsConfigChanged = (pluginName: any, key: any, value: any) => {
   jsConfigEdited.value = true
 }
 

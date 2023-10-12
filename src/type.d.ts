@@ -15,7 +15,7 @@ interface JsScriptInfo {
 
 interface JsPluginConfigItem {
   key: string;
-  Type: string;
+  type: string;
   defaultValue: any;
   value: any;
   deprecated: boolean;
