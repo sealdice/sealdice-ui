@@ -13,6 +13,17 @@ interface JsScriptInfo {
   updateUrls?: string[]
 }
 
+interface JsPluginConfigItem {
+  key: string;
+  Type: string;
+  defaultValue: any;
+  value: any;
+  deprecated: boolean;
+}
+interface JsPluginConfig {
+  pluginName: string;
+  configs: Map<string, JsPluginConfigItem>;
+}
 interface HelpDocData {
   helpInfo: HelpDocHelpInfo;
   docTree: HelpDoc[];

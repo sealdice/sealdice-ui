@@ -9,7 +9,12 @@
       <el-text type="danger" size="large" tag="strong">存在修改，需要重载后生效！</el-text>
     </div>
   </el-affix>
-
+  <el-affix :offset="70" v-if="jsConfigEdited">
+    <div class="tip-danger">
+      <el-text type="danger" size="large" tag="strong">配置内容已修改，不要忘记保存！</el-text>
+        <el-button class="button" type="primary" :icon="DocumentChecked" :disabled="!jsConfigEdited" @click="doJsConfigSave()">点我保存</el-button>
+    </div>
+  </el-affix>
   <el-row>
     <el-col :span="24">
       <el-tabs v-model="mode" class="demo-tabs" :stretch=true>
@@ -104,6 +109,60 @@
 <!--            </el-dialog>-->
           </main>
         </el-tab-pane>
+        <el-tab-pane label="插件设置" name="config">
+          <main>
+              <el-card class="js-item" v-for="i in jsConfig">
+                  <template #header>
+                      <div class="js-item-header">
+                          <el-space>
+                              <el-text size="large">{{ i.pluginName }}</el-text>
+                          </el-space>
+                      </div>
+                  </template>
+                  <el-row v-for="c in i.configs">
+                      <template #header>
+                          <div class="js-item-header">
+                              <el-space>
+                                  <el-text size="large">{{ c.key }}</el-text>
+                              </el-space>
+                          </div>
+                      </template>
+                      <el-descriptions v-if="c.type == 'string'">
+                          <el-descriptions-item label="字符串配置项:">{{c.key}}</el-descriptions-item>
+                          <el-descriptions-item :span="30">
+                                  <el-input v-model="c.value" @change="doJsConfigChanged(i.pluginName, c.key, c.value)"></el-input>
+                          </el-descriptions-item>
+                      </el-descriptions>
+                      <el-descriptions v-if="c.type == 'int'">
+                          <el-descriptions-item label="整数配置项:">{{c.key}}</el-descriptions-item>
+                          <el-descriptions-item :span="30">
+                              <el-input-number v-model="c.value" type="number" @change="doJsConfigChanged(i.pluginName, c.key, c.value)"></el-input-number>
+                          </el-descriptions-item>
+                      </el-descriptions>
+                      <el-descriptions v-if="c.type == 'float'">
+                          <el-descriptions-item label="浮点数配置项:">{{c.key}}</el-descriptions-item>
+                          <el-descriptions-item :span="30">
+                              <el-input-number v-model="c.value" type="number" @change="doJsConfigChanged(i.pluginName, c.key, c.value)"></el-input-number>
+                          </el-descriptions-item>
+                      </el-descriptions>
+                      <el-descriptions v-if="c.type == 'bool'">
+                          <el-descriptions-item label="布尔配置项:">{{c.key}}</el-descriptions-item>
+                          <el-descriptions-item :span="30">
+                              <el-switch v-model="c.value" @change="doJsConfigChanged(i.pluginName, c.key, c.value)"></el-switch>
+                          </el-descriptions-item>
+                      </el-descriptions>
+<!--                      <el-descriptions v-if="c.type == 'array'">-->
+<!--                          <el-descriptions-item label="列表配置项:">{{c.key}}</el-descriptions-item>-->
+<!--                          <el-descriptions-item :span="30">-->
+<!--                              <el-select v-model="c.value" @change="doJsConfigChanged()" multiple>-->
+<!--                                  <el-option v-for="item in c.value" :key="item" :label="item" :value="item"></el-option>-->
+<!--                              </el-select>-->
+<!--                          </el-descriptions-item>-->
+<!--                      </el-descriptions>-->
+                  </el-row>
+              </el-card>
+          </main>
+        </el-tab-pane>
       </el-tabs>
     </el-col>
 
@@ -175,6 +234,16 @@ const doExecute = async () => {
   jsLines.value = lines
 }
 
+let jsConfigEdited = ref(false)
+const doJsConfigChanged = (pluginName, key, value) => {
+  jsConfigEdited.value = true
+}
+
+const doJsConfigSave = async () => {
+  await store.jsSetConfig(jsConfig.value)
+    jsConfigEdited.value = false
+    ElMessage.success('已保存')
+}
 
 let timerId: number
 
@@ -210,6 +279,7 @@ onMounted(async () => {
   if (jsList.value.length > 0) {
     mode.value = 'list'
   }
+  await refreshConfig();
 
   timerId = setInterval(async () => {
     console.log('refresh')
@@ -227,6 +297,7 @@ onBeforeUnmount(() => {
 
 
 const jsList = ref<JsScriptInfo[]>([]);
+const jsConfig = ref<Map<string, JsPluginConfig>>(new Map());
 const uploadFileList = ref<any[]>([]);
 
 const jsVisitDir = async () => {
@@ -241,6 +312,11 @@ const jsStatus = async () => {
 const refreshList = async () => {
   const lst = await store.jsList();
   jsList.value = lst;
+}
+
+const refreshConfig = async () => {
+  const lst = await store.jsGetConfig();
+  jsConfig.value = lst;
 }
 
 const jsReload = async () => {
