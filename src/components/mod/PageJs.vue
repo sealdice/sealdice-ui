@@ -111,7 +111,7 @@
         </el-tab-pane>
         <el-tab-pane label="插件设置" name="config">
           <main>
-              <el-card class="js-item" v-for="i in jsConfig.values()">
+              <el-card class="js-item" v-for="i in jsConfig">
                   <template #header>
                       <div class="js-item-header">
                           <el-space>
@@ -119,7 +119,8 @@
                           </el-space>
                       </div>
                   </template>
-                  <el-row v-for="c in i.configs.values()">
+
+                  <el-form v-for="c in i.configs">
                       <template #header>
                           <div class="js-item-header">
                               <el-space>
@@ -127,30 +128,62 @@
                               </el-space>
                           </div>
                       </template>
-                      <el-descriptions v-if="c.type == 'string'">
-                          <el-descriptions-item label="字符串配置项:">{{c.key}}</el-descriptions-item>
-                          <el-descriptions-item :span="30">
-                                  <el-input v-model="c.value" @change="doJsConfigChanged(i.pluginName, c.key, c.value)"></el-input>
-                          </el-descriptions-item>
-                      </el-descriptions>
-                      <el-descriptions v-if="c.type == 'int'">
-                          <el-descriptions-item label="整数配置项:">{{c.key}}</el-descriptions-item>
-                          <el-descriptions-item :span="30">
-                              <el-input-number v-model="c.value" type="number" @change="doJsConfigChanged(i.pluginName, c.key, c.value)"></el-input-number>
-                          </el-descriptions-item>
-                      </el-descriptions>
-                      <el-descriptions v-if="c.type == 'float'">
-                          <el-descriptions-item label="浮点数配置项:">{{c.key}}</el-descriptions-item>
-                          <el-descriptions-item :span="30">
-                              <el-input-number v-model="c.value" type="number" @change="doJsConfigChanged(i.pluginName, c.key, c.value)"></el-input-number>
-                          </el-descriptions-item>
-                      </el-descriptions>
-                      <el-descriptions v-if="c.type == 'bool'">
-                          <el-descriptions-item label="布尔配置项:">{{c.key}}</el-descriptions-item>
-                          <el-descriptions-item :span="30">
-                              <el-switch v-model="c.value" @change="doJsConfigChanged(i.pluginName, c.key, c.value)"></el-switch>
-                          </el-descriptions-item>
-                      </el-descriptions>
+                      <el-form-item v-if="c.type == 'string'">
+                          <el-form-item label="字符串配置项:">{{c.key}}</el-form-item>
+                          <el-form-item :span="30">
+                              <el-input v-model="c.value" @change="doJsConfigChanged()"></el-input>
+                          </el-form-item>
+                          <template v-if="c.deprecated">
+                              <el-tooltip content="移除 - 这个配置在新版的默认配置中不被使用，<br />但升级而来时仍可能被使用，请确认无用后删除" raw-content
+                                          placement="bottom-end">
+                                  <el-icon style="float: right; margin-left: 1rem;" @click="">
+                                      <delete-filled />
+                                  </el-icon>
+                              </el-tooltip>
+                          </template>
+                      </el-form-item>
+                      <el-form-item v-if="c.type == 'int'">
+                          <el-form-item label="整数配置项:">{{c.key}}</el-form-item>
+                          <el-form-item :span="30">
+                              <el-input-number v-model="c.value" type="number" @change="doJsConfigChanged()"></el-input-number>
+                          </el-form-item>
+                          <template v-if="c.deprecated">
+                              <el-tooltip content="移除 - 这个配置在新版的默认配置中不被使用，<br />但升级而来时仍可能被使用，请确认无用后删除" raw-content
+                                          placement="bottom-end">
+                                  <el-icon style="float: right; margin-left: 1rem;" @click="">
+                                      <delete-filled />
+                                  </el-icon>
+                              </el-tooltip>
+                          </template>
+                      </el-form-item>
+                      <el-form-item v-if="c.type == 'float'">
+                          <el-form-item label="浮点数配置项:">{{c.key}}</el-form-item>
+                          <el-form-item :span="30">
+                              <el-input-number v-model="c.value" type="number" @change="doJsConfigChanged()"></el-input-number>
+                          </el-form-item>
+                          <template v-if="c.deprecated">
+                              <el-tooltip content="移除 - 这个配置在新版的默认配置中不被使用，<br />但升级而来时仍可能被使用，请确认无用后删除" raw-content
+                                          placement="bottom-end">
+                                  <el-icon style="float: right; margin-left: 1rem;" @click="">
+                                      <delete-filled />
+                                  </el-icon>
+                              </el-tooltip>
+                          </template>
+                      </el-form-item>
+                      <el-form-item v-if="c.type == 'bool'">
+                          <el-form-item label="布尔配置项:">{{c.key}}</el-form-item>
+                          <el-form-item :span="30">
+                              <el-switch v-model="c.value" @change="doJsConfigChanged()"></el-switch>
+                          </el-form-item>
+                          <template v-if="c.deprecated">
+                              <el-tooltip content="移除 - 这个配置在新版的默认配置中不被使用，<br />但升级而来时仍可能被使用，请确认无用后删除" raw-content
+                                          placement="bottom-end">
+                                  <el-icon style="float: right; margin-left: 1rem;" @click="">
+                                      <delete-filled />
+                                  </el-icon>
+                              </el-tooltip>
+                          </template>
+                      </el-form-item>
 <!--                      <el-descriptions v-if="c.type == 'array'">-->
 <!--                          <el-descriptions-item label="列表配置项:">{{c.key}}</el-descriptions-item>-->
 <!--                          <el-descriptions-item :span="30">-->
@@ -159,7 +192,7 @@
 <!--                              </el-select>-->
 <!--                          </el-descriptions-item>-->
 <!--                      </el-descriptions>-->
-                  </el-row>
+                  </el-form>
               </el-card>
           </main>
         </el-tab-pane>
@@ -173,7 +206,17 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useStore } from '~/store'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {Refresh, CaretRight, Upload, Search, Delete, Setting, Download, DocumentChecked} from '@element-plus/icons-vue'
+import {
+    Refresh,
+    CaretRight,
+    Upload,
+    Search,
+    Delete,
+    Setting,
+    Download,
+    DocumentChecked,
+    DeleteFilled
+} from '@element-plus/icons-vue'
 import * as dayjs from 'dayjs'
 import { EditorView, basicSetup } from "codemirror"
 import { javascript } from "@codemirror/lang-javascript"
@@ -235,8 +278,27 @@ const doExecute = async () => {
 }
 
 let jsConfigEdited = ref(false)
-const doJsConfigChanged = (pluginName: any, key: any, value: any) => {
+const doJsConfigChanged = () => {
   jsConfigEdited.value = true
+}
+
+const doDeleteUnusedConfig = (pluginName: any, key: any) => {
+  ElMessageBox.confirm(
+    `删除插件《${pluginName}》的配置项《${key}》，确定吗？`,
+    '删除',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(async (data) => {
+    await store.jsDeleteUnusedConfig({ pluginName, key })
+    setTimeout(() => {
+      // 稍等等再重载，以免出现没删掉
+      refreshConfig()
+    }, 1000);
+    ElMessage.success('配置项已删除')
+  })
 }
 
 const doJsConfigSave = async () => {

@@ -18,6 +18,7 @@ interface JsPluginConfigItem {
   type: string;
   defaultValue: any;
   value: any;
+  option: any[];
   deprecated: boolean;
 }
 interface JsPluginConfig {

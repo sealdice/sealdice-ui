@@ -475,6 +475,11 @@ export const useStore = defineStore('main', {
     async jsSetConfig(configs: any) {
         return await backend.post(urlPrefix + '/js/set_configs',  configs)
     },
+    async jsDeleteUnusedConfig(form: {pluginName: any, key: any}) {
+      let data = new Map()
+      data.set(form.pluginName, form.key)
+      return await backend.post(urlPrefix + '/js/delete_unused_config', data)
+    },
     async jsGetRecord() {
       return await apiFetch(urlPrefix + '/js/get_record', {
         method: 'GET', headers: {
