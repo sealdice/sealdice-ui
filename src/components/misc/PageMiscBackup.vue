@@ -32,7 +32,7 @@
         </el-radio-group>
       </el-form-item>
       <el-form-item label="保留数量" v-if="cfg.backupCleanStrategy === 1">
-        <el-input-number v-model="cfg.backupCleanKeepCount" min="1" step="1"/>
+        <el-input-number v-model="cfg.backupCleanKeepCount" :min="1" :step="1"/>
       </el-form-item>
       <el-form-item v-if="cfg.backupCleanStrategy === 2">
         <template #label>
