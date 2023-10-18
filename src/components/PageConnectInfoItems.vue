@@ -125,7 +125,7 @@
 
           <template v-if="i.platform === 'QQ' && i.protocolType === 'red'">
             <el-form-item label="协议">
-              <div>Red</div>
+              <div>[WIP]Red</div>
             </el-form-item>
             <el-form-item label="协议版本">
               <div>{{ i.adapter?.redVersion || '未知' }}</div>
@@ -414,12 +414,14 @@
   <el-dialog v-model="dialogFormVisible" title="帐号登录" :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false" class="the-dialog">
     <el-button style="float: right; margin-top: -4rem;" @click="openSocks">辅助工具-13325端口</el-button>
     <template v-if="form.step === 1">
+      <el-alert v-if="form.accountType === 7" type="warning" :closable="false" style="margin-bottom: 1.5rem;">开发中，部分功能不支持。</el-alert>
+
       <el-form :model="form">
         <el-form-item label="账号类型" :label-width="formLabelWidth">
           <el-select v-model="form.accountType">
             <el-option label="QQ账号" :value="0"></el-option>
             <el-option label="QQ账号(gocq分离部署)" :value="6"></el-option>
-            <el-option label="QQ账号(chronocat red协议)" :value="7"></el-option>
+            <el-option label="[WIP]QQ账号(chronocat red协议)" :value="7"></el-option>
             <el-option label="Discord账号" :value="1"></el-option>
             <el-option label="KOOK(开黑啦)账号" :value="2"></el-option>
             <el-option label="Telegram帐号" :value="3"></el-option>
