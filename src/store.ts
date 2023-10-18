@@ -29,6 +29,9 @@ export interface AdapterQQ {
   goCqHttpSmsNumberTip: string;
   useSignServer: boolean;
   signServerConfig: any;
+  redVersion: string;
+  host: string;
+  port: number;
 }
 
 interface TalkLogItem {

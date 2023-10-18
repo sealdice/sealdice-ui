@@ -92,7 +92,7 @@
             <div>{{i.adapter?.connectUrl}}</div>
           </el-form-item>
 
-          <template v-if="i.platform === 'QQ' && (i.ProtocolType === 'onebot' || i.ProtocolType === 'walle-q')">
+          <template v-if="i.platform === 'QQ' && (i.protocolType === 'onebot' || i.protocolType === 'walle-q')">
             <!-- <el-form-item label="忽略好友请求">
               <div>{{i.adapter?.ignoreFriendRequest ? '是' : '否'}}</div>
             </el-form-item> -->
@@ -123,7 +123,7 @@
             </el-form-item>
           </template>
 
-          <template v-if="i.platform === 'QQ' && i.ProtocolType === 'red'">
+          <template v-if="i.platform === 'QQ' && i.protocolType === 'red'">
             <el-form-item label="协议">
               <div>Red</div>
             </el-form-item>
@@ -1033,7 +1033,7 @@ const goStepTwo = async () => {
   setRecentLogin()
   duringRelogin.value = false;
 
-  store.addImConnection(form).then((conn) => {
+  store.addImConnection(form as any).then((conn) => {
     if ((conn as any).testMode) {
       isTestMode.value = true
     } else {
