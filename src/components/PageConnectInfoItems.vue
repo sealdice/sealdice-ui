@@ -796,6 +796,7 @@
             <div>把 AppKey 复制到 ClientID 内</div>
             <div>把 AppSecret 复制到 Token 内</div>
             <div>创建完成之后点击 应用功能 - 机器人与消息推送 并将机器人配置的开关打开</div>
+            <div>请务必确保 推送方式/消息接受模式 都为 Stream 模式</div>
             <div>点击发布后 复制 RobotCode 到 RobotCode 内</div>
           </small>
         </el-form-item>
