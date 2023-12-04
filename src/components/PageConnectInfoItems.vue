@@ -961,6 +961,15 @@
         <!-- <template #extra></template> -->
       </el-result>
     </template>
+    <template v-else-if="form.step === 4">
+      <el-result
+        icon="success"
+        title="成功啦!"
+        sub-title="操作完成，现在可以进行下一步了"
+      >
+        <!-- <template #extra></template> -->
+      </el-result>
+    </template>
 
     <template #footer>
       <span class="dialog-footer">
@@ -1182,11 +1191,17 @@ const setEnable = async (i: DiceConnection, val: boolean) => {
     // 重复登录时，也打开这个窗口
     activities.value = []
     dialogFormVisible.value = true
-    form.step = 2
 
-    activities.value.push(fullActivities[4])
-    activities.value.push(fullActivities[5])
-    activities.value.push(fullActivities[2])
+    
+    if (i.adapter.useInPackGoCqhttp) {
+      form.step = 2
+      activities.value.push(fullActivities[4])
+      activities.value.push(fullActivities[5])
+      activities.value.push(fullActivities[2])
+    } else {
+      form.step = 4
+      form.isEnd = true
+    }
   }
 }
 
@@ -1269,15 +1284,21 @@ const gocqhttpReLogin = async (i: DiceConnection) => {
   }
   store.gocqhttpReloginImConnection(i).then(theConn => {
     curConnId.value = i.id;
+  }).finally(() => {
+    form.isEnd = true
   })
   // 重复登录时，也打开这个窗口
   activities.value = []
   dialogFormVisible.value = true
-  form.step = 2
 
-  activities.value.push(fullActivities[4])
-  activities.value.push(fullActivities[5])
-  activities.value.push(fullActivities[2])
+  if (i.adapter.useInPackGoCqhttp) {
+    form.step = 2
+    activities.value.push(fullActivities[4])
+    activities.value.push(fullActivities[5])
+    activities.value.push(fullActivities[2])
+  } else {
+    form.step = 4
+  }
 }
 
 const signConfigType: Ref<'none' | 'simple' | 'advanced'> = ref('none')
