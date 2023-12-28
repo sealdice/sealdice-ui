@@ -37,26 +37,31 @@
                   <el-switch v-model="item.data.active" @click="item.data.changed = true"
                     style="--el-switch-on-color: var(--el-color-success); --el-switch-off-color: var(--el-color-danger)" />
                   <el-space size="small" wrap>
-                    <el-text size="large" tag="strong">{{ item.data.groupId }}</el-text>
+                    <el-text style="max-width: 23rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;" size="large" tag="strong">{{ item.data.groupId }}</el-text>
                     <el-text>「{{ item.data.groupName || '未获取到' }}」</el-text>
                   </el-space>
                 </el-space>
                 <el-space>
                   <el-button type="success" size="small" :icon="DocumentChecked" plain v-if="item.data.changed"
                     @click="saveOne(item.data, item.index)">保存</el-button>
-                  <el-tooltip v-for="_, j in item.data.diceIdExistsMap" :key="j" raw-content :content="j.toString() + '<br>有二次确认'">
-                    <el-button type="danger" size="small" :icon="Close" plain
-                      @click="quitGroup(item.data, item.index, j.toString())">退群
-                      {{ j.toString().slice(-4) }}</el-button>
-                  </el-tooltip>
+                  <template v-if="item.data.groupId.startsWith('QQ-Group:')">
+                    <el-tooltip v-for="_, j in item.data.diceIdExistsMap" :key="j" raw-content
+                      :content="j.toString() + '<br>有二次确认'">
+                      <el-button type="danger" size="small" :icon="Close" plain
+                        @click="quitGroup(item.data, item.index, j.toString())">退群
+                        {{ j.toString().slice(-4) }}</el-button>
+                    </el-tooltip>
+                  </template>
                 </el-space>
               </div>
             </template>
             <el-descriptions>
-              <el-descriptions-item label="上次使用">{{ item.data.recentDiceSendTime ? dayjs.unix(item.data.recentDiceSendTime).fromNow() :
+              <el-descriptions-item label="上次使用">{{ item.data.recentDiceSendTime ?
+                dayjs.unix(item.data.recentDiceSendTime).fromNow() :
                 '从未'
               }}</el-descriptions-item>
-              <el-descriptions-item label="入群时间">{{ item.data.enteredTime ? dayjs.unix(item.data.enteredTime).fromNow() : '未知'
+              <el-descriptions-item label="入群时间">{{ item.data.enteredTime ? dayjs.unix(item.data.enteredTime).fromNow() :
+                '未知'
               }}</el-descriptions-item>
               <el-descriptions-item label="邀请人">{{ item.data.inviteUserId || '未知' }}</el-descriptions-item>
               <el-descriptions-item label="Log状态">{{ item.data.logOn ? '开启' : '关闭' }}</el-descriptions-item>
@@ -64,9 +69,10 @@
               <el-descriptions-item />
               <el-descriptions-item :span="3" label="启用扩展">
                 <span v-if="item.data.tmpExtList">
-                  <el-tag size="small" v-for="group of item.data.tmpExtList" style="margin-right: 0.5rem;" disable-transitions>{{
-                    group
-                  }}</el-tag>
+                  <el-tag size="small" v-for="group of item.data.tmpExtList" style="margin-right: 0.5rem;"
+                    disable-transitions>{{
+                      group
+                    }}</el-tag>
                 </span>
                 <el-text v-else>'未知'</el-text>
               </el-descriptions-item>
