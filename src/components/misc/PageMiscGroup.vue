@@ -48,7 +48,7 @@
                     <el-tooltip v-for="_, j in item.data.diceIdExistsMap" :key="j" raw-content
                       :content="j.toString() + '<br>有二次确认'">
                       <el-button type="danger" size="small" :icon="Close" plain
-                        @click="quitGroup(item.data, item.index, j.toString())">退群
+                        @click="quitGroup(item.data, item.index, j.toString())">退出
                         {{ j.toString().slice(-4) }}</el-button>
                     </el-tooltip>
                   </template>
@@ -97,7 +97,7 @@
             <el-button type="success" size="small" :icon="DocumentChecked" plain v-if="i.changed"
               @click="saveOne(i, index)">保存</el-button>
             <el-tooltip v-for="_, j in i.diceIdExistsMap" raw-content :content="j.toString() + '<br>有二次确认'">
-              <el-button type="danger" size="small" :icon="Close" plain @click="quitGroup(i, index, j.toString())">退群
+              <el-button type="danger" size="small" :icon="Close" plain @click="quitGroup(i, index, j.toString())">退出
                 {{ j.toString().slice(-4) }}</el-button>
             </el-tooltip>
           </el-space>
@@ -217,9 +217,9 @@ const saveOne = async (i: any, index: number) => {
 }
 
 const quitGroup = async (i: any, index: number, diceId: string) => {
-  const quitGroupText = localStorage.getItem('quitGroupText') || '因长期不使用等原因，骰主后台操作退群';
+  const quitGroupText = localStorage.getItem('quitGroupText') || '因长期不使用等原因，骰主后台操作退出';
   ElMessageBox.prompt(
-    '会进行退群留言“因长期不使用等原因，骰主后台操作退群”，输入英文大写NO则静默退群，写别的则为附加留言',
+    '会进行退出留言“因长期不使用等原因，骰主后台操作退出”，输入英文大写NO则静默退出，写别的则为附加留言',
     '退出此群？',
     {
       confirmButtonText: '确定',
@@ -227,7 +227,7 @@ const quitGroup = async (i: any, index: number, diceId: string) => {
       type: 'warning',
       inputValue: quitGroupText,
       message: h('div', null, [
-        h('p', null, '会进行退群留言“因长期不使用等原因，骰主后台操作退群”，输入英文大写NO则静默退群，写别的则为附加留言'),
+        h('p', null, '会进行退出留言“因长期不使用等原因，骰主后台操作退出”，输入英文大写NO则静默退出，写别的则为附加留言'),
         h('label', {
           onInput: (e: any) => {
             quitTextSave.value = e.target.checked;
@@ -253,7 +253,7 @@ const quitGroup = async (i: any, index: number, diceId: string) => {
     }
 
     await refreshList()
-    ElMessage.success('退群完成')
+    ElMessage.success('退出完成')
 
     ElMessage({
       type: 'success',
