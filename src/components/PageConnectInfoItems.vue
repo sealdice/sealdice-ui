@@ -178,6 +178,15 @@
             </el-form-item>
           </template>
 
+          <template v-if="i.protocolType === 'satori'">
+            <el-form-item label="协议">
+              <div>[WIP]Satori</div>
+            </el-form-item>
+            <el-form-item label="平台">
+              <div>{{ i.platform }}</div>
+            </el-form-item>
+          </template>
+
           <!-- <el-form-item label="密码">
             <el-input type="password" v-model="i.password"></el-input>
           </el-form-item> -->
@@ -474,6 +483,7 @@
             <el-option label="[WIP]QQ(官方bot)" :value="10"></el-option>
             <el-option label="[WIP]QQ(red协议)" :value="7"></el-option>
             <el-option label="[WIP]SealChat" :value="13"></el-option>
+            <el-option label="[WIP]Satori" :value="14"></el-option>
             <el-option label="Discord" :value="1"></el-option>
             <el-option label="KOOK(开黑啦)" :value="2"></el-option>
             <el-option label="Telegram" :value="3"></el-option>
@@ -778,11 +788,26 @@
           <el-input v-model="form.token" type="text" autocomplete="off" placeholder="填入平台管理界面中获取的token"></el-input>
         </el-form-item>
 
+        <el-form-item v-if="form.accountType === 14" label="平台" :label-width="formLabelWidth" required>
+          <el-radio-group v-model="form.platform">
+            <el-radio-button label="QQ"/>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-if="form.accountType === 14" label="主机" :label-width="formLabelWidth" required>
+          <el-input v-model="form.host" placeholder="Satori 服务的地址，如 127.0.0.1" type="text" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item v-if="form.accountType === 14" label="端口" :label-width="formLabelWidth" required>
+          <el-input-number v-model="form.port" placeholder="如 5500" autocomplete="off"></el-input-number>
+        </el-form-item>
+        <el-form-item v-if="form.accountType === 14" label="Token" :label-width="formLabelWidth">
+          <el-input v-model="form.token" type="text" autocomplete="off" placeholder="填入鉴权 token，没有时无需填写"></el-input>
+        </el-form-item>
+
         <el-form-item v-if="form.accountType === 7" label="主机" :label-width="formLabelWidth" required>
           <el-input v-model="form.host" placeholder="Red 服务的地址，如 127.0.0.1" type="text" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item v-if="form.accountType === 7" label="端口" :label-width="formLabelWidth" required>
-          <el-input-number v-model="form.port" placeholder="16530" autocomplete="off"></el-input-number>
+          <el-input-number v-model="form.port" placeholder="如 16530" autocomplete="off"></el-input-number>
         </el-form-item>
         <el-form-item v-if="form.accountType === 7" label="令牌" :label-width="formLabelWidth" required>
           <el-input v-model="form.token" placeholder="Red 服务的 token" type="text" autocomplete="off"></el-input>
@@ -1527,7 +1552,8 @@ const form = reactive({
   signServerUrl: '',
   signServerKey: '',
 
-  reverseAddr: ':4001'
+  reverseAddr: ':4001',
+  platform: 'QQ',
 })
 
 export type addImConnectionForm = typeof form
