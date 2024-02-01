@@ -1528,6 +1528,8 @@ const form = reactive({
   reverseAddr: ':4001'
 })
 
+export type addImConnectionForm = typeof form
+
 const addOne = () => {
   dialogFormVisible.value = true
   form.protocol = 6
