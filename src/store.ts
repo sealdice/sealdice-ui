@@ -193,8 +193,33 @@ export const useStore = defineStore('main', {
     },
 
     async addImConnection(form: addImConnectionForm ) {
-      const { 
-        accountType, nickname, account, password, protocol, appVersion, token, botToken, appToken, proxyURL, url, host, port, appID, appSecret, clientID, robotCode, implementation, relWorkDir, connectUrl, accessToken, useSignServer, signServerConfig, reverseAddr,onlyQQGuild } = form
+      const {
+        accountType,
+        nickname,
+        account,
+        password,
+        protocol,
+        appVersion,
+        token,
+        botToken,
+        appToken,
+        proxyURL,
+        reverseProxyURL,
+        url,
+        host,
+        port,
+        appID,
+        appSecret,
+        clientID,
+        robotCode,
+        implementation,
+        relWorkDir,
+        connectUrl,
+        accessToken,
+        useSignServer,
+        signServerConfig,
+        reverseAddr,
+        onlyQQGuild } = form
       let info = null
       switch (accountType) {
         //QQ
@@ -212,7 +237,7 @@ export const useStore = defineStore('main', {
           info = await backend.post(urlPrefix + '/im_connections/addKook', { token }, { timeout: 65000 })
           break
         case 3:
-          info = await backend.post(urlPrefix + '/im_connections/addTelegram', { token, proxyURL }, { timeout: 65000 })
+          info = await backend.post(urlPrefix + '/im_connections/addTelegram', { token, proxyURL, reverseProxyURL}, { timeout: 65000 })
           break
         case 4:
           info = await backend.post(urlPrefix + '/im_connections/addMinecraft', { url }, { timeout: 65000 })

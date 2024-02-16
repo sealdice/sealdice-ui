@@ -821,7 +821,10 @@
           </small>
         </el-form-item>
         <el-form-item v-if="form.accountType === 1" label="http 代理地址" :label-width="formLabelWidth">
-          <el-input v-model="form.proxyURL" type="string" autocomplete="off" placeholder="http://127.0.0.1:7890" />
+          <el-input v-model="form.proxyURL" type="string" autocomplete="off" placeholder="例：http://127.0.0.1:7890" />
+        </el-form-item>
+        <el-form-item v-if="form.accountType === 1" label="反向代理地址" :label-width="formLabelWidth">
+          <el-input v-model="form.reverseProxyURL" type="string" autocomplete="off" placeholder="例：https://proxy.example.com/ 通常来说正向代理和反向代理只需要一个" />
         </el-form-item>
 
         <el-form-item v-if="form.accountType === 2" label="Token" :label-width="formLabelWidth" required>
@@ -1490,6 +1493,7 @@ const form = reactive({
   botToken: '',
   appToken: '',
   proxyURL: '',
+  reverseProxyURL: '',
   url: '',
   clientID: '',
   robotCode: '',
