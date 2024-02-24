@@ -43,7 +43,7 @@
     "iconify-icon": "^1.0.8",
     "sass": "^1.71.1",
     "typescript": "^5.3.3",
-    "unplugin-icons": "^0.17.4",
+    "unplugin-icons": "^0.18.5",
     "unplugin-vue-components": "^0.25.2",
     "vite": "^2.9.17",
     "vue-tsc": "^1.8.27"
