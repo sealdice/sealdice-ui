@@ -477,6 +477,8 @@
         style="margin-bottom: 1.5rem;">该支持功能不完善，所适配的目标 Chronocat 版本为 0.0.54，低于该版本不建议使用。<br />同时，新版 Chronocat（0.2.x 以上）不再提供 red 协议，海豹也将在未来移除该支持。</el-alert>
       <el-alert v-if="form.accountType === 10" type="warning" :closable="false"
         style="margin-bottom: 1.5rem;">该支持仍处于实验阶段，部分功能尚未完善。<br />同时，受到腾讯官方提供的 API 能力的限制，一些功能暂时无法实现。</el-alert>
+      <el-alert v-if="form.accountType === 14" type="warning" :closable="false"
+                style="margin-bottom: 1.5rem;">该支持仍处于实验阶段，部分功能尚未完善。<br />- QQ 平台适配目标版本 0.2.x 以上的 Chronocat。</el-alert>
 
       <el-form :model="form">
         <el-form-item label="账号类型" :label-width="formLabelWidth">
