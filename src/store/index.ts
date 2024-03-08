@@ -1,3 +1,4 @@
+import { backend } from '~/backend';
 import { getCustomText, saveCustomText } from '~/api/configs';
 import {
   getAdvancedConfig,
@@ -30,7 +31,15 @@ import { getBaseInfo, getHello, getLogFetchAndClear, getPreInfo } from '~/api/ot
 import { getSalt, signin } from '~/api/signin';
 
 import type { addImConnectionForm } from '~/components/PageConnectInfoItems.vue';
-import type { AdvancedConfig } from '~/type.d.ts';
+import type {
+  AdvancedConfig,
+  HelpDoc,
+  HelpTextItem,
+  HelpTextItemQuery,
+  JsScriptInfo,
+  StoreElem,
+  StoreElemType,
+} from '~/type';
 export enum goCqHttpStateCode {
   Init = 0,
   InLogin = 1,
@@ -443,6 +452,19 @@ export const useStore = defineStore('main', {
         await this.signIn('defaultSignin');
       }
       return this.token != '';
+    },
+
+    async storePage(params: { type: StoreElemType }) {
+      const info:
+        | { result: false; err?: string }
+        | {
+            result: true;
+            pageNum: number;
+            pageSize: number;
+            total: number;
+            data: StoreElem[];
+          } = await backend.get(urlPrefix + '/store/page', { params });
+      return info;
     },
   },
 });

@@ -100,3 +100,22 @@ export interface BanConfig {
   jointScorePercentOfGroup: number;
   jointScorePercentOfInviter: number;
 }
+
+export type StoreElemType = 'plugin' | 'deck' | 'reply' | 'helpdoc';
+
+export interface StoreElem {
+  source: 'official' | string;
+  type: StoreElemType;
+  ext: '.js' | '.toml' | '.json' | '.jsonc' | '.yaml' | '.xlsx' | string;
+  key: string;
+  name: string;
+  authors: string[];
+  version: string;
+  license: string;
+  desc: string;
+  releaseTime: number;
+  updateTime: number;
+  extra?: Map<string, string>;
+  downloadNum: number;
+  downloadUrl: string;
+}

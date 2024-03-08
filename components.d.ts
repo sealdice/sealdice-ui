@@ -63,6 +63,8 @@ declare module 'vue' {
     ElResult: typeof import('element-plus/es')['ElResult']
     ElRow: typeof import('element-plus/es')['ElRow']
     ElSelect: typeof import('element-plus/es')['ElSelect']
+    ElSkeleton: typeof import('element-plus/es')['ElSkeleton']
+    ElSkeletonItem: typeof import('element-plus/es')['ElSkeletonItem']
     ElSpace: typeof import('element-plus/es')['ElSpace']
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
@@ -104,11 +106,13 @@ declare module 'vue' {
     PageMiscGroup: typeof import('./src/components/misc/PageMiscGroup.vue')['default']
     PageMiscSettings: typeof import('./src/components/misc/PageMiscSettings.vue')['default']
     PageResource: typeof import('./src/components/tool/PageResource.vue')['default']
+    PageStore: typeof import('./src/components/mod/PageStore.vue')['default']
     PageStory: typeof import('./src/components/mod/PageStory.vue')['default']
     PageTest: typeof import('./src/components/tool/PageTest.vue')['default']
     ResourceRender: typeof import('./src/components/utils/resource-render.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    StoreElem: typeof import('./src/components/mod/store/StoreElem.vue')['default']
     StoryBackup: typeof import('./src/components/mod/story/StoryBackup.vue')['default']
   }
   export interface GlobalDirectives {
