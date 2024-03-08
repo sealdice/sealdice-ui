@@ -63,6 +63,10 @@
         </div>
 
         <el-form ref="formRef" :model="i" label-width="100px">
+          <el-alert v-if="i.platform === 'QQ' && i.protocolType === 'red'" type="error" :closable="false"
+                    style="margin-bottom: 1rem;">
+            新版 Chronocat（0.2.x 以上）不再提供 red 协议，故海豹将在未来移除该支持，请尽快迁移。
+          </el-alert>
           <!-- <el-form-item label="帐号">
             <el-input v-model="i.account"></el-input>
             <div>123456789<el-tag size="small">{{i.platform}}</el-tag></div>
@@ -151,7 +155,7 @@
 
           <template v-if="i.platform === 'QQ' && i.protocolType === 'red'">
             <el-form-item label="协议">
-              <div>[WIP]Red</div>
+              <div>[已弃用]Red</div>
             </el-form-item>
             <el-form-item label="协议版本">
               <div>{{ i.adapter?.redVersion || '未知' }}</div>
@@ -469,8 +473,8 @@
     :show-close="false" class="the-dialog">
     <el-button style="float: right; margin-top: -4rem;" @click="openSocks">辅助工具-13325端口</el-button>
     <template v-if="form.step === 1">
-      <el-alert v-if="form.accountType === 7" type="warning" :closable="false"
-        style="margin-bottom: 1.5rem;">该支持仍处于实验阶段，部分功能尚未完善。海豹不保证该支持的稳定性和持续性，并存在未来移除该支持的可能，请谨慎选择。</el-alert>
+      <el-alert v-if="form.accountType === 7" type="error" :closable="false"
+        style="margin-bottom: 1.5rem;">该支持功能不完善，所适配的目标 Chronocat 版本为 0.0.54，低于该版本不建议使用。<br />同时，新版 Chronocat（0.2.x 以上）不再提供 red 协议，海豹也将在未来移除该支持。</el-alert>
       <el-alert v-if="form.accountType === 10" type="warning" :closable="false"
         style="margin-bottom: 1.5rem;">该支持仍处于实验阶段，部分功能尚未完善。<br />同时，受到腾讯官方提供的 API 能力的限制，一些功能暂时无法实现。</el-alert>
 
@@ -481,9 +485,8 @@
             <el-option label="QQ(onebot11分离部署)" :value="6"></el-option>
             <el-option label="QQ(onebot11反向WS)" :value="11"></el-option>
             <el-option label="[WIP]QQ(官方bot)" :value="10"></el-option>
-            <el-option label="[WIP]QQ(red协议)" :value="7"></el-option>
-            <el-option label="[WIP]SealChat" :value="13"></el-option>
             <el-option label="[WIP]Satori" :value="14"></el-option>
+            <el-option label="[WIP]SealChat" :value="13"></el-option>
             <el-option label="Discord" :value="1"></el-option>
             <el-option label="KOOK(开黑啦)" :value="2"></el-option>
             <el-option label="Telegram" :value="3"></el-option>
@@ -491,6 +494,7 @@
             <el-option label="Dodo语音" :value="5"></el-option>
             <el-option label="钉钉" :value="8"></el-option>
             <el-option label="Slack" :value="9"></el-option>
+            <el-option label="[已弃用]QQ(red协议)" :value="7"></el-option>
           </el-select>
         </el-form-item>
 
