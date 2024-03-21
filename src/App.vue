@@ -11,7 +11,7 @@
     <div v-show="store.canAccess"
       style="position: absolute; top: 1rem; right: 10px; color: #fff; font-size: small; text-align: right; display: flex;">
       <div @click="dialogFeed = true"
-           style="margin-right: 1.5rem;">
+           style="margin-right: 1.5rem; cursor: pointer;">
         <el-badge value="new" :hidden="newsChecked">
           <img :src="imgNews" alt="news" style="width: 2.3rem;">
         </el-badge>
