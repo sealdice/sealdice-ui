@@ -117,7 +117,7 @@
             <div>{{ i.adapter?.reverseAddr }}/ws</div>
           </el-form-item>
 
-          <template v-if="i.platform === 'QQ' && (i.protocolType === 'onebot' || i.protocolType === 'walle-q')">
+          <template v-if="i.platform === 'QQ' && (i.protocolType === 'onebot' || i.protocolType === 'walle-q') && i.adapter.builtinMode !== 'lagrange'">
             <!-- <el-form-item label="忽略好友请求">
               <div>{{i.adapter?.ignoreFriendRequest ? '是' : '否'}}</div>
             </el-form-item> -->
@@ -153,6 +153,12 @@
             </el-form-item>
           </template>
 
+          <template v-if="i.platform === 'QQ' && i.protocolType === 'onebot' && i.adapter.builtinMode === 'lagrange'">
+            <el-form-item label="接入方式">
+              <div>内置客户端</div>
+            </el-form-item>
+          </template>
+
           <template v-if="i.platform === 'QQ' && i.protocolType === 'red'">
             <el-form-item label="协议">
               <div>[已弃用]Red</div>
@@ -174,7 +180,7 @@
             </el-form-item>
           </template>
 
-          <template v-if="i.platform === 'QQ' && i.protocolType === 'onebot'">
+          <template v-if="i.platform === 'QQ' && i.protocolType === 'onebot' && i.adapter.builtinMode !== 'lagrange'">
             <el-form-item label="其他">
               <el-tooltip content="导出gocq设置，用于转分离部署" placement="top-start">
                 <el-button type="" @click="doGocqExport(i)">导出</el-button>
@@ -483,7 +489,7 @@
       <el-form :model="form">
         <el-form-item label="账号类型" :label-width="formLabelWidth">
           <el-select v-model="form.accountType">
-            <el-option label="QQ(内置gocq)" :value="0"></el-option>
+            <el-option label="QQ(内置客户端)" :value="15"></el-option>
             <el-option label="QQ(onebot11分离部署)" :value="6"></el-option>
             <el-option label="QQ(onebot11反向WS)" :value="11"></el-option>
             <el-option label="[WIP]QQ(官方bot)" :value="10"></el-option>
@@ -496,6 +502,7 @@
             <el-option label="Dodo语音" :value="5"></el-option>
             <el-option label="钉钉" :value="8"></el-option>
             <el-option label="Slack" :value="9"></el-option>
+            <el-option label="[已弃用]QQ(内置gocq)" :value="0"></el-option>
             <el-option label="[已弃用]QQ(red协议)" :value="7"></el-option>
           </el-select>
         </el-form-item>
@@ -537,7 +544,7 @@
           </el-select>
         </el-form-item> -->
 
-        <el-form-item v-if="form.accountType === 0" label="账号" :label-width="formLabelWidth" required>
+        <el-form-item v-if="form.accountType === 0 || form.accountType === 15" label="账号" :label-width="formLabelWidth" required>
           <el-input v-model="form.account" type="number" autocomplete="off"></el-input>
         </el-form-item>
 
@@ -1507,7 +1514,7 @@ const handleSignServerDelete = (url: string) => {
 const supportedQQVersions = ref<string[]>([])
 
 const form = reactive({
-  accountType: 0,
+  accountType: 15,
   step: 1,
   isEnd: false,
   account: '',
