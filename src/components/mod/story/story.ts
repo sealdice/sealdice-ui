@@ -19,8 +19,8 @@ export const useStoryStore = defineStore("story", () => {
         return info
     }
 
-    const backupDelete = async (name: string) => {
-        const info = await backend.post(urlPrefix + '/story/backup/delete', {}, {params: {name}})
+    const backupDownload = async (name: string) => {
+        const info = await backend.post(urlPrefix + '/story/backup/download', {}, {params: {name}})
         return info as any
     }
 
@@ -33,8 +33,9 @@ export const useStoryStore = defineStore("story", () => {
     }
 
     return {
+        token,
         backupList,
-        backupDelete,
+        backupDownload,
         backupBatchDelete,
     }
 })

@@ -32,7 +32,10 @@
           <template #default>{{ backup.name }}</template>
         </el-checkbox>
         <el-space size="small" wrap style="margin-left: 1px; justify-content: flex-end;">
-          <el-text size="small">{{ filesize(backup.fileSize) }}</el-text>
+          <el-button size="small" tag="a" style="text-decoration: none; width: 8rem;"
+                     :href="`${urlBase}/sd-api/story/backup/download?name=${encodeURIComponent(backup.name)}&token=${encodeURIComponent(storyStore.token)}`">
+            下载 - {{ filesize(backup.fileSize) }}
+          </el-button>
           <el-button type="danger" size="small" :icon="Delete" plain
                      @click="bakDeleteConfirm(backup.name)">删除
           </el-button>
@@ -50,6 +53,7 @@ import {Delete} from "@element-plus/icons-vue";
 import {filesize} from "filesize";
 import {CheckboxValueType, ElMessage, ElMessageBox} from "element-plus";
 import {useStoryStore} from "./story";
+import {urlBase} from "~/backend";
 
 const storyStore = useStoryStore()
 
@@ -63,6 +67,15 @@ const refreshList = async () => {
   selectedBackups.value = []
 }
 
+const bakDownloadConfirm = async (name: string) => {
+  const res = await storyStore.backupBatchDelete([name])
+  if (res?.result) {
+    ElMessage.success('已删除')
+  } else {
+    ElMessage.error('删除失败')
+  }
+}
+
 const bakDeleteConfirm = async (name: string) => {
   const ret = await ElMessageBox.confirm('确认删除？', '提示', {
     confirmButtonText: '确定',
@@ -70,8 +83,8 @@ const bakDeleteConfirm = async (name: string) => {
     type: 'warning'
   })
   if (ret) {
-    const r = await storyStore.backupDelete(name)
-    if (r?.result) {
+    const res = await storyStore.backupBatchDelete([name])
+    if (res?.result) {
       ElMessage.success('已删除')
     } else {
       ElMessage.error('删除失败')
