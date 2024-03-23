@@ -140,6 +140,7 @@ onBeforeMount(async () => {
     padding: 3px 1rem;
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap;
   }
 
   .backup-line:not(:first-child) {
