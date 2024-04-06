@@ -236,9 +236,15 @@ export const useStore = defineStore('main', {
         case 5:
           info = await backend.post(urlPrefix + '/im_connections/addDodo', { clientID, token }, { timeout: 65000 })
           break
-        case 6:
-          info = await backend.post(urlPrefix + '/im_connections/addGocqSeparate', { relWorkDir, connectUrl, accessToken, account }, { timeout: 65000 })
+        case 6: {
+          // onebot11 正向
+          let realUrl = connectUrl
+          if (!connectUrl.startsWith('ws://') && !connectUrl.startsWith('wss://')) {
+            realUrl = `ws://${connectUrl}`
+          }
+          info = await backend.post(urlPrefix + '/im_connections/addGocqSeparate', { relWorkDir, connectUrl: realUrl, accessToken, account }, { timeout: 65000 })
           break
+        }
         case 7:
           info = await backend.post(urlPrefix + '/im_connections/addRed', { host, port, token }, { timeout: 65000 })
           break
