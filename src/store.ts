@@ -204,7 +204,8 @@ export const useStore = defineStore('main', {
         botToken,
         appToken,
         proxyURL,
-        reverseProxyURL,
+        reverseProxyUrl,
+        reverseProxyCDNUrl,
         url,
         host,
         port,
@@ -231,13 +232,13 @@ export const useStore = defineStore('main', {
           }
           break
         case 1:
-          info = await backend.post(urlPrefix + '/im_connections/addDiscord', { token, proxyURL }, { timeout: 65000 })
+          info = await backend.post(urlPrefix + '/im_connections/addDiscord', { token, proxyURL, reverseProxyUrl, reverseProxyCDNUrl }, { timeout: 65000 })
           break
         case 2:
           info = await backend.post(urlPrefix + '/im_connections/addKook', { token }, { timeout: 65000 })
           break
         case 3:
-          info = await backend.post(urlPrefix + '/im_connections/addTelegram', { token, proxyURL, reverseProxyURL}, { timeout: 65000 })
+          info = await backend.post(urlPrefix + '/im_connections/addTelegram', { token, proxyURL}, { timeout: 65000 })
           break
         case 4:
           info = await backend.post(urlPrefix + '/im_connections/addMinecraft', { url }, { timeout: 65000 })

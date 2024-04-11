@@ -824,8 +824,11 @@
           <el-input v-model="form.proxyURL" type="string" autocomplete="off" placeholder="例：http://127.0.0.1:7890" />
         </el-form-item>
         <el-form-item v-if="form.accountType === 1" label="反向代理地址" :label-width="formLabelWidth">
-          <el-input v-model="form.reverseProxyURL" type="string" autocomplete="off" placeholder="例：https://proxy.example.com/ 通常来说正向代理和反向代理只需要一个" />
+          <el-input v-model="form.reverseProxyUrl" type="string" autocomplete="off" placeholder="此地址需要代理到 https://discord.com/ 通常来说正向代理和反向代理只需要一个" />
+          <el-input v-model="form.reverseProxyCDNUrl" type="string" autocomplete="off" placeholder="此地址需要代理到 https://cdn.discordapp.com/ " />
+          <div style="color: #aa4422;">注意: 反向代理是全局生效的，你一旦设置反向代理地址，这个骰子的所有 Discord 连接都会使用这个地址</div>
         </el-form-item>
+
 
         <el-form-item v-if="form.accountType === 2" label="Token" :label-width="formLabelWidth" required>
           <el-input v-model="form.token" type="string" autocomplete="off"></el-input>
@@ -1493,7 +1496,8 @@ const form = reactive({
   botToken: '',
   appToken: '',
   proxyURL: '',
-  reverseProxyURL: '',
+  reverseProxyUrl: '',
+  reverseProxyCDNUrl: '',
   url: '',
   clientID: '',
   robotCode: '',
