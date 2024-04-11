@@ -26,7 +26,7 @@
 
         <div style="position: absolute; width: 17rem; height: 14rem; background: #fff; z-index: 1;"
           v-if="(i.adapter?.loginState === goCqHttpStateCode.InLoginQrCode) && store.curDice.qrcodes[i.id]">
-          <div style="margin-left: 2rem">需要同账号的手机QQ扫码登录:</div>
+          <div style="margin-left: 2rem">需要同账号的手机QQ扫码登录 (限2分钟内完成):</div>
           <img
             style="margin-left: -3rem; image-rendering: pixelated; width: 10rem; height:10rem; margin-left: 3.5rem; margin-top: 2rem;"
             :src="store.curDice.qrcodes[i.id]" />
@@ -63,6 +63,10 @@
         </div>
 
         <el-form ref="formRef" :model="i" label-width="100px">
+          <el-alert v-if="i.platform === 'QQ' && i.protocolType === 'red'" type="error" :closable="false"
+                    style="margin-bottom: 1rem;">
+            新版 Chronocat（0.2.x 以上）不再提供 red 协议，故海豹将在未来移除该支持，请尽快迁移。
+          </el-alert>
           <!-- <el-form-item label="帐号">
             <el-input v-model="i.account"></el-input>
             <div>123456789<el-tag size="small">{{i.platform}}</el-tag></div>
@@ -113,7 +117,7 @@
             <div>{{ i.adapter?.reverseAddr }}/ws</div>
           </el-form-item>
 
-          <template v-if="i.platform === 'QQ' && (i.protocolType === 'onebot' || i.protocolType === 'walle-q')">
+          <template v-if="i.platform === 'QQ' && (i.protocolType === 'onebot' || i.protocolType === 'walle-q') && i.adapter.builtinMode !== 'lagrange'">
             <!-- <el-form-item label="忽略好友请求">
               <div>{{i.adapter?.ignoreFriendRequest ? '是' : '否'}}</div>
             </el-form-item> -->
@@ -149,9 +153,15 @@
             </el-form-item>
           </template>
 
+          <template v-if="i.platform === 'QQ' && i.protocolType === 'onebot' && i.adapter.builtinMode === 'lagrange'">
+            <el-form-item label="接入方式">
+              <div>内置客户端</div>
+            </el-form-item>
+          </template>
+
           <template v-if="i.platform === 'QQ' && i.protocolType === 'red'">
             <el-form-item label="协议">
-              <div>[WIP]Red</div>
+              <div>[已弃用]Red</div>
             </el-form-item>
             <el-form-item label="协议版本">
               <div>{{ i.adapter?.redVersion || '未知' }}</div>
@@ -170,11 +180,20 @@
             </el-form-item>
           </template>
 
-          <template v-if="i.platform === 'QQ' && i.protocolType === 'onebot'">
+          <template v-if="i.platform === 'QQ' && i.protocolType === 'onebot' && i.adapter.builtinMode !== 'lagrange'">
             <el-form-item label="其他">
               <el-tooltip content="导出gocq设置，用于转分离部署" placement="top-start">
                 <el-button type="" @click="doGocqExport(i)">导出</el-button>
               </el-tooltip>
+            </el-form-item>
+          </template>
+
+          <template v-if="i.protocolType === 'satori'">
+            <el-form-item label="协议">
+              <div>[WIP]Satori</div>
+            </el-form-item>
+            <el-form-item label="平台">
+              <div>{{ i.platform }}</div>
             </el-form-item>
           </template>
 
@@ -187,7 +206,8 @@
           </el-form-item> -->
 
           <!-- <el-form-item label=""> -->
-          <div style="display: flex;justify-content: center; margin-bottom: 1rem;">
+          <div style="display: flex;justify-content: center; margin-bottom: 1rem;" 
+            v-if="![goCqHttpStateCode.InLogin, goCqHttpStateCode.InLoginQrCode].includes(i.adapter?.loginState)">
             <el-button-group>
               <el-tooltip content="如果日志中出现帐号被风控，可以试试这个功能" placement="bottom-start">
                 <el-button type="warning" @click="askGocqhttpReLogin(i)">重新登录</el-button>
@@ -460,19 +480,27 @@
     :show-close="false" class="the-dialog">
     <el-button style="float: right; margin-top: -4rem;" @click="openSocks">辅助工具-13325端口</el-button>
     <template v-if="form.step === 1">
-      <el-alert v-if="form.accountType === 7" type="warning" :closable="false"
-        style="margin-bottom: 1.5rem;">该支持仍处于实验阶段，部分功能尚未完善。海豹不保证该支持的稳定性和持续性，并存在未来移除该支持的可能，请谨慎选择。</el-alert>
+      <el-alert v-if="form.accountType === 7" type="error" :closable="false"
+        style="margin-bottom: 1.5rem;">该支持功能不完善，所适配的目标 Chronocat 版本为 0.0.54，低于该版本不建议使用。<br />同时，新版 Chronocat（0.2.x 以上）不再提供 red 协议，海豹也将在未来移除该支持。</el-alert>
       <el-alert v-if="form.accountType === 10" type="warning" :closable="false"
         style="margin-bottom: 1.5rem;">该支持仍处于实验阶段，部分功能尚未完善。<br />同时，受到腾讯官方提供的 API 能力的限制，一些功能暂时无法实现。</el-alert>
+      <el-alert v-if="form.accountType === 14" type="warning" :closable="false"
+                style="margin-bottom: 1.5rem;">该支持仍处于实验阶段，部分功能尚未完善。<br />- QQ 平台适配目标版本 0.2.x 以上的 Chronocat。</el-alert>
+      <el-alert v-if="form.accountType === 0" type="error" :closable="false"
+                style="margin-bottom: 1.5rem;">
+        内置 gocq 方案已不再支持，目前仅为兼容性保留，<strong>新增入口已关闭</strong>。<br/>
+        使用内置方案请切换到新的内置客户端。<br />
+        如果你依然需要使用 gocq，可以切换到分离部署方式进行连接，但我们非常不建议您再继续使用 gocq。
+      </el-alert>
 
       <el-form :model="form">
         <el-form-item label="账号类型" :label-width="formLabelWidth">
           <el-select v-model="form.accountType">
-            <el-option label="QQ(内置gocq)" :value="0"></el-option>
-            <el-option label="QQ(onebot11分离部署)" :value="6"></el-option>
+            <el-option label="QQ(内置客户端)" :value="15"></el-option>
+            <el-option label="QQ(onebot11正向WS)" :value="6"></el-option>
             <el-option label="QQ(onebot11反向WS)" :value="11"></el-option>
-            <el-option label="[WIP]QQ(官方bot)" :value="10"></el-option>
-            <el-option label="[WIP]QQ(red协议)" :value="7"></el-option>
+            <el-option label="QQ(官方机器人)" :value="10"></el-option>
+            <el-option label="[WIP]Satori" :value="14"></el-option>
             <el-option label="[WIP]SealChat" :value="13"></el-option>
             <el-option label="Discord" :value="1"></el-option>
             <el-option label="KOOK(开黑啦)" :value="2"></el-option>
@@ -481,6 +509,8 @@
             <el-option label="Dodo语音" :value="5"></el-option>
             <el-option label="钉钉" :value="8"></el-option>
             <el-option label="Slack" :value="9"></el-option>
+            <el-option label="[已弃用]QQ(内置gocq)" :value="0"></el-option>
+            <el-option label="[已弃用]QQ(red协议)" :value="7"></el-option>
           </el-select>
         </el-form-item>
 
@@ -521,7 +551,7 @@
           </el-select>
         </el-form-item> -->
 
-        <el-form-item v-if="form.accountType === 0" label="账号" :label-width="formLabelWidth" required>
+        <el-form-item v-if="form.accountType === 0 || form.accountType === 15" label="账号" :label-width="formLabelWidth" required>
           <el-input v-model="form.account" type="number" autocomplete="off"></el-input>
         </el-form-item>
 
@@ -749,12 +779,9 @@
         <el-form-item v-if="form.accountType === 6" label="账号" :label-width="formLabelWidth" required>
           <el-input v-model="form.account" type="number" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item v-if="form.accountType === 6" label="程序目录" :label-width="formLabelWidth">
-          <el-input v-model="form.relWorkDir" type="text" autocomplete="off"
-            placeholder="gocqhttp的程序目录，如 d:/my-gocqhttp"></el-input>
-        </el-form-item>
+
         <el-form-item v-if="form.accountType === 6" label="连接地址" :label-width="formLabelWidth" required>
-          <el-input v-model="form.connectUrl" placeholder="正向WS连接地址，如 ws://localhost:1234" type="text"
+          <el-input v-model="form.connectUrl" placeholder="正向WS连接地址，如 ws://127.0.0.1:1234" type="text"
             autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item v-if="form.accountType === 6" label="访问令牌" :label-width="formLabelWidth">
@@ -778,11 +805,26 @@
           <el-input v-model="form.token" type="text" autocomplete="off" placeholder="填入平台管理界面中获取的token"></el-input>
         </el-form-item>
 
+        <el-form-item v-if="form.accountType === 14" label="平台" :label-width="formLabelWidth" required>
+          <el-radio-group v-model="form.platform">
+            <el-radio-button label="QQ"/>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-if="form.accountType === 14" label="主机" :label-width="formLabelWidth" required>
+          <el-input v-model="form.host" placeholder="Satori 服务的地址，如 127.0.0.1" type="text" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item v-if="form.accountType === 14" label="端口" :label-width="formLabelWidth" required>
+          <el-input-number v-model="form.port" placeholder="如 5500" autocomplete="off"></el-input-number>
+        </el-form-item>
+        <el-form-item v-if="form.accountType === 14" label="Token" :label-width="formLabelWidth">
+          <el-input v-model="form.token" type="text" autocomplete="off" placeholder="填入鉴权 token，没有时无需填写"></el-input>
+        </el-form-item>
+
         <el-form-item v-if="form.accountType === 7" label="主机" :label-width="formLabelWidth" required>
           <el-input v-model="form.host" placeholder="Red 服务的地址，如 127.0.0.1" type="text" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item v-if="form.accountType === 7" label="端口" :label-width="formLabelWidth" required>
-          <el-input-number v-model="form.port" placeholder="16530" autocomplete="off"></el-input-number>
+          <el-input-number v-model="form.port" placeholder="如 16530" autocomplete="off"></el-input-number>
         </el-form-item>
         <el-form-item v-if="form.accountType === 7" label="令牌" :label-width="formLabelWidth" required>
           <el-input v-model="form.token" placeholder="Red 服务的 token" type="text" autocomplete="off"></el-input>
@@ -1035,7 +1077,7 @@
       <span class="dialog-footer">
         <template v-if="form.step === 1">
           <el-button @click="dialogFormVisible = false">取消</el-button>
-          <el-button type="primary" @click="goStepTwo" :disabled="form.accountType === 0 && form.account === '' ||
+          <el-button type="primary" @click="goStepTwo" :disabled="form.accountType === 0 ||
             (form.accountType === 1 || form.accountType === 2 || form.accountType === 3) && form.token === '' ||
             form.accountType === 4 && form.url === '' ||
             form.accountType === 5 && (form.clientID === '' || form.token === '') ||
@@ -1044,7 +1086,8 @@
             form.accountType === 7 && (form.host === '' || form.port === '' || form.token === '') ||
             form.accountType === 9 && (form.botToken === '' || form.appToken === '') ||
             form.accountType === 11 && (form.account === '' || form.reverseAddr === '') ||
-            form.accountType === 13 && (form.token === '' || form.url === '')">
+            form.accountType === 13 && (form.token === '' || form.url === '') ||
+            form.accountType === 15 && form.account === ''">
             下一步</el-button>
         </template>
         <template v-if="form.isEnd">
@@ -1482,7 +1525,7 @@ const handleSignServerDelete = (url: string) => {
 const supportedQQVersions = ref<string[]>([])
 
 const form = reactive({
-  accountType: 0,
+  accountType: 15,
   step: 1,
   isEnd: false,
   account: '',
@@ -1535,7 +1578,8 @@ const form = reactive({
   signServerUrl: '',
   signServerKey: '',
 
-  reverseAddr: ':4001'
+  reverseAddr: ':4001',
+  platform: 'QQ',
 })
 
 export type addImConnectionForm = typeof form

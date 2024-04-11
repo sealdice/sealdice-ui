@@ -56,7 +56,7 @@
             <div style="display: flex; align-items: center; width: 1.3rem; margin-left: 1rem;">
               <el-tooltip :content="index === 0 ? '点击添加项目' : '点击删除你不想要的项'" placement="bottom-start">
                 <el-icon>
-                  <circle-plus-filled v-if="index == 0" @click="addItem(config.diceMasters)" />
+                  <circle-plus-filled v-if="index == 0" @click="config.diceMasters = addItem(config.diceMasters)" />
                   <circle-close v-else @click="removeItem(config.diceMasters, index)" />
                 </el-icon>
               </el-tooltip>
@@ -66,7 +66,7 @@
       </template>
       <template v-else>
         <el-icon>
-          <circle-plus-filled @click="addItem(config.diceMasters)" />
+          <circle-plus-filled @click="config.diceMasters = addItem(config.diceMasters)" />
         </el-icon>
       </template>
     </el-form-item>
@@ -92,7 +92,7 @@
             <div style="display: flex; align-items: center; width: 1.3rem; margin-left: 1rem;">
               <el-tooltip :content="index === 0 ? '点击添加项目' : '点击删除你不想要的项'" placement="bottom-start">
                 <el-icon>
-                  <circle-plus-filled v-if="index == 0" @click="addItem(config.noticeIds)" />
+                  <circle-plus-filled v-if="index == 0" @click="config.noticeIds = addItem(config.noticeIds)" />
                   <circle-close v-else @click="removeItem(config.noticeIds, index)" />
                 </el-icon>
               </el-tooltip>
@@ -102,33 +102,45 @@
       </template>
       <template v-else>
         <el-icon>
-          <circle-plus-filled @click="addItem(config.noticeIds)" />
+          <circle-plus-filled @click="config.noticeIds = addItem(config.noticeIds)" />
         </el-icon>
       </template>
     </el-form-item>
 
     <el-form-item label="邮箱通知">
+      <template #label><div>
+        <span>邮箱通知</span>
         <el-tooltip raw-content content="为处理某些平台通知频繁引起的问题，启用后<b>只会通过邮件</b>进行通知">
-            <el-icon><question-filled /></el-icon>
-          </el-tooltip>
-          <el-checkbox label="开启" v-model="config.mailEnable"/>
+          <el-icon><question-filled /></el-icon>
+        </el-tooltip>
+      </div></template>
+      <el-checkbox label="开启" v-model="config.mailEnable"/>
     </el-form-item>
     <el-form-item label="发件邮箱">
+      <template #label><div>
+        <span>发件邮箱</span>
         <el-tooltip raw-content content="特别提醒：QQ号被冻结后对应账号的邮箱也无法使用">
-            <el-icon><question-filled /></el-icon>
-          </el-tooltip>
+          <el-icon><question-filled /></el-icon>
+        </el-tooltip>
+      </div></template>
       <el-input v-model="config.mailFrom" style="width: 12rem"/>
     </el-form-item>
     <el-form-item label="邮箱密钥">
+      <template #label><div>
+        <span>邮箱密钥</span>
         <el-tooltip raw-content content="请注意不一定是密码，例如 QQ邮箱就需要在设置界面生成授权码">
-            <el-icon><question-filled /></el-icon>
-          </el-tooltip>
+          <el-icon><question-filled /></el-icon>
+        </el-tooltip>
+      </div></template>
       <el-input v-model="config.mailPassword"  style="width: 12rem"/>
     </el-form-item>
-    <el-form-item label="SMTP 服务地址">
+    <el-form-item label="SMTP 地址">
+      <template #label><div>
+        <span>SMTP 地址</span>
         <el-tooltip raw-content content="例如 smtp.qq.com">
-            <el-icon><question-filled /></el-icon>
-          </el-tooltip>
+          <el-icon><question-filled /></el-icon>
+        </el-tooltip>
+      </div></template>
       <el-input v-model="config.mailSmtp" style="width: 12rem"/>
     </el-form-item>
     <el-form-item>
@@ -227,53 +239,16 @@
       <el-input v-model="config.aliveNoticeValue" style="width: 12rem"></el-input>
     </el-form-item>
 
-<!--    <el-form-item>-->
-<!--      <template #label>-->
-<!--        <div>-->
-<!--          <span>.help 骰主</span>-->
-<!--        </div>-->
-<!--      </template>-->
-<!--      <el-input v-model="config.helpMasterInfo" type="textarea" clearable style="width: 14rem;" />-->
-<!--    </el-form-item>-->
-
-<!--    <el-form-item>-->
-<!--      <template #label>-->
-<!--        <div>-->
-<!--          <span>.help 协议</span>-->
-<!--        </div>-->
-<!--      </template>-->
-<!--      <el-input v-model="config.helpMasterLicense" type="textarea" autosize clearable style="width: 14rem;" />-->
-<!--    </el-form-item>-->
-
-<!--    <el-form-item>-->
-<!--      <template #label>-->
-<!--        <div>-->
-<!--          <span>.draw keys自定义</span>-->
-<!--        </div>-->
-<!--      </template>-->
-<!--      <div>-->
-<!--        <div>-->
-<!--          <el-checkbox label="开启" v-model="config.customDrawKeysTextEnable"/>-->
-<!--          <el-tooltip raw-content content="启用后替代原本的.draw keys牌组关键字文本">-->
-<!--            <el-icon><question-filled /></el-icon>-->
-<!--          </el-tooltip>-->
-<!--        </div>-->
-<!--        <el-input v-model="config.customDrawKeysText" type="textarea" autosize clearable style="width: 14rem;" />-->
-<!--      </div>-->
-<!--    </el-form-item>-->
-
     <el-form-item>
-      <template #label>
-        <div>
+      <template #label><div>
           <span>日志记录提示</span>
-        </div>
-      </template>
-      <div>
-        <div>
-          <el-checkbox label="开启" v-model="config.logSizeNoticeEnable"/>
           <el-tooltip raw-content content="每记录N条文本后，主动发送一条提醒信息，避免忘记log off">
             <el-icon><question-filled /></el-icon>
           </el-tooltip>
+      </div></template>
+      <div>
+        <div>
+          <el-checkbox label="开启" v-model="config.logSizeNoticeEnable"/>
         </div>
         <el-input v-model="config.logSizeNoticeCount" type="number" autosize clearable style="width: 14rem;" />
       </div>
@@ -495,14 +470,21 @@
     <el-form-item label="不活跃N天后自动退群">
       <template #label>
         <div>
-          <span>自动退群</span>
+          <span>自动退群阈值</span>
           <el-tooltip raw-content content="每天凌晨4时检查所有群聊的不活跃天数, 若超过设定天数则自动退群<br>设置为0以关闭该功能">
             <el-icon><question-filled /></el-icon>
           </el-tooltip>
         </div>
       </template>
+      <el-input-number v-model="config.quitInactiveThreshold" type="number" style="width: auto;" :placeholder="'不活跃N天后自动退出'" />
+    </el-form-item>
 
-      <el-input v-model="config.quitInactiveThreshold" type="number" clearable style="width: auto;" :placeholder="'不活跃N天后自动退出'" />
+    <el-form-item label="退群批次大小">
+      <el-input-number v-model="config.quitInactiveBatchSize" type="number" style="width: auto;" />
+    </el-form-item>
+
+    <el-form-item label="退群批次间隔(分)">
+      <el-input-number v-model="config.quitInactiveBatchWait" type="number" style="width: auto;" />
     </el-form-item>
 
     <el-form-item label="QQ回复延迟(秒)">
@@ -532,18 +514,6 @@
       <el-checkbox label="拒绝加群(仅在非强制拉入时起效)" v-model="config.refuseGroupInvite"/>
     </el-form-item>
 
-    <el-form-item label="自动重登录">
-      <template #label>
-        <div>
-          <span>自动重登录</span>
-          <el-tooltip content="当5分钟内连续有两次风控信息，进行重登录(每5分钟最多一次)。现不建议使用">
-            <el-icon><question-filled /></el-icon>
-          </el-tooltip>
-        </div>
-      </template>
-      <el-checkbox label="遭遇风控时自动重登录" v-model="config.autoReloginEnable"/>
-    </el-form-item>
-
     <el-form-item label="指令前缀">
       <template #label>
         <div>
@@ -565,7 +535,7 @@
             <div style="display: flex; align-items: center; width: 1.3rem; margin-left: 1rem;">
               <el-tooltip :content="index === 0 ? '点击添加项目' : '点击删除你不想要的项目'" placement="bottom-start">
                 <el-icon>
-                  <circle-plus-filled v-if="index == 0" @click="addItem(config.commandPrefix)" />
+                  <circle-plus-filled v-if="index == 0" @click="config.commandPrefix = addItem(config.commandPrefix)" />
                   <circle-close v-else @click="removeItem(config.commandPrefix, index)" />
                 </el-icon>
               </el-tooltip>
@@ -575,7 +545,7 @@
       </template>
       <template v-else>
         <el-icon>
-          <circle-plus-filled @click="addItem(config.commandPrefix)" />
+          <circle-plus-filled @click="config.commandPrefix = addItem(config.commandPrefix)" />
         </el-icon>
       </template>
     </el-form-item>
@@ -646,8 +616,12 @@ watch(() => config, (newValue, oldValue) => { //直接监听
   deep: true
 });
 
-const addItem = (k: any) => {
+const addItem = (k: any[]) => {
+  if (!k) {
+    k = []
+  }
   k.push('')
+  return k
 }
 
 const removeItem = (v: any[], index: number) => {

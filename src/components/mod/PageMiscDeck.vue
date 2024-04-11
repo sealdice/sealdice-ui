@@ -34,11 +34,15 @@
                 <el-space size="small" alignment="center">
                   <el-text size="large" tag="b">{{ i.name }}</el-text>
                   <el-text>{{ i.version }}</el-text>
-                  <el-tag size="small" :type="i.fileFormat === 'toml' ? 'success' : ''" disable-transitions>{{ i.fileFormat }}</el-tag>
+                  <el-tag size="small" :type="i.fileFormat === 'toml' ? 'success' : 'primary'" disable-transitions>{{ i.fileFormat }}</el-tag>
                 </el-space>
                 <el-text v-if="i.cloud" type="primary" size="small">
                   <el-icon><MostlyCloudy /></el-icon>
                   作者提供云端内容，请自行鉴别安全性
+                </el-text>
+                <el-text v-if="i.fileFormat === 'jsonc'" type="warning" size="small">
+                  <el-icon><Warning /></el-icon>
+                  注意：该牌堆的格式并非标准 JSON ，而是允许尾逗号与注释语法的扩展 JSON
                 </el-text>
               </el-space>
               <el-space>
@@ -55,11 +59,11 @@
               </el-space>
             </div>
           </template>
-          <el-descriptions>
+          <el-descriptions style="white-space:pre-line;">
             <el-descriptions-item :span="3" label="作者">{{ i.author || '&lt;佚名>' }}</el-descriptions-item>
             <el-descriptions-item :span="3" v-if="i.desc" label="简介">{{ i.desc }}</el-descriptions-item>
             <el-descriptions-item :span="3" label="牌堆列表">
-              <el-tag v-for="(visible, c) of i.command" :key="c" size="small" :type="visible ? '' : 'info'" style="margin-right: 0.5rem;" disable-transitions>
+              <el-tag v-for="(visible, c) of i.command" :key="c" size="small" :type="visible ? 'primary' : 'info'" style="margin-right: 0.5rem;" disable-transitions>
                 {{ c }}
               </el-tag>
             </el-descriptions-item>
@@ -96,6 +100,7 @@ import {
   Delete,
   MostlyCloudy,
   DocumentChecked,
+  Warning,
 } from '@element-plus/icons-vue'
 import DiffViewer from "~/components/mod/diff-viewer.vue";
 

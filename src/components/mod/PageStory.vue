@@ -6,6 +6,7 @@ import { apiFetch, backend } from '~/backend'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import StoryBackup from "~/components/mod/story/StoryBackup.vue";
 
 interface Log {
     id: number
@@ -48,15 +49,16 @@ async function getInfo() {
 const queryLogPage = ref({
     pageNum: 1,
     pageSize: 20,
+    total: 0,
     name: "",
     groupId: "",
     createdTime: ([undefined, undefined] as unknown) as [Date, Date],
 })
 
 async function getLogPage(params: { pageNum: number, pageSize: number, name?: string, groupId?: string, createdTimeBegin?: number, createdTimeEnd?: number }) {
-    return backend.get(url("logs/page"), {
-        headers: { token: token }, params: params
-    })
+    return await backend.get(url("logs/page"), {
+      headers: {token: token}, params: params
+    }) as any
 }
 
 // async function getItems(v: Log) {
@@ -100,6 +102,7 @@ async function uploadLog(v: Log) {
 
 //
 
+let tab: Ref<'list' | 'backup'> = ref('list');
 let mode: Ref<'logs' | 'items'> = ref('logs');
 let sum_log = ref(0), sum_item = ref(0), cur_log = ref(0), cur_item = ref(0);
 dayjs.extend(relativeTime)
@@ -112,13 +115,24 @@ async function searchLogs() {
         createdTimeBegin: queryLogPage.value.createdTime?.[0] ? dayjs(queryLogPage.value.createdTime?.[0]).startOf('date').unix() : undefined,
         createdTimeEnd: queryLogPage.value.createdTime?.[1] ? dayjs(queryLogPage.value.createdTime?.[1]).endOf('date').unix() : undefined,
     }
-    const page = await getLogPage(params)
-    logs.value = page as unknown as Log[]
+    const result : { result: false, err?: string} | {
+        result: true
+        total: number,
+        data: Log[],
+        pageNum: number,
+        pageSize: number,
+    } = await getLogPage(params)
+    if (result.result) {
+        logs.value = result.data
+        queryLogPage.value.total = result.total
+    } else {
+        ElMessage.error("无法获取跑团日志" + result.err ?? "")
+    }
 }
 
 async function refreshLogs() {
     [sum_log.value, sum_item.value, cur_log.value, cur_item.value] = await getInfo()
-    logs.value = await getLogPage(queryLogPage.value) as unknown as Log[] || []
+    await searchLogs()
     ElMessage({
         message: '刷新日志列表完成',
         type: 'success',
@@ -127,7 +141,13 @@ async function refreshLogs() {
 
 const handleLogPageChange = async (val: number) => {
     queryLogPage.value.pageNum = val
-    await refreshLogs()
+    await searchLogs()
+}
+
+const handlePageSizeChange = async (val: number) => {
+    queryLogPage.value.pageNum = 1
+    queryLogPage.value.pageSize = val
+    await searchLogs()
 }
 
 async function DelLog(v: Log, flag = true) {
@@ -210,6 +230,7 @@ async function openItem(log: Log) {
     logItemPage.value.logName = log.name
     logItemPage.value.groupId = log.groupId
     logItemPage.value.size = log.size
+    logItemPage.value.pageNum = 1
     item_data.value = await getItemPage({
         pageNum: logItemPage.value.pageNum,
         pageSize: logItemPage.value.pageSize,
@@ -253,121 +274,129 @@ onBeforeMount(() => {
 </script>
 
 <template>
-    <header style="margin-bottom: 1rem;">
-        <!-- <ElButton type="primary" :icon="Refresh" @click="getLogs(); getInfo()">刷新日志列表</ElButton> -->
-    </header>
-    <template v-if="mode == 'logs'">
-        <header>
-            <ElCard>
-                <template #header>
-                    <strong style="display: block; margin: 10px 0;">跑团日志 / Story</strong>
-                </template>
-                <el-space direction="vertical" alignment="flex-start">
-                    <el-text size="large" style="margin-right: 1rem;">记录过 {{ sum_log }} 份日志，共计 {{ sum_item }} 条消息</el-text>
-                    <el-text size="large" style="margin-right: 1rem;">现有 {{ cur_log }} 份日志，共计 {{ cur_item }} 条消息</el-text>
-                </el-space>
-            </ElCard>
-        </header>
-        <ElDivider></ElDivider>
-        <main>
-            <el-form :inline="true" :model="queryLogPage">
-                <el-form-item label="日志名">
-                    <el-input v-model="queryLogPage.name" clearable />
-                </el-form-item>
-                <el-form-item label="群号">
-                    <el-input v-model="queryLogPage.groupId" clearable />
-                </el-form-item>
-                <el-form-item label="创建时间">
-                    <el-date-picker v-model="queryLogPage.createdTime" type="daterange" range-separator="-" />
-                </el-form-item>
-                <el-form-item>
-                    <el-button type="primary" @click="searchLogs">查询</el-button>
-                </el-form-item>
-            </el-form>
-            <ElButtonGroup style="margin-top: 5px;display: block;">
-                <ElButton type="primary" size="small" :icon="Select" @click="logs.forEach(v => v.pitch = !v.pitch)">全选
-                </ElButton>
-                <ElButton type="danger" size="small" :icon="Delete" @click="DelLogs()"
-                    v-show="logs.filter(v => v.pitch).length > 0">删除所选</ElButton>
-            </ElButtonGroup>
-            <template v-for=" i in logs" :key="i.id">
-                <ElCard style="margin-top: 10px;" shadow="hover">
+<!--    <header style="margin-bottom: 1rem;">-->
+<!--        &lt;!&ndash; <ElButton type="primary" :icon="Refresh" @click="getLogs(); getInfo()">刷新日志列表</ElButton> &ndash;&gt;-->
+<!--    </header>-->
+    <el-tabs v-model="tab" stretch>
+      <el-tab-pane label="跑团日志" name="list">
+        <template v-if="mode == 'logs'">
+            <header>
+                <ElCard>
                     <template #header>
-                        <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between;">
-                            <el-space>
-                                <ElCheckbox v-model="i.pitch" style="float: right;" />
-                                <el-text size="large" tag="strong">{{ i.name }}</el-text>
-                                <el-text>({{ i.groupId }})</el-text>
-                            </el-space>
-                            <el-space>
-                                <ElButton size="small" plain @click="openItem(i)">查看</ElButton>
-                                <!--<ElButton>下载到本地</ElButton>-->
-                                <ElButton size="small" type="primary" :icon="Upload" plain @click="UploadLog(i)">提取日志
-                                </ElButton>
-                                <ElButton size="small" type="danger" :icon="Delete" plain
-                                    @click="DelLog(i);">删除
-                                </ElButton>
-                            </el-space>
-                        </div>
+                        <strong style="display: block; margin: 10px 0;">跑团日志 / Story</strong>
                     </template>
                     <el-space direction="vertical" alignment="flex-start">
-                        <el-space>
-                            <el-text>包含 {{ i.size }} 条消息</el-text>
-                        </el-space>
-                        <el-space>
-                            <el-text>创建于：{{ dayjs.unix(i.createdAt).format('YYYY-MM-DD') }}</el-text>
-                            <ElTag size="small" disable-transitions>{{ dayjs.unix(i.createdAt).fromNow() }}</ElTag><br />
-                        </el-space>
-                        <el-space>
-                            <el-text>更新于：{{ dayjs.unix(i.updatedAt).format('YYYY-MM-DD') }}</el-text>
-                            <ElTag size="small" disable-transitions>{{ dayjs.unix(i.updatedAt).fromNow() }}</ElTag><br />
-                        </el-space>
+                        <el-text size="large" style="margin-right: 1rem;">记录过 {{ sum_log }} 份日志，共计 {{ sum_item }} 条消息</el-text>
+                        <el-text size="large" style="margin-right: 1rem;">现有 {{ cur_log }} 份日志，共计 {{ cur_item }} 条消息</el-text>
                     </el-space>
                 </ElCard>
-            </template>
-        </main>
-        <div style="display: flex; justify-content: center;">
-            <el-pagination class="pagination" :page-size="queryLogPage.pageSize" :current-page="queryLogPage.pageNum"
-                :pager-count=5 :total="cur_log" @current-change="handleLogPageChange" layout="prev, pager, next" background
-                hide-on-single-page />
-        </div>
-    </template>
-    <template v-if="mode == 'items'">
-        <ElCard shadow="never">
-            <template #header>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong style="margin: 10px 0;">跑团日志 / Story</strong>
-                    <ElButton type="primary" :icon="Back" @click="closeItem()">返回列表</ElButton>
-                </div>
-            </template>
-            <ElCollapse>
-                <ElCollapseItem title="颜色设置">
-                    <template v-for="(_, id) in users" :key="id">
-                        <div style="padding: 0.5rem;">
-                            <input type="color" v-model="users[id][0]" />
-                            <span style="padding-left: 1rem;">{{ users[id][1] }}</span>
-                        </div>
-                    </template>
-                </ElCollapseItem>
-            </ElCollapse>
-        </ElCard>
-        <template v-for="v, i1 in items" :key="i1">
-            <p :style="{ color: users[v.IMUserId][0] }">
-                <span>{{ v.nickname }}：</span>
-                <template v-for="p1, i2 in v.message.split('\n')" :key="i2">
-                    <span>{{ p1 }}</span><br>
+            </header>
+            <ElDivider></ElDivider>
+            <main>
+                <el-form :inline="true" :model="queryLogPage">
+                    <el-form-item label="日志名">
+                        <el-input v-model="queryLogPage.name" clearable />
+                    </el-form-item>
+                    <el-form-item label="群号">
+                        <el-input v-model="queryLogPage.groupId" clearable />
+                    </el-form-item>
+                    <el-form-item label="创建时间">
+                        <el-date-picker v-model="queryLogPage.createdTime" type="daterange" range-separator="-" />
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="searchLogs">查询</el-button>
+                    </el-form-item>
+                </el-form>
+                <ElButtonGroup style="margin-top: 5px;display: block;">
+                    <ElButton type="primary" size="small" :icon="Select" @click="logs.forEach(v => v.pitch = !v.pitch)">全选
+                    </ElButton>
+                    <ElButton type="danger" size="small" :icon="Delete" @click="DelLogs()"
+                        v-show="logs.filter(v => v.pitch).length > 0">删除所选</ElButton>
+                </ElButtonGroup>
+                <template v-for=" i in logs" :key="i.id">
+                    <ElCard style="margin-top: 10px;" shadow="hover">
+                        <template #header>
+                            <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between;">
+                                <el-space>
+                                    <ElCheckbox v-model="i.pitch" style="float: right;" />
+                                    <el-text size="large" tag="strong">{{ i.name }}</el-text>
+                                    <el-text>({{ i.groupId }})</el-text>
+                                </el-space>
+                                <el-space>
+                                    <ElButton size="small" plain @click="openItem(i)">查看</ElButton>
+                                    <!--<ElButton>下载到本地</ElButton>-->
+                                    <ElButton size="small" type="primary" :icon="Upload" plain @click="UploadLog(i)">提取日志
+                                    </ElButton>
+                                    <ElButton size="small" type="danger" :icon="Delete" plain
+                                        @click="DelLog(i);">删除
+                                    </ElButton>
+                                </el-space>
+                            </div>
+                        </template>
+                        <el-space direction="vertical" alignment="flex-start">
+                            <el-space>
+                                <el-text>包含 {{ i.size }} 条消息</el-text>
+                            </el-space>
+                            <el-space>
+                                <el-text>创建于：{{ dayjs.unix(i.createdAt).format('YYYY-MM-DD') }}</el-text>
+                                <ElTag size="small" disable-transitions>{{ dayjs.unix(i.createdAt).fromNow() }}</ElTag><br />
+                            </el-space>
+                            <el-space>
+                                <el-text>更新于：{{ dayjs.unix(i.updatedAt).format('YYYY-MM-DD') }}</el-text>
+                                <ElTag size="small" disable-transitions>{{ dayjs.unix(i.updatedAt).fromNow() }}</ElTag><br />
+                            </el-space>
+                        </el-space>
+                    </ElCard>
                 </template>
-            </p>
+            </main>
+            <div style="display: flex; justify-content: center;">
+                <el-pagination class="pagination" :page-size="queryLogPage.pageSize" :current-page="queryLogPage.pageNum"
+                    :pager-count=3 :total="queryLogPage.total"
+                    @current-change="handleLogPageChange" @size-change="handlePageSizeChange"
+                    layout="sizes, prev, pager, next" background/>
+            </div>
         </template>
-        <div style="display: flex; justify-content: center;">
-            <el-pagination class="pagination" :page-size="logItemPage.pageSize" :current-page="logItemPage.pageNum"
-                :pager-count=5 :total="logItemPage.size" @current-change="handleItemPageChange" layout="prev, pager, next"
-                background hide-on-single-page />
-        </div>
-    </template>
+        <template v-if="mode == 'items'">
+            <ElCard shadow="never">
+                <template #header>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong style="margin: 10px 0;">跑团日志 / Story</strong>
+                        <ElButton type="primary" :icon="Back" @click="closeItem()">返回列表</ElButton>
+                    </div>
+                </template>
+                <ElCollapse>
+                    <ElCollapseItem title="颜色设置">
+                        <template v-for="(_, id) in users" :key="id">
+                            <div style="padding: 0.5rem;">
+                                <input type="color" v-model="users[id][0]" />
+                                <span style="padding-left: 1rem;">{{ users[id][1] }}</span>
+                            </div>
+                        </template>
+                    </ElCollapseItem>
+                </ElCollapse>
+            </ElCard>
+            <template v-for="v, i1 in items" :key="i1">
+                <p :style="{ color: users[v.IMUserId][0] }">
+                    <span>{{ v.nickname }}：</span>
+                    <template v-for="p1, i2 in v.message.split('\n')" :key="i2">
+                        <span>{{ p1 }}</span><br>
+                    </template>
+                </p>
+            </template>
+            <div style="display: flex; justify-content: center;">
+                <el-pagination class="pagination" :page-size="logItemPage.pageSize" :current-page="logItemPage.pageNum"
+                    :pager-count=5 :total="logItemPage.size" @current-change="handleItemPageChange" layout="prev, pager, next"
+                    background hide-on-single-page />
+            </div>
+        </template>
+      </el-tab-pane>
+      <el-tab-pane label="日志备份" name="backup">
+        <story-backup/>
+      </el-tab-pane>
+    </el-tabs>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 .pagination {
     margin-top: 10px;
     background-color: #f3f5f7;

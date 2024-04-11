@@ -3,26 +3,40 @@
     style="background: #545c64; height: 100%; display: flex; flex-direction: column; max-width: 950px; width: 100%; margin: 0 auto; position: relative;">
     <h3 class="mb-2"
       style="color: #f8ffff; text-align: left; padding-left: 1.2em; font-weight: normal;max-height:60px; height: 60px;">
-      <span :v-show="store.canAccess" style="position: relative;">SealDice<span v-if="store.diceServers.length > 0"
-          style="font-size: .7rem; position: absolute; bottom: -1rem; white-space: nowrap; left: 0;">{{
-            store.diceServers[0].baseInfo.OS }} - {{ store.diceServers[0].baseInfo.arch }}</span></span>
+      <span :v-show="store.canAccess" style="position: relative;">
+        <span @click="enableAdvancedConfig" style="cursor: pointer;">SealDice</span>
+        <span v-if="store.diceServers.length > 0"
+          style="font-size: .7rem; position: absolute; bottom: -1rem; white-space: nowrap; left: 0;">
+          {{ store.diceServers[0].baseInfo.OS }} - {{ store.diceServers[0].baseInfo.arch }}
+        </span>
+      </span>
     </h3>
 
-    <!-- border: 1px solid #ccc; padding: 4px 8px; border-radius: 4px; -->
-    <div @click="dialogFeed = true"
-      style="position: absolute; right: 8rem; top: 0.8rem; font-size: 1.7rem; color: white; cursor: pointer; display: flex; align-items: center;">
-      <!-- <el-icon><WarnTriangleFilled /></el-icon> -->
-      <el-badge value="new" :hidden="newsChecked">
-        <img :src="imgNews" style="width: 2.3rem;">
-      </el-badge>
-      <!-- <span style="font-size: .9rem;">News!</span> -->
-    </div>
+    <div v-show="store.canAccess"
+      style="position: absolute; top: 1rem; right: 10px; color: #fff; font-size: small; text-align: right; display: flex;">
+      <div @click="dialogFeed = true"
+           style="margin-right: 1.5rem; cursor: pointer;">
+        <el-badge value="new" :hidden="newsChecked">
+          <img :src="imgNews" alt="news" style="width: 2.3rem;">
+        </el-badge>
+      </div>
 
-    <div :v-show="store.canAccess"
-      style="position: absolute; top: 1rem; right: 10px; color: #fff; font-size: small; text-align: right;">
-      <div>{{ store.curDice.baseInfo.version }}</div>
-      <div v-if="store.curDice.baseInfo.versionCode < store.curDice.baseInfo.versionNewCode">
-        🆕{{ store.curDice.baseInfo.versionNew }}</div>
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <div style="display: flex; align-items: center;">
+          <el-tag effect="dark" size="small" disable-transitions
+                  style="margin-right: 0.3rem;"
+                  :type="store.curDice.baseInfo.appChannel === 'stable' ? 'success' : 'info'">
+            {{ store.curDice.baseInfo.appChannel === 'stable' ? '正式版' : '测试版' }}
+          </el-tag>
+          <el-tooltip :content="store.curDice.baseInfo.version" placement="bottom">
+            <el-text size="large" style="color: #fff">
+              {{ store.curDice.baseInfo.versionSimple }}
+            </el-text>
+          </el-tooltip>
+        </div>
+        <div v-if="store.curDice.baseInfo.versionCode < store.curDice.baseInfo.versionNewCode">
+          🆕{{ store.curDice.baseInfo.versionNew }}</div>
+      </div>
     </div>
 
     <div style="display: flex;">
@@ -132,6 +146,9 @@
             </el-menu-item>
             <el-menu-item :index="`7-backup`" @click="switchTo('miscSettings', 'backup')">
               <span>备份</span>
+            </el-menu-item>
+            <el-menu-item v-if="advancedConfigCounter >= 8" :index="`7-advanced`" @click="switchTo('miscSettings', 'advanced')">
+              <span>高级设置</span>
             </el-menu-item>
           </el-sub-menu>
 
@@ -326,6 +343,11 @@ onBeforeMount(async () => {
   }, 5000) as any
 
   await updateNews()
+
+  const conf = await store.diceAdvancedConfigGet()
+  if (conf.enable) {
+    advancedConfigCounter.value = 8
+  }
 })
 
 let timerId: number
@@ -380,6 +402,22 @@ const switchTo = (tab: 'overview' | 'miscSettings' | 'log' | 'customText' | 'mod
 }
 
 let configCustom = {}
+
+let advancedConfigCounter = ref<number>(0)
+const enableAdvancedConfig = async () => {
+  advancedConfigCounter.value++
+  if (advancedConfigCounter.value > 8) {
+    ElMessage.info('高级设置页已经开启')
+    return
+  } else if (advancedConfigCounter.value === 8) {
+    let conf = await store.diceAdvancedConfigGet()
+    conf.enable = true
+    await store.diceAdvancedConfigSet(conf)
+    ElMessage.success('已开启高级设置页')
+  } else if (advancedConfigCounter.value > 2) {
+    ElMessage.info('再按 ' + (8 - advancedConfigCounter.value) + ' 次开启高级设置页')
+  }
+}
 </script>
 
 <style>

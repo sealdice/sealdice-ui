@@ -38,6 +38,7 @@ export interface AdapterQQ {
   appID: number;
   isReverse: boolean;
   reverseAddr: string;
+  builtinMode: 'gocq' | 'lagrange'
 }
 
 interface TalkLogItem {
@@ -89,7 +90,9 @@ interface DiceServer {
 }
 
 interface DiceBaseInfo {
+  appChannel: string
   version: string
+  versionSimple: string
   versionNew: string
   versionNewNote: string
   versionCode: number
@@ -128,7 +131,20 @@ export const useStore = defineStore('main', {
     curDice(): DiceServer {
       if (this.diceServers.length === 0) {
         this.diceServers.push({
-          baseInfo: { version: '0.0', versionNew: '0.0', memoryUsedSys: 0, memoryAlloc: 0, uptime: 0, versionNewNote: '', versionCode: 0, versionNewCode: 0, OS: '', arch: '' },
+          baseInfo: {
+            appChannel: 'stable',
+            version: '0.0',
+            versionSimple: '0.0',
+            versionNew: '0.0',
+            memoryUsedSys: 0,
+            memoryAlloc: 0,
+            uptime: 0,
+            versionNewNote: '',
+            versionCode: 0,
+            versionNewCode: 0,
+            OS: '',
+            arch: ''
+          },
           customTexts: {},
           customTextsHelpInfo: {},
           logs: [],
@@ -220,22 +236,24 @@ export const useStore = defineStore('main', {
         useSignServer,
         signServerConfig,
         reverseAddr,
-        onlyQQGuild } = form
+        onlyQQGuild,
+        platform } = form
+        
       let info = null
       switch (accountType) {
         //QQ
         case 0:
           if (implementation === 'gocq') {
-            info = await backend.post(urlPrefix + '/im_connections/add', { account, password, protocol, appVersion, useSignServer, signServerConfig }, { timeout: 65000 })
+            info = await backend.post(urlPrefix + '/im_connections/addGocq', { account, password, protocol, appVersion, useSignServer, signServerConfig }, { timeout: 65000 })
           } else if (implementation === 'walle-q') {
             info = await backend.post(urlPrefix + '/im_connections/addWalleQ', { account, password, protocol }, { timeout: 65000 })
           }
           break
         case 1:
-          info = await backend.post(urlPrefix + '/im_connections/addDiscord', { token, proxyURL, reverseProxyUrl, reverseProxyCDNUrl }, { timeout: 65000 })
+          info = await backend.post(urlPrefix + '/im_connections/addDiscord', { token: token.trim(), proxyURL, reverseProxyUrl, reverseProxyCDNUrl }, { timeout: 65000 })
           break
         case 2:
-          info = await backend.post(urlPrefix + '/im_connections/addKook', { token }, { timeout: 65000 })
+          info = await backend.post(urlPrefix + '/im_connections/addKook', { token: token.trim() }, { timeout: 65000 })
           break
         case 3:
           info = await backend.post(urlPrefix + '/im_connections/addTelegram', { token, proxyURL}, { timeout: 65000 })
@@ -244,11 +262,17 @@ export const useStore = defineStore('main', {
           info = await backend.post(urlPrefix + '/im_connections/addMinecraft', { url }, { timeout: 65000 })
           break
         case 5:
-          info = await backend.post(urlPrefix + '/im_connections/addDodo', { clientID, token }, { timeout: 65000 })
+          info = await backend.post(urlPrefix + '/im_connections/addDodo', { clientID: clientID.trim(), token: token.trim() }, { timeout: 65000 })
           break
-        case 6:
-          info = await backend.post(urlPrefix + '/im_connections/addGocqSeparate', { relWorkDir, connectUrl, accessToken, account }, { timeout: 65000 })
+        case 6: {
+          // onebot11 正向
+          let realUrl = connectUrl.trim()
+          if (!realUrl.startsWith('ws://') && !realUrl.startsWith('wss://')) {
+            realUrl = `ws://${realUrl}`
+          }
+          info = await backend.post(urlPrefix + '/im_connections/addGocqSeparate', { relWorkDir, connectUrl: realUrl, accessToken, account }, { timeout: 65000 })
           break
+        }
         case 7:
           info = await backend.post(urlPrefix + '/im_connections/addRed', { host, port, token }, { timeout: 65000 })
           break
@@ -262,10 +286,16 @@ export const useStore = defineStore('main', {
           info = await backend.post(urlPrefix + '/im_connections/addOfficialQQ', { appID: Number(appID), appSecret, token,onlyQQGuild }, { timeout: 65000 })
           break
         case 11:
-          info = await backend.post(urlPrefix + '/im_connections/addOnebot11ReverseWs', { account, reverseAddr }, { timeout: 65000 })
+          info = await backend.post(urlPrefix + '/im_connections/addOnebot11ReverseWs', { account, reverseAddr: reverseAddr?.trim() }, { timeout: 65000 })
           break
         case 13:
-          info = await backend.post(urlPrefix + '/im_connections/addSealChat', { url, token }, { timeout: 65000 })
+          info = await backend.post(urlPrefix + '/im_connections/addSealChat', { url: url.trim(), token: token.trim() }, { timeout: 65000 })
+          break
+        case 14:
+          info = await backend.post(urlPrefix + '/im_connections/addSatori', { platform, host, port, token }, { timeout: 65000 })
+          break
+        case 15:
+          info = await backend.post(urlPrefix + '/im_connections/addLagrange', { account, protocol }, { timeout: 65000 })
           break
       }
       return info as any as DiceConnection
@@ -317,6 +347,16 @@ export const useStore = defineStore('main', {
       await this.diceConfigGet()
     },
 
+    async diceAdvancedConfigGet() {
+      const info: AdvancedConfig = await backend.get(urlPrefix + '/dice/config/advanced/get')
+      return info
+    },
+
+    async diceAdvancedConfigSet(data: AdvancedConfig) {
+      await backend.post(urlPrefix + '/dice/config/advanced/set', data, { headers: { token: this.token } })
+      await this.diceAdvancedConfigGet()
+    },
+
     async diceMailTest() {
       const res: { result: true } | {
         result: false,
@@ -331,7 +371,7 @@ export const useStore = defineStore('main', {
     },
 
     async diceUploadToUpgrade({ form }: any) {
-      const info = await backend.post(urlPrefix + '/dice/upload_to_upgrade', form)
+      const info = await backend.post(urlPrefix + '/dice/upload_to_upgrade', form, { headers: { "Content-Type": "multipart/form-data" } })
       return info as any
     },
 
@@ -366,7 +406,7 @@ export const useStore = defineStore('main', {
     },
 
     async customReplyFileUpload({ form }: any) {
-      const info = await backend.post(urlPrefix + '/configs/custom_reply/file_upload', form)
+      const info = await backend.post(urlPrefix + '/configs/custom_reply/file_upload', form,  { headers: { "Content-Type": "multipart/form-data" } })
       return info as any
     },
 
@@ -494,7 +534,7 @@ export const useStore = defineStore('main', {
     },
 
     async deckUpload({ form }: any) {
-      const info = await backend.post(urlPrefix + '/deck/upload', form)
+      const info = await backend.post(urlPrefix + '/deck/upload', form, { headers: { "Content-Type": "multipart/form-data" } })
       return info as any
     },
 
@@ -553,7 +593,7 @@ export const useStore = defineStore('main', {
       }
     },
     async jsUpload({ form }: any) {
-      const info = await backend.post(urlPrefix + '/js/upload', form)
+      const info = await backend.post(urlPrefix + '/js/upload', form,  { headers: { "Content-Type": "multipart/form-data" } })
       return info as any
     },
     async jsDelete({ index }: any) {
@@ -686,7 +726,7 @@ export const useStore = defineStore('main', {
     async helpDocUpload(form: any): Promise<{ result: true } | { result: false, err?: string }> {
       return await apiFetch(urlPrefix + '/helpdoc/upload', {
         method: 'POST', headers: {
-          token: this.token
+          token: this.token,
         }, body: form
       })
     },

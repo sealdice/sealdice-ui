@@ -79,6 +79,7 @@ declare module 'vue' {
     PageJs: typeof import('./components/mod/PageJs.vue')['default']
     PageLog: typeof import('./components/PageLog.vue')['default']
     PageMisc: typeof import('./components/PageMisc.vue')['default']
+    PageMiscAdvancedSettings: typeof import('./components/misc/PageMiscAdvancedSettings.vue')['default']
     PageMiscBackup: typeof import('./components/misc/PageMiscBackup.vue')['default']
     PageMiscBanList: typeof import('./components/misc/PageMiscBanList.vue')['default']
     PageMiscDeck: typeof import('./components/mod/PageMiscDeck.vue')['default']
@@ -87,5 +88,6 @@ declare module 'vue' {
     PageMod: typeof import('./components/PageMod.vue')['default']
     PageStory: typeof import('./components/mod/PageStory.vue')['default']
     PageTest: typeof import('./components/PageTest.vue')['default']
+    StoryBackup: typeof import('./components/mod/story/StoryBackup.vue')['default']
   }
 }
