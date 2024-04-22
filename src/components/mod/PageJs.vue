@@ -333,7 +333,7 @@ import {
 import * as dayjs from 'dayjs'
 import {basicSetup, EditorView} from "codemirror"
 import {javascript} from "@codemirror/lang-javascript"
-import DiffViewer from "~/components/mod/diff-viewer.vue";
+import DiffViewer from "~/components/tools/diff-viewer.vue";
 import {isEqual, size} from "lodash-es";
 
 const store = useStore()
