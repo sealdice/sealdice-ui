@@ -361,6 +361,11 @@ const doSave = async () => {
     }
     cr.value.filename = curFilename.value;
     cr.value.conditions = conditions.value;
+    for (let cond of cr.value.conditions) {
+      if (cond.condType === 'textLenLimit') {
+        cond.value = parseInt(cond.value) || 0;
+      }
+    }
     await store.setCustomReply(cr.value)
     ElMessage.success('已保存')
     modified.value = false
