@@ -162,6 +162,7 @@ import { useStore } from '~/store';
 import { Delete, Plus, Refresh, Setting, Upload } from '@element-plus/icons-vue'
 import { trim } from 'lodash-es';
 import { computed } from 'vue';
+import {HelpDoc, HelpTextItem, HelpTextItemQuery} from "~/type";
 
 interface Group {
   key: string,
