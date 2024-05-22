@@ -128,19 +128,18 @@
                     <template #header>
                       <div class="js-item-header">
                         <el-space>
-                          <el-text size="large">{{ (c as unknown as JsPluginConfigItem).key }}</el-text>
+                          <el-text size="large">{{ (c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key }}</el-text>
                         </el-space>
                       </div>
                     </template>
                     <el-form-item v-if="(c as unknown as JsPluginConfigItem).type == 'string'" style="width: 100%; margin-bottom: .5rem;">
-                      <el-form-item label="字符串配置项:">{{(c as unknown as JsPluginConfigItem).key}}</el-form-item><br/>
-                      <div style="width: 100%"><el-text>{{ (c as unknown as JsPluginConfigItem).description }}</el-text></div>
+                      <el-form-item label="字符串配置项:">{{(c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key}}</el-form-item><br/>
                       <div style="width: 100%; margin-bottom: .5rem;">
                         <el-input type="textarea" v-model="(c as unknown as JsPluginConfigItem).value" @change="doJsConfigChanged()"></el-input>
                       </div>
                       <template v-if="(c as unknown as JsPluginConfigItem).value !== (c as unknown as JsPluginConfigItem).defaultValue">
                         <el-tooltip content="重置为初始值" placement="bottom-end">
-                          <el-icon style="float: right; margin-left: 1rem;" @click="doResetJsConfig((config as unknown as JsPluginConfig)['pluginName'],(c as unknown as JsPluginConfigItem).key)">
+                          <el-icon style="float: right; margin-left: 1rem;" @click="doResetJsConfig((config as unknown as JsPluginConfig)['pluginName'],(c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key)">
                             <brush-filled />
                           </el-icon>
                         </el-tooltip>
@@ -148,15 +147,14 @@
                       <template v-if="(c as unknown as JsPluginConfigItem).deprecated">
                         <el-tooltip content="移除 - 这个配置在新版的默认配置中不被使用，<br />但升级而来时仍可能被使用，请确认无用后删除" raw-content
                                     placement="bottom-end">
-                          <el-icon style="float: right; margin-left: 1rem;" @click="doDeleteUnusedConfig((config as unknown as JsPluginConfig)['pluginName'], (c as unknown as JsPluginConfigItem).key)">
+                          <el-icon style="float: right; margin-left: 1rem;" @click="doDeleteUnusedConfig((config as unknown as JsPluginConfig)['pluginName'], (c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key)">
                             <delete-filled />
                           </el-icon>
                         </el-tooltip>
                       </template>
                     </el-form-item>
                     <el-form-item v-if="(c as unknown as JsPluginConfigItem).type == 'int'">
-                      <el-form-item label="整数配置项:">{{(c as unknown as JsPluginConfigItem).key}}</el-form-item><br/>
-                      <div style="width: 100%"><el-text>{{ (c as unknown as JsPluginConfigItem).description }}</el-text></div>
+                      <el-form-item label="整数配置项:">{{(c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key}}</el-form-item><br/>
                       <el-form-item :span="30">
                         <div style="margin-left: 1rem;">
                           <el-input-number v-model="(c as unknown as JsPluginConfigItem).value" type="number" @change="doJsConfigChanged()"></el-input-number>
@@ -164,7 +162,7 @@
                       </el-form-item>
                       <template v-if="(c as unknown as JsPluginConfigItem).value !== (c as unknown as JsPluginConfigItem).defaultValue">
                         <el-tooltip content="重置为初始值" placement="bottom-end">
-                          <el-icon style="float: right; margin-left: 1rem;" @click="doResetJsConfig((config as unknown as JsPluginConfig)['pluginName'],(c as unknown as JsPluginConfigItem).key)">
+                          <el-icon style="float: right; margin-left: 1rem;" @click="doResetJsConfig((config as unknown as JsPluginConfig)['pluginName'],(c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key)">
                             <brush-filled />
                           </el-icon>
                         </el-tooltip>
@@ -172,15 +170,14 @@
                       <template v-if="(c as unknown as JsPluginConfigItem).deprecated">
                         <el-tooltip content="移除 - 这个配置在新版的默认配置中不被使用，<br />但升级而来时仍可能被使用，请确认无用后删除" raw-content
                                     placement="bottom-end">
-                          <el-icon style="float: right; margin-left: 1rem;" @click="doDeleteUnusedConfig((config as unknown as JsPluginConfig)['pluginName'], (c as unknown as JsPluginConfigItem).key)">
+                          <el-icon style="float: right; margin-left: 1rem;" @click="doDeleteUnusedConfig((config as unknown as JsPluginConfig)['pluginName'], (c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key)">
                             <delete-filled />
                           </el-icon>
                         </el-tooltip>
                       </template>
                     </el-form-item>
                     <el-form-item v-if="(c as unknown as JsPluginConfigItem).type == 'float'">
-                      <el-form-item label="浮点数配置项:">{{(c as unknown as JsPluginConfigItem).key}}</el-form-item><br/>
-                      <div style="width: 100%"><el-text>{{ (c as unknown as JsPluginConfigItem).description }}</el-text></div>
+                      <el-form-item label="浮点数配置项:">{{(c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key}}</el-form-item><br/>
                       <el-form-item :span="30">
                         <div style="margin-left: 1rem;">
                           <el-input-number v-model="(c as unknown as JsPluginConfigItem).value" type="number" @change="doJsConfigChanged()"></el-input-number>
@@ -188,7 +185,7 @@
                       </el-form-item>
                       <template v-if="(c as unknown as JsPluginConfigItem).value !== (c as unknown as JsPluginConfigItem).defaultValue">
                         <el-tooltip content="重置为初始值" placement="bottom-end">
-                          <el-icon style="float: right; margin-left: 1rem;" @click="doResetJsConfig((config as unknown as JsPluginConfig)['pluginName'],(c as unknown as JsPluginConfigItem).key)">
+                          <el-icon style="float: right; margin-left: 1rem;" @click="doResetJsConfig((config as unknown as JsPluginConfig)['pluginName'],(c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key)">
                             <brush-filled />
                           </el-icon>
                         </el-tooltip>
@@ -196,15 +193,14 @@
                       <template v-if="(c as unknown as JsPluginConfigItem).deprecated">
                         <el-tooltip content="移除 - 这个配置在新版的默认配置中不被使用，<br />但升级而来时仍可能被使用，请确认无用后删除" raw-content
                                     placement="bottom-end">
-                          <el-icon style="float: right; margin-left: 1rem;" @click="doDeleteUnusedConfig((config as unknown as JsPluginConfig)['pluginName'], (c as unknown as JsPluginConfigItem).key)">
+                          <el-icon style="float: right; margin-left: 1rem;" @click="doDeleteUnusedConfig((config as unknown as JsPluginConfig)['pluginName'], (c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key)">
                             <delete-filled />
                           </el-icon>
                         </el-tooltip>
                       </template>
                     </el-form-item>
                     <el-form-item v-if="(c as unknown as JsPluginConfigItem).type == 'bool'">
-                      <el-form-item label="布尔配置项:">{{(c as unknown as JsPluginConfigItem).key}}</el-form-item><br/>
-                      <div style="width: 100%"><el-text>{{ (c as unknown as JsPluginConfigItem).description }}</el-text></div>
+                      <el-form-item label="布尔配置项:">{{(c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key}}</el-form-item><br/>
                       <el-form-item :span="30" >
                         <div style="margin-left: 1rem;">
                           <el-switch v-model="(c as unknown as JsPluginConfigItem).value" @change="doJsConfigChanged()"></el-switch>
@@ -212,7 +208,7 @@
                       </el-form-item>
                       <template v-if="(c as unknown as JsPluginConfigItem).value !== (c as unknown as JsPluginConfigItem).defaultValue">
                         <el-tooltip content="重置为初始值" placement="bottom-end">
-                          <el-icon style="float: right; margin-left: 1rem;" @click="doResetJsConfig((config as unknown as JsPluginConfig)['pluginName'],(c as unknown as JsPluginConfigItem).key)">
+                          <el-icon style="float: right; margin-left: 1rem;" @click="doResetJsConfig((config as unknown as JsPluginConfig)['pluginName'],(c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key)">
                             <brush-filled />
                           </el-icon>
                         </el-tooltip>
@@ -220,18 +216,17 @@
                       <template v-if="(c as unknown as JsPluginConfigItem).deprecated">
                         <el-tooltip content="移除 - 这个配置在新版的默认配置中不被使用，<br />但升级而来时仍可能被使用，请确认无用后删除" raw-content
                                     placement="bottom-end">
-                          <el-icon style="float: right; margin-left: 1rem;" @click="doDeleteUnusedConfig((config as unknown as JsPluginConfig)['pluginName'], (c as unknown as JsPluginConfigItem).key)">
+                          <el-icon style="float: right; margin-left: 1rem;" @click="doDeleteUnusedConfig((config as unknown as JsPluginConfig)['pluginName'], (c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key)">
                             <delete-filled />
                           </el-icon>
                         </el-tooltip>
                       </template>
                     </el-form-item>
                     <el-form-item v-if="(c as unknown as JsPluginConfigItem).type == 'template'" style="width: 100%; margin-bottom: .5rem;">
-                      <el-form-item label="模板配置项:" style="width: 100%; margin-bottom: .5rem;">{{(c as unknown as JsPluginConfigItem).key}}</el-form-item><br/>
-                      <div style="width: 100%"><el-text>{{ (c as unknown as JsPluginConfigItem).description }}</el-text></div>
+                      <el-form-item label="模板配置项:" style="width: 100%; margin-bottom: .5rem;">{{(c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key}}</el-form-item><br/>
                       <template v-if="!isEqual((c as unknown as JsPluginConfigItem).value, (c as unknown as JsPluginConfigItem).defaultValue)">
                         <el-tooltip content="重置为初始值" placement="bottom-end">
-                          <el-icon style="float: right; margin-left: 1rem;" @click="doResetJsConfig((config as unknown as JsPluginConfig)['pluginName'],(c as unknown as JsPluginConfigItem).key)">
+                          <el-icon style="float: right; margin-left: 1rem;" @click="doResetJsConfig((config as unknown as JsPluginConfig)['pluginName'],(c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key)">
                             <brush-filled />
                           </el-icon>
                         </el-tooltip>
@@ -239,7 +234,7 @@
                       <template v-if="(c as unknown as JsPluginConfigItem).deprecated">
                         <el-tooltip content="移除 - 这个配置在新版的默认配置中不被使用，<br />但升级而来时仍可能被使用，请确认无用后删除" raw-content
                                     placement="bottom-end">
-                          <el-icon style="float: right; margin-left: 1rem;" @click="doDeleteUnusedConfig((config as unknown as JsPluginConfig)['pluginName'], (c as unknown as JsPluginConfigItem).key)">
+                          <el-icon style="float: right; margin-left: 1rem;" @click="doDeleteUnusedConfig((config as unknown as JsPluginConfig)['pluginName'], (c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key)">
                             <delete-filled />
                           </el-icon>
                         </el-tooltip>
@@ -268,11 +263,10 @@
                       </el-form-item>
                     </el-form-item>
                     <el-form-item v-if="(c as unknown as JsPluginConfigItem).type == 'option'">
-                      <el-form-item label="选项配置项:" style="width: 100%; margin-bottom: .5rem;">{{(c as unknown as JsPluginConfigItem).key}}</el-form-item>
-                      <div style="width: 100%"><el-text>{{ (c as unknown as JsPluginConfigItem).description }}</el-text></div>
+                      <el-form-item label="选项配置项:" style="width: 100%; margin-bottom: .5rem;">{{(c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key}}</el-form-item>
                       <template v-if="(c as unknown as JsPluginConfigItem).value !== (c as unknown as JsPluginConfigItem).defaultValue">
                         <el-tooltip content="重置为初始值" placement="bottom-end">
-                          <el-icon style="float: right; margin-left: 1rem;" @click="doResetJsConfig((config as unknown as JsPluginConfig)['pluginName'],(c as unknown as JsPluginConfigItem).key)">
+                          <el-icon style="float: right; margin-left: 1rem;" @click="doResetJsConfig((config as unknown as JsPluginConfig)['pluginName'],(c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key)">
                             <brush-filled />
                           </el-icon>
                         </el-tooltip>
@@ -280,7 +274,7 @@
                       <template v-if="(c as unknown as JsPluginConfigItem).deprecated">
                         <el-tooltip content="移除 - 这个配置在新版的默认配置中不被使用，<br />但升级而来时仍可能被使用，请确认无用后删除" raw-content
                                     placement="bottom-end">
-                          <el-icon style="float: right; margin-left: 1rem;" @click="doDeleteUnusedConfig((config as unknown as JsPluginConfig)['pluginName'], (c as unknown as JsPluginConfigItem).key)">
+                          <el-icon style="float: right; margin-left: 1rem;" @click="doDeleteUnusedConfig((config as unknown as JsPluginConfig)['pluginName'], (c as unknown as JsPluginConfigItem).description ? (c as unknown as JsPluginConfigItem).description : (c as unknown as JsPluginConfigItem).key)">
                             <delete-filled />
                           </el-icon>
                         </el-tooltip>
