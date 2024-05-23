@@ -38,6 +38,7 @@ declare module 'vue' {
     ElForm: typeof import('element-plus/es')['ElForm']
     ElFormItem: typeof import('element-plus/es')['ElFormItem']
     ElIcon: typeof import('element-plus/es')['ElIcon']
+    ElImage: typeof import('element-plus/es')['ElImage']
     ElInput: typeof import('element-plus/es')['ElInput']
     ElInputNumber: typeof import('element-plus/es')['ElInputNumber']
     ElLink: typeof import('element-plus/es')['ElLink']
@@ -92,9 +93,14 @@ declare module 'vue' {
     PageMiscGroup: typeof import('./components/misc/PageMiscGroup.vue')['default']
     PageMiscSettings: typeof import('./components/misc/PageMiscSettings.vue')['default']
     PageMod: typeof import('./components/PageMod.vue')['default']
+    PageResource: typeof import('./components/tool/PageResource.vue')['default']
     PageStory: typeof import('./components/mod/PageStory.vue')['default']
     PageTest: typeof import('./components/tool/PageTest.vue')['default']
     PageTool: typeof import('./components/PageTool.vue')['default']
+    ResourceRender: typeof import('./components/utils/resource-render.vue')['default']
     StoryBackup: typeof import('./components/mod/story/StoryBackup.vue')['default']
+  }
+  export interface ComponentCustomProperties {
+    vLoading: typeof import('element-plus/es')['ElLoadingDirective']
   }
 }

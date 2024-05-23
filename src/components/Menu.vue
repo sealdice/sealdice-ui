@@ -98,6 +98,9 @@
       <el-menu-item :index="`8-test`" @click="switchTo('toolSettings', 'test')">
         <span>指令测试</span>
       </el-menu-item>
+      <el-menu-item :index="`8-upload`" @click="switchTo('toolSettings', 'upload')">
+        <span>资源管理</span>
+      </el-menu-item>
     </el-sub-menu>
 
     <el-menu-item index="9" @click="switchTo('about')">
