@@ -17,7 +17,7 @@ const deleteSelf = () => {
 </script>
 
 <template>
-  <div style="border-left: .1rem solid #008; padding-left: .3rem; margin-bottom: .8rem;">
+  <div class="mb-3 pl-2 border-l-2 border-orange-500">
     <div style="display: flex; justify-content: space-between;">
       <el-select v-model="cond.condType">
         <el-option
