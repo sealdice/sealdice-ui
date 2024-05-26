@@ -2,39 +2,39 @@
   <draggable class="dragArea" tag="div" :list="tasks" handle=".handle" :group="{ name: 'g1' }" item-key="name">
     <template #item="{ element: el, index }">
       <li class="reply-item" style="padding-right: .5rem; list-style: none; margin-bottom: 0.5rem;">
-        <div style="display: flex; justify-content: space-between;">
-          <el-checkbox v-model="el.enable">开启</el-checkbox>
-          <el-space alignment="center">
-            <el-icon class="handle" v-if="!el.notCollapse">
-              <rank />
-            </el-icon>
-            <el-button size="small" plain @click="el.notCollapse = !el.notCollapse">
-              {{ el.notCollapse ? '收缩' : '展开' }}
-            </el-button>
-            <el-button :icon="Delete" plain type="danger" size="small" @click="deleteItem(index)">删除</el-button>
-          </el-space>
-        </div>
+        <foldable-card type="div" :default-fold="true" compact>
+          <template #title>
+            <el-checkbox v-model="el.enable">开启</el-checkbox>
+          </template>
+          <template #title-extra>
+            <el-space size="large" alignment="center">
+              <el-icon class="handle">
+                <rank />
+              </el-icon>
+              <el-button :icon="Delete" plain type="danger" size="small" @click="deleteItem(index)">删除</el-button>
+            </el-space>
+          </template>
 
-        <template v-if="!el.notCollapse">
-          <div class="pl-4 border-l-4 border-orange-500">
-            <div v-for="(cond, index2) in (el.conditions || [])" :key="index2">
-              <div v-if="cond.condType === 'textMatch'" style="display: flex;" class="mobile-changeline">
-                文本匹配: {{ cond.value }}
-              </div>
-              <div v-else-if="cond.condType === 'exprTrue'" style="display: flex;" class="mobile-changeline">
-                <div style="flex: 1">
-                  表达式：{{ cond.value }}
+          <template #unfolded-extra>
+            <div class="pl-4 border-l-4 border-orange-500">
+              <div v-for="(cond, index2) in (el.conditions || [])" :key="index2">
+                <div v-if="cond.condType === 'textMatch'" style="display: flex;" class="mobile-changeline">
+                  文本匹配: {{ cond.value }}
                 </div>
-              </div>
-              <div v-else-if="cond.condType === 'textLenLimit'" style="display: flex;" class="mobile-changeline">
-                <div style="flex: 1">
-                  长度：{{ cond.matchOp === 'ge' ? '大于等于' : '' }}{{ cond.matchOp === 'le' ? '小于等于' : '' }} {{ cond.value }}
+                <div v-else-if="cond.condType === 'exprTrue'" style="display: flex;" class="mobile-changeline">
+                  <div style="flex: 1">
+                    表达式：{{ cond.value }}
+                  </div>
+                </div>
+                <div v-else-if="cond.condType === 'textLenLimit'" style="display: flex;" class="mobile-changeline">
+                  <div style="flex: 1">
+                    长度：{{ cond.matchOp === 'ge' ? '大于等于' : '' }}{{ cond.matchOp === 'le' ? '小于等于' : '' }} {{ cond.value }}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </template>
-        <template v-else>
+          </template>
+
           <div>条件（需同时满足，即and）：</div>
           <div class="pl-4 border-l-4 border-orange-500">
             <custom-reply-condition v-for="(_, index2) in (el.conditions || [])" :key="index2"
@@ -50,11 +50,11 @@
               <div style="display: flex; justify-content: space-between;">
                 <el-select v-model="i.resultType">
                   <el-option
-                    v-for="item in [{ 'label': '回复', value: 'replyToSender' }, { 'label': '私聊回复', value: 'replyPrivate' }, { 'label': '群内回复', value: 'replyGroup' }]"
-                    :key="item.value" :label="item.label" :value="item.value" />
+                      v-for="item in [{ 'label': '回复', value: 'replyToSender' }, { 'label': '私聊回复', value: 'replyPrivate' }, { 'label': '群内回复', value: 'replyGroup' }]"
+                      :key="item.value" :label="item.label" :value="item.value" />
                 </el-select>
                 <el-button type="danger" :icon="Delete" size="small" plain
-                  @click="deleteAnyItem(el.results, index)">删除结果</el-button>
+                           @click="deleteAnyItem(el.results, index)">删除结果</el-button>
               </div>
 
               <div v-if="['replyToSender', 'replyPrivate', 'replyGroup'].includes(i.resultType)">
@@ -77,7 +77,7 @@
                   <div style="display: flex;">
                     <div style="display: flex; align-items: center; width: 1.3rem; margin-left: .2rem;">
                       <el-tooltip :content="index === 0 ? '点击添加一个回复语，海豹将会随机抽取一个回复' : '点击删除你不想要的回复语'"
-                        placement="bottom-start">
+                                  placement="bottom-start">
                         <el-icon>
                           <circle-plus-filled v-if="index == 0" @click="addItem(i.message)" />
                           <circle-close v-else @click="removeItem(i.message, index)" />
@@ -93,7 +93,7 @@
             </div>
             <el-button type="success" size="small" :icon="Plus" @click="addResult(el.results)">增加</el-button>
           </div>
-        </template>
+        </foldable-card>
       </li>
     </template>
   </draggable>
