@@ -68,7 +68,7 @@
         <span>拦截管理</span>
       </el-menu-item>
 
-      <el-menu-item :index="`5-store`" @click="switchTo('mod', 'store')">
+      <el-menu-item index="/mod/store">
         <span>扩展商店</span>
       </el-menu-item>
     </el-sub-menu>

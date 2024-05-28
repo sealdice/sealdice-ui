@@ -63,8 +63,6 @@ declare module 'vue' {
     ElResult: typeof import('element-plus/es')['ElResult']
     ElRow: typeof import('element-plus/es')['ElRow']
     ElSelect: typeof import('element-plus/es')['ElSelect']
-    ElSkeleton: typeof import('element-plus/es')['ElSkeleton']
-    ElSkeletonItem: typeof import('element-plus/es')['ElSkeletonItem']
     ElSpace: typeof import('element-plus/es')['ElSpace']
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
@@ -113,6 +111,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     StoreElem: typeof import('./src/components/mod/store/StoreElem.vue')['default']
+    StoreRecommendation: typeof import('./src/components/mod/store/StoreRecommendation.vue')['default']
     StoryBackup: typeof import('./src/components/mod/story/StoryBackup.vue')['default']
   }
   export interface GlobalDirectives {

@@ -1,5 +1,3 @@
-import type BanConfig from './components/misc/banList/BanConfig.vue';
-
 export interface JsScriptInfo {
   name: string;
   enable: boolean;
@@ -104,18 +102,29 @@ export interface BanConfig {
 export type StoreElemType = 'plugin' | 'deck' | 'reply' | 'helpdoc';
 
 export interface StoreElem {
+  namespace: string;
+  id: string;
+  version: string;
+  key: string;
+  installed: boolean;
+
   source: 'official' | string;
   type: StoreElemType;
   ext: '.js' | '.toml' | '.json' | '.jsonc' | '.yaml' | '.xlsx' | string;
-  key: string;
+
   name: string;
   authors: string[];
-  version: string;
-  license: string;
   desc: string;
+  license: string;
   releaseTime: number;
   updateTime: number;
-  extra?: Map<string, string>;
+  tags: string[];
+  rate: number;
+  extra: Map<string, string>;
   downloadNum: number;
   downloadUrl: string;
+  hash: Map<string, string>;
+  homePage: string;
+  sealVersion: string;
+  dependencies: Map<string, string>;
 }

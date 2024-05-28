@@ -3,23 +3,55 @@
     <el-tab-pane
         v-for="{name, label} in [{name: 'deck', label: '牌堆'},{name: 'plugin', label: '插件'},  {name: 'reply', label: '自定义回复'}]"
         :label="label" :name="name">
-      <el-divider/>
+      <template v-if="recommendations.length > 0">
+        <h4>推荐{{ label }}</h4>
+
+        <el-skeleton class="w-full" :loading="recommendLoading" animated :count="5">
+          <template #template>
+            <el-skeleton-item variant="text" class="w-full"/>
+          </template>
+
+          <el-scrollbar noresize>
+            <div class="flex flex-row overflow-x-auto gap-x-4">
+              <store-recommendation class="flex-shrink-0 my-4 w-48 border-l pl-4 first:border-0 first:pl-0"
+                                    v-for="r in recommendations" v-bind="r" :key="r.key"/>
+            </div>
+          </el-scrollbar>
+        </el-skeleton>
+
+        <el-divider/>
+      </template>
+
       <h4>全部{{ label }}</h4>
-      <header>
-        <el-form :inline="true">
-          <el-form-item label="作者">
-            <el-input clearable/>
-          </el-form-item>
+      <header class="flex justify-between items-center">
+        <el-form class="items-center" :inline="true">
           <el-form-item :label="label + '名'">
-            <el-input clearable/>
+            <el-input v-model="query.name" clearable/>
+          </el-form-item>
+          <el-form-item label="排序">
+            <el-radio-group size="small" v-model="query.sortBy">
+              <el-radio-button value="downloadNum">按下载数</el-radio-button>
+              <el-radio-button value="updateTime">按更新时间</el-radio-button>
+            </el-radio-group>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary">查询</el-button>
+            <el-radio-group size="small" v-model="query.order">
+              <el-radio-button value="asc">
+                <el-icon>
+                  <ArrowUp/>
+                </el-icon>
+              </el-radio-button>
+              <el-radio-button value="desc">
+                <el-icon>
+                  <ArrowDown/>
+                </el-icon>
+              </el-radio-button>
+            </el-radio-group>
           </el-form-item>
         </el-form>
       </header>
       <main class="list-main">
-        <el-skeleton :loading="loading" animated :rows="3" :count="5">
+        <el-skeleton :loading="dataLoading" animated :rows="3" :count="5">
           <template #template>
             <div class="flex flex-col bg-white border rounded-md mb-8 px-3 pt-3 pb-1.5 gap-y-1">
               <div class="flex flex-row justify-between">
@@ -36,9 +68,7 @@
             </div>
           </template>
           <template #default>
-            <store-elem v-if="name === 'deck'" v-for="deck in decks" v-bind="deck"/>
-            <store-elem v-else-if="name === 'plugin'" v-for="plugin in plugins" v-bind="plugin"/>
-            <store-elem v-else-if="name === 'reply'" v-for="reply in replies" v-bind="reply"/>
+            <store-elem v-for="d in data" v-bind="d"/>
           </template>
         </el-skeleton>
       </main>
@@ -52,12 +82,12 @@
 <script lang="ts" setup>
 import {useStore} from "~/store";
 import type {StoreElem, StoreElemType} from "~/type";
+import {ArrowDown, ArrowUp} from "@element-plus/icons-vue";
 
 const store = useStore()
 
-const decks = ref<StoreElem[]>([])
-const plugins = ref<StoreElem[]>([])
-const replies = ref<StoreElem[]>([])
+const recommendations = ref<StoreElem[]>([])
+const data = ref<StoreElem[]>([])
 
 const query = ref<{
   pageNum: number;
@@ -65,19 +95,36 @@ const query = ref<{
   total: number;
   author: string;
   name: string;
+  sortBy: 'downloadNum' | 'updateTime';
+  order: 'asc' | 'desc';
 }>({
   pageNum: 1,
   pageSize: 10,
   total: 0,
   author: '',
-  name: ''
+  name: '',
+  sortBy: 'downloadNum',
+  order: 'desc',
 })
 
 const tab = ref<StoreElemType>("deck")
-const loading = ref(true)
+const recommendLoading = ref(true)
+const dataLoading = ref(true)
+
+const refreshRecommend = async () => {
+  recommendations.value = []
+  const resp = await store.storeRecommend({type: tab.value})
+  if (resp?.result) {
+    recommendLoading.value = true
+    recommendations.value = resp.data
+    setTimeout(() => {
+      recommendLoading.value = false
+    }, 500)
+  }
+}
 
 const refreshElems = async () => {
-  loading.value = true
+  dataLoading.value = true
   const resp = await store.storePage({type: tab.value})
   if (resp?.result) {
     query.value.pageNum = resp.pageNum
@@ -85,29 +132,32 @@ const refreshElems = async () => {
     query.value.total = resp.total
     switch (tab.value) {
       case "deck":
-        decks.value = resp.data
+        data.value = resp.data
         break
       case "plugin":
-        plugins.value = resp.data
+        data.value = resp.data
         break
       case "reply":
-        replies.value = resp.data
+        data.value = resp.data
         break
     }
   } else {
+    data.value = []
     ElMessage.error('无法获取插件商店列表')
   }
   setTimeout(() => {
-    loading.value = false
+    dataLoading.value = false
   }, 500)
 }
 
 watch(tab, async () => {
   await refreshElems()
+  await refreshRecommend()
 })
 
 onBeforeMount(async () => {
   await refreshElems()
+  await refreshRecommend()
 })
 
 </script>

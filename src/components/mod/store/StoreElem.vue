@@ -16,7 +16,7 @@ const getAuthor = (authors: string[]) => {
 
 <template>
   <div class="elem w-full flex flex-col bg-white border rounded-md px-3 pt-2 pb-1.5 hover:shadow-md transition duration-500">
-    <div class="elem-header flex flex-row justify-between">
+    <header class="elem-header flex flex-row justify-between">
       <div class="flex items-center gap-x-2 flex-wrap">
         <div>
           <span class="text-wrap text-base font-bold">{{ props.name }}</span>
@@ -29,30 +29,43 @@ const getAuthor = (authors: string[]) => {
         <el-tag size="small" type="info" disable-transitions>{{ props.version }}</el-tag>
       </div>
 
-      <div class="flex flex-wrap items-center justify-center gap-x-2">
+      <aside class="flex flex-wrap items-center justify-center gap-x-2">
         <span class="flex items-center text-xs text-blue-500">
-          <el-icon><Download/></el-icon>{{ props.downloadNum > 1000 ? (props.downloadNum / 1000).toFixed(1) + 'k' : props.downloadNum }}
+          <el-icon><Download/></el-icon>{{
+            props.downloadNum > 1000 ? (props.downloadNum / 1000).toFixed(1) + 'k' : props.downloadNum
+          }}
         </span>
-        <el-button :icon="Download" type="success" size="small" plain>下载</el-button>
+        <el-button :disabled="props.installed" :icon="Download" type="success" size="small" plain>下载</el-button>
+      </aside>
+    </header>
+
+    <aside class="elem-extra flex flex-row justify-between items-center">
+      <div class="text-xs text-gray-500">
+        <div class="flex flex-wrap gap-x-2 gap-y-0.5">
+          <el-tag size="small" type="primary" disable-transitions
+                  v-for="tag in props.tags">{{ tag }}
+          </el-tag>
+        </div>
       </div>
-    </div>
+      <el-rate class="ml-2" v-model="props.rate" disabled/>
+    </aside>
 
-    <div class="my-2 whitespace-pre-line text-sm text-gray-500 line-clamp-3">
+    <main class="mt-2 my-4 whitespace-pre-line text-sm text-gray-500 line-clamp-3">
       <span>{{ props.desc }}</span>
-    </div>
+    </main>
 
-    <div class="mt-1.5 py-1 border-t flex justify-between flex-row flex-wrap text-gray-500 text-xs">
+    <footer class="py-1 border-t flex justify-between flex-row-reverse flex-wrap text-gray-500 text-xs italic">
+      <div class="ml-auto flex gap-x-1 before:content-['>']">
+        <span>{{ getAuthor(props.authors) || '&lt;佚名>' }}</span>
+        <span>以 {{ props.license }} 协议发布</span>
+      </div>
       <div class="flex">
         <span>发布于 {{ dayjs.unix(props.releaseTime).format('YYYY-MM-DD HH:MM') }}</span>
         <span class="ml-2" v-if="props.updateTime !== 0">最近更新于 {{
             dayjs.unix(props.updateTime).format('YYYY-MM-DD HH:MM')
           }}</span>
       </div>
-      <div class="ml-auto flex gap-x-1 italic before:content-['>']">
-        <span>{{ getAuthor(props.authors) || '&lt;佚名>' }}</span>
-        <span>以 {{ props.license }} 协议发布</span>
-      </div>
-    </div>
+    </footer>
   </div>
 </template>
 
