@@ -3,7 +3,7 @@
     <h2>备份</h2>
     <div>
       <el-button type="success" :icon="DocumentChecked" @click="doSave">保存设置</el-button>
-      <el-button type="primary" @click="doBackup">立即备份</el-button>
+      <el-button type="primary" @click="showBackup = true">立即备份</el-button>
     </div>
   </div>
   <div>
@@ -143,6 +143,33 @@
       </el-space>
     </template>
   </el-dialog>
+
+  <el-dialog v-model="showBackup" title="立即备份" class="diff-dialog">
+    <el-space direction="vertical" alignment="flex-start">
+      <div>
+        <span>备份范围：</span>
+        <el-checkbox-group v-model="backupSelections">
+          <el-checkbox label="基础（含自定义回复）" value="base" checked disabled/>
+          <el-checkbox label="JS 插件" value="js"/>
+          <el-checkbox label="牌堆" value="deck"/>
+          <el-checkbox label="帮助文档" value="helpdoc"/>
+          <el-checkbox label="敏感词库" value="censor"/>
+          <el-checkbox label="人名信息" value="name"/>
+          <el-checkbox label="图片" value="image"/>
+        </el-checkbox-group>
+      </div>
+      <div class="flex flex-wrap">
+        <span>备份文件名预览：</span>
+        <el-text type="info">bak_{{ now }}_r{{ formatSelection(backupSelections).toString(16) }}_&lt;随机值&gt;.zip</el-text>
+      </div>
+    </el-space>
+    <template #footer>
+      <el-space wrap>
+        <el-button @click="showBackup = false">取消</el-button>
+        <el-button type="primary" @click="doBackup">立即备份</el-button>
+      </el-space>
+    </template>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -168,6 +195,8 @@ const data = ref<{
 
 const cfg = ref<any>({})
 const now = ref(dayjs().format('YYMMDD_HHmmss'))
+const showBackup = ref<boolean>(false)
+const backupSelections = ref<string[]>(['base', 'js', 'deck', 'helpdoc', 'censor', 'name', 'image'])
 
 const parseSelection = (selection: number): string[] => {
   const list = ['base']
@@ -332,7 +361,10 @@ const bakBatchDeleteConfirm = async () => {
 }
 
 const doBackup = async () => {
-  const ret = await store.backupDoSimple()
+  const ret = await store.backupDoSimple({
+    selection: formatSelection(backupSelections.value)
+  })
+  showBackup.value = false
   await refreshList()
   if (ret.testMode) {
     ElMessage.success('展示模式无法备份')
