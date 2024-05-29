@@ -34,7 +34,7 @@
         </el-checkbox-group>
       </el-form-item>
       <el-form-item label="备份文件名预览">
-        <el-text type="info">bak_{{ now }}_auto_r{{ cfg.autoBackupSelection }}_&lt;随机数&gt;.zip</el-text>
+        <el-text type="info">bak_{{ now }}_auto_r{{ cfg.autoBackupSelection.toString(16) }}_&lt;随机数&gt;.zip</el-text>
       </el-form-item>
     </div>
     <h3>自动清理</h3>
@@ -101,9 +101,13 @@
   </div>
 
   <div size="small" direction="vertical" class="backup-list" fill>
-    <div class="backup-line" v-for="i in data.items" :key="i.name" style="display: flex; justify-content: space-between;">
-      <el-text size="large">{{ i.name }}</el-text>
-      <el-space size="small" wrap style="margin-left: 1px; justify-content: flex-end;">
+    <div class="backup-line flex flex-wrap justify-between gap-2" v-for="i in data.items" :key="i.name">
+      <div class="flex flex-col">
+        <el-text class="self-start" size="large">{{ i.name }}</el-text>
+        <el-text class="self-start" v-if="(i?.selection ?? 0) >= 0" size="small" type="info">此备份包含：{{ parseSelectionDesc(i.selection).join('、') }}</el-text>
+        <el-text class="self-start" v-else size="small" type="warning">此备份内容无法识别</el-text>
+      </div>
+      <el-space size="small" wrap class="justify-end">
         <el-button size="small" tag="a" style="text-decoration: none; width: 8rem;"
                    :href="`${urlBase}/sd-api/backup/download?name=${encodeURIComponent(i.name)}&token=${encodeURIComponent(store.token)}`">
           下载 - {{ filesize(i.fileSize) }}
@@ -190,6 +194,35 @@ const parseSelection = (selection: number): string[] => {
   const resourceMark = selection & 0b100000
   if (resourceMark) {
     list.push('image')
+  }
+  return list
+}
+
+const parseSelectionDesc = (selection: number): string[] => {
+  const list = ['基础']
+  const jsMark = selection & 0b000001
+  if (jsMark) {
+    list.push('JS 插件')
+  }
+  const deckMark = selection & 0b000010
+  if (deckMark) {
+    list.push('牌堆')
+  }
+  const helpdocMark = selection & 0b000100
+  if (helpdocMark) {
+    list.push('帮助文档')
+  }
+  const censorMark = selection & 0b001000
+  if (censorMark) {
+    list.push('敏感词库')
+  }
+  const nameMark = selection & 0b010000
+  if (nameMark) {
+    list.push('人名信息')
+  }
+  const resourceMark = selection & 0b100000
+  if (resourceMark) {
+    list.push('图片')
   }
   return list
 }
