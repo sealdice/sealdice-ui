@@ -34,7 +34,7 @@
         </el-checkbox-group>
       </el-form-item>
       <el-form-item label="备份文件名预览">
-        <el-text type="info">bak_{{ now }}_auto_r{{ cfg.autoBackupSelection.toString(16) }}_&lt;随机数&gt;.zip</el-text>
+        <el-text type="info">bak_{{ now }}_auto_r{{ cfg.autoBackupSelection.toString(16) }}_&lt;随机值&gt;.zip</el-text>
       </el-form-item>
     </div>
     <h3>自动清理</h3>
