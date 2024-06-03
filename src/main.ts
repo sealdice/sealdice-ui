@@ -19,6 +19,7 @@ import 'element-plus/theme-chalk/display.css'
 import './str.polyfill'
 
 import { useStore } from "./store";
+import router from "~/router";
 
 import VueDiff from 'vue-diff'
 import 'vue-diff/dist/index.css'
@@ -33,6 +34,7 @@ VueDiff.hljs.registerLanguage('toml', toml)
 app.use(VueDiff, {
   componentName: 'VueDiff'
 })
+  .use(router)
 
 const store = useStore();
 

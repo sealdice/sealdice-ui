@@ -176,7 +176,6 @@
 </template>
 
 <script setup lang="ts">
-import {reactive} from "vue";
 import {useStore} from '~/store'
 import {
   BrushFilled,

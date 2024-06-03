@@ -100,6 +100,8 @@ declare module 'vue' {
     PageTest: typeof import('./src/components/tool/PageTest.vue')['default']
     PageTool: typeof import('./src/components/PageTool.vue')['default']
     ResourceRender: typeof import('./src/components/utils/resource-render.vue')['default']
+    RouterLink: typeof import('vue-router')['RouterLink']
+    RouterView: typeof import('vue-router')['RouterView']
     StoryBackup: typeof import('./src/components/mod/story/StoryBackup.vue')['default']
   }
   export interface ComponentCustomProperties {
