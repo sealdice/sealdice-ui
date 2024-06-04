@@ -1,9 +1,9 @@
 <template>
-  <div id="root"
+  <el-container id="root"
        class="bg-[#545c64] mx-auto my-0 h-screen flex flex-col">
-    <nav class="nav bg-inherit flex-none text-white flex justify-between">
+    <el-header class="nav bg-inherit flex-none text-white flex justify-between">
       <el-space alignment="center" :size="0" style="height: 60px;">
-        <div class="menu-button-wrapper">
+        <div class="menu-button-wrapper mx-2">
           <el-button type="text" size="large" @click="drawerMenu = true">
             <el-icon color="#fff" size="1.5rem">
               <IconMenu/>
@@ -54,7 +54,7 @@
           </div>
         </div>
       </el-space>
-    </nav>
+    </el-header>
 
     <div class="flex-grow overflow-y-auto flex">
       <div class="menu bg-inherit flex-none overflow-y-auto no-scrollbar">
@@ -62,12 +62,13 @@
       </div>
 
       <div class="bg-gray-100 h-auto text-left flex-1 overflow-y-auto">
-        <div class="main-container w-full h-full" ref="rightbox">
-          <router-view @update:advanced-settings-show="(show: boolean) => refreshAdvancedSettings(show)"/>
-        </div>
+        <el-main v-loading="loading" class="main-container w-full h-full" ref="rightbox">
+          <router-view v-if="!loading"
+                       @update:advanced-settings-show="(show: boolean) => refreshAdvancedSettings(show)"/>
+        </el-main>
       </div>
     </div>
-  </div>
+  </el-container>
 
   <el-drawer v-model="drawerMenu" direction="ltr" :show-close="false"
              size="50%" class="drawer-menu">
@@ -135,6 +136,8 @@ import { delay, replace } from "lodash-es"
 
 dayjs.locale('zh-cn')
 dayjs.extend(relativeTime);
+
+const loading = useStorage('router-view-loading', true)
 
 const store = useStore()
 const password = ref('')
