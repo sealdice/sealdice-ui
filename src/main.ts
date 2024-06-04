@@ -35,7 +35,7 @@ router.afterEach((to, from) => {
 import VueDiff from 'vue-diff'
 import 'vue-diff/dist/index.css'
 import yaml from 'highlight.js/lib/languages/yaml'
-import toml from 'highlight.js/lib/languages/ini.js'
+import toml from 'highlight.js/lib/languages/ini'
 
 const app = createApp(App);
 app.use(createPinia())

@@ -68,7 +68,7 @@
 
   <el-space style="margin: 1rem 0" wrap>
     <el-radio-group v-model="filterMode" @change="handleFilterModeChange">
-      <el-radio v-for="mode of filterModes" :key="mode.value" :label="mode.value">
+      <el-radio v-for="mode of filterModes" :key="mode.value" :value="mode.value">
         <template #default>{{ mode.desc }}</template>
       </el-radio>
     </el-radio-group>

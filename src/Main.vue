@@ -4,7 +4,7 @@
     <el-header class="nav bg-inherit flex-none text-white flex justify-between">
       <el-space alignment="center" :size="0" style="height: 60px;">
         <div class="menu-button-wrapper mx-2">
-          <el-button type="text" size="large" @click="drawerMenu = true">
+          <el-button link size="large" @click="drawerMenu = true">
             <el-icon color="#fff" size="1.5rem">
               <IconMenu/>
             </el-icon>
