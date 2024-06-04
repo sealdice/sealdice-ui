@@ -199,7 +199,7 @@ const dialogImportVisible = ref(false)
 
 const activeGroups = ref(['__others__'])
 const doSort = (category: string) => {
-  let items = Object.entries(store.curDice.customTexts[category]);
+  let items = Object.entries(store.curDice?.customTexts?.[category] ?? {});
   const helpInfo = store.curDice.customTextsHelpInfo[category];
 
   if (currentFilterName.value != "") {
