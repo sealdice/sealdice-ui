@@ -464,16 +464,42 @@ export const useStore = defineStore('main', {
       return info;
     },
 
-    async storePage(params: { type: StoreElemType }) {
+    async storePage(params: {
+      type: StoreElemType;
+      pageNum: number;
+      pageSize: number;
+      author: string;
+      name: string;
+      sortBy: 'downloadNum' | 'updateTime';
+      order: 'asc' | 'desc';
+    }) {
       const info:
         | { result: false; err?: string }
         | {
             result: true;
+            data: StoreElem[];
             pageNum: number;
             pageSize: number;
-            total: number;
-            data: StoreElem[];
+            next: boolean;
           } = await backend.get(urlPrefix + '/store/page', { params });
+      return info;
+    },
+
+    async storeDownload(params: StoreElem) {
+      const info:
+        | { result: false; err?: string }
+        | {
+            result: true;
+          } = await backend.post(urlPrefix + '/store/download', params);
+      return info;
+    },
+
+    async storeRating(params: { id: string; rate: number }) {
+      const info:
+        | { result: false; err?: string }
+        | {
+            result: true;
+          } = await backend.post(urlPrefix + '/store/rating', params);
       return info;
     },
   },

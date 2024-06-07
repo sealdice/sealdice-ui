@@ -100,7 +100,7 @@ export interface BanConfig {
   jointScorePercentOfInviter: number;
 }
 
-export type StoreElemType = 'plugin' | 'deck' | 'reply' | 'helpdoc';
+export type StoreElemType = 'plugin' | 'deck'; // | 'reply' | 'helpdoc';
 
 export interface StoreElem {
   namespace: string;
