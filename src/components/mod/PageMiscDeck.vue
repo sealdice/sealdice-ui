@@ -131,11 +131,12 @@ const filtered = computed(() => data.value.filter((deck) => {
   if (filter.value === '') {
     return true
   }
-  return deck.name?.includes(filter.value)
-      || deck.desc?.includes(filter.value)
-      || deck.author?.includes(filter.value)
+  const val = filter.value.toLowerCase();
+  return deck.name?.toLowerCase()?.includes(val)
+      || deck.desc?.toLowerCase()?.includes(val)
+      || deck.author?.toLowerCase()?.includes(val)
       || Object.keys(deck.command)
-          .map(tag => tag.includes(filter.value))
+          .map(tag => tag?.toLowerCase()?.includes(val))
           .includes(true);
 }))
 

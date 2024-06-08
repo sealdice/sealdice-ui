@@ -502,9 +502,10 @@ const filteredJsList = computed(() => jsList.value.filter((js) => {
   if (jsFilter.value === '') {
     return true
   }
-  return js.name?.includes(jsFilter.value)
-      || js.desc?.includes(jsFilter.value)
-      || js.author?.includes(jsFilter.value)
+  const val = jsFilter.value.toLowerCase();
+  return js.name?.toLowerCase()?.includes(val)
+      || js.desc?.toLowerCase()?.includes(val)
+      || js.author?.toLowerCase()?.includes(val)
 }))
 const jsConfig = ref<Map<string, JsPluginConfig>>(new Map<string, JsPluginConfig>());
 const uploadFileList = ref<any[]>([]);
