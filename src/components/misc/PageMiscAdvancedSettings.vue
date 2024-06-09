@@ -94,7 +94,20 @@
       <el-input v-model="config.storyLogBackendToken" style="width: 30rem" />
     </el-form-item>
 
-    <el-form-item v-if="modified" label="" label-width="1rem" style="margin-top: 3rem">
+    <h3>扩展商店</h3>
+    <el-form-item label="自定义后端 URL">
+      <template #label>
+        <span>自定义后端 URL</span>
+        <el-tooltip raw-content content="设置第三方扩展商店后端 URL">
+          <el-icon>
+            <question-filled />
+          </el-icon>
+        </el-tooltip>
+      </template>
+      <el-input v-model="config.storeBackendUrl" style="width: 30rem" />
+    </el-form-item>
+
+    <el-form-item label="" label-width="1rem" style="margin-top: 3rem" v-if="modified">
       <el-button type="danger" @click="submitGiveup">放弃改动</el-button>
       <el-button type="success" @click="submit">保存设置</el-button>
     </el-form-item>
@@ -117,13 +130,14 @@ const config = ref<AdvancedConfig>({
   storyLogBackendUrl: '',
   storyLogApiVersion: '',
   storyLogBackendToken: '',
+  storeBackendUrl: '',
 });
 const replyDebugMode = ref(false);
 
 onBeforeMount(async () => {
   config.value = await store.diceAdvancedConfigGet();
   replyDebugMode.value = (await getCustomReplyDebug()).value;
-  nextTick(() => {
+  await nextTick(() => {
     modified.value = false;
   });
 });
@@ -155,7 +169,7 @@ const submit = async () => {
   config.value = await store.diceAdvancedConfigGet();
   modified.value = false;
   emit('update:advanced-settings-show', config.value.show);
-  nextTick(async () => {
+  await nextTick(async () => {
     modified.value = false;
   });
 };
@@ -164,7 +178,7 @@ const submitGiveup = async () => {
   config.value = await store.diceAdvancedConfigGet();
   replyDebugMode.value = (await getCustomReplyDebug()).value;
   modified.value = false;
-  nextTick(() => {
+  await nextTick(() => {
     modified.value = false;
   });
 };
