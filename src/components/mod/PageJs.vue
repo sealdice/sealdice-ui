@@ -45,6 +45,9 @@
                 style="text-decoration: none;" href="https://github.com/sealdice/javascript">获取插件</el-button>
             </el-space>
           </header>
+          <aside v-if="jsFilterCount > 0" class="mb-4">
+            <el-text size="small" type="info">已过滤 {{ jsFilterCount }} 条</el-text>
+          </aside>
           <main class="js-list-main">
             <foldable-card class="js-item" v-for="(i, index) of filteredJsList" :key="index"
                            :err-title="i.filename" :err-text="i.errText">
@@ -498,6 +501,7 @@ onBeforeUnmount(() => {
 
 const jsList = ref<JsScriptInfo[]>([]);
 const jsFilter = ref<string>('')
+const jsFilterCount = computed(() => jsList.value.length - filteredJsList.value.length)
 const filteredJsList = computed(() => jsList.value.filter((js) => {
   if (jsFilter.value === '') {
     return true

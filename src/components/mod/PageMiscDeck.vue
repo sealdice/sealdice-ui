@@ -27,6 +27,9 @@
           </el-tooltip>
         </el-space>
       </header>
+      <aside v-if="filterCount > 0" class="mb-4">
+        <el-text size="small" type="info">已过滤 {{ filterCount }} 条</el-text>
+      </aside>
       <main class="deck-list-main">
         <foldable-card class="deck-item" v-for="(i, index) in filtered" :key="index"
                        :err-title="i.filename" :err-text="i.errText">
@@ -126,6 +129,7 @@ const store = useStore()
 const mode = ref<string>('list')
 
 const filter = ref<string>('')
+const filterCount = computed(() => data.value.length - filtered.value.length)
 const data = ref<any[]>([])
 const filtered = computed(() => data.value.filter((deck) => {
   if (filter.value === '') {
