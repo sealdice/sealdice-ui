@@ -27,7 +27,7 @@ import type {Column} from "element-plus";
 import type {CellRendererParams} from "element-plus/es/components/table-v2/src/types";
 import {template} from "lodash-es";
 
-const columns: Column<SensitiveWord>[] = [
+const columns: Column<any>[] = [
   {
     key: "level",
     title: "级别",
@@ -54,6 +54,7 @@ const columns: Column<SensitiveWord>[] = [
     key: "related",
     title: "匹配词汇",
     dataKey: 'related',
+    width: 800,
     cellRenderer: ({cellData: related, rowData}: CellRendererParams<SensitiveRelatedWord[]>) => {
       if (related) {
         return <el-space size="small" wrap>
