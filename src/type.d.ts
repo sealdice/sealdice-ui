@@ -79,4 +79,33 @@ export interface AdvancedConfig {
   storyLogBackendUrl: string,
   storyLogApiVersion: string,
   storyLogBackendToken: string,
+  storeBackendUrl: string,
+}
+
+export type StoreElemType = 'plugin' | 'deck' // | 'reply' | 'helpdoc'
+
+export interface StoreElem {
+  id: string
+  installed: boolean
+
+  source: 'official' | string
+  type: StoreElemType
+  ext: '.js' | '.toml' | '.json' | '.jsonc' | '.yaml' | '.xlsx' | string
+
+  name: string
+  version: string
+  authors: string[]
+  desc: string
+  license: string
+  releaseTime: number
+  updateTime?: number
+  tags?: string[]
+  rate?: number
+  extra?: Map<string, string>
+  downloadNum?: number,
+  downloadUrl: string,
+  hash?: Map<string, string>
+  homePage?: string
+  sealVersion?: string
+  dependencies?: Map<string, string>
 }

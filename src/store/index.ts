@@ -7,6 +7,8 @@ import type {
   HelpTextItem,
   HelpTextItemQuery,
   JsScriptInfo,
+  StoreElem,
+  StoreElemType,
 } from "~/type";
 
 export enum goCqHttpStateCode {
@@ -852,6 +854,47 @@ export const useStore = defineStore('main', {
         responseType: "blob",
       })
       return response as unknown as Blob;
-    }
+    },
+
+    async storeRecommend(params: {type: StoreElemType}) {
+      const info : {result: false, err?: string} | {
+        result: true,
+        data: StoreElem[],
+      } = await backend.get(urlPrefix + '/store/recommend', {params})
+      return info
+    },
+
+    async storePage(params: {
+      type: StoreElemType,
+      pageNum: number,
+      pageSize: number,
+      author: string,
+      name: string,
+      sortBy: 'downloadNum' | 'updateTime',
+      order: 'asc' | 'desc',
+    }) {
+      const info : {result: false, err?: string} | {
+        result: true,
+        data: StoreElem[],
+        pageNum: number,
+        pageSize: number,
+        next: boolean,
+      } = await backend.get(urlPrefix + '/store/page', {params})
+      return info
+    },
+
+    async storeDownload(params: StoreElem) {
+      const info : {result: false, err?: string} | {
+        result: true,
+      } = await backend.post(urlPrefix + '/store/download', params)
+      return info
+    },
+
+    async storeRating(params: {id: string, rate: number}) {
+      const info : {result: false, err?: string} | {
+        result: true,
+      } = await backend.post(urlPrefix + '/store/rating', params)
+      return info
+    },
   }
 })

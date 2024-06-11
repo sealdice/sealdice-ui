@@ -16,6 +16,7 @@ import PageMiscBackup from '~/components/misc/PageMiscBackup.vue';
 import PageMiscGroup from '~/components/misc/PageMiscGroup.vue';
 import PageMiscBanList from '~/components/misc/PageMiscBanList.vue';
 import PageMiscAdvancedSettings from '~/components/misc/PageMiscAdvancedSettings.vue';
+import PageStore from "~/components/mod/PageStore.vue";
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -32,6 +33,7 @@ const router = createRouter({
         { path: 'helpdoc', component: PageHelpDoc },
         { path: 'story', component: PageStory },
         { path: 'censor', component: PageCensor },
+        { path: 'store', component: PageStore },
       ]
     },
     {
