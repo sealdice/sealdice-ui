@@ -386,7 +386,6 @@ import {basicSetup, EditorView} from "codemirror"
 import {javascript} from "@codemirror/lang-javascript"
 import {isEqual, size} from "lodash-es";
 import {JsPluginConfig, JsPluginConfigItem, JsScriptInfo} from "~/type";
-import {parseExpression as cronParseExpression} from "cron-parser";
 
 const store = useStore()
 const jsEnable = ref(false)
