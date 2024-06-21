@@ -248,7 +248,7 @@ export const useStore = defineStore('main', {
     },
 
     async checkCronExpr(expr: string) {
-      return await backend.get(urlPrefix + '/utils/check_cron_expr', {params: {expr: expr}}) as any
+      return await backend.post(urlPrefix + '/utils/check_cron_expr', {expr: expr}) as any
     },
 
     async addImConnection(form: addImConnectionForm ) {
