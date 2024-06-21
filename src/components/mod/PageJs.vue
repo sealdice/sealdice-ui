@@ -306,8 +306,8 @@
                       <el-form-item label="Cron 型定时任务:">{{(c as unknown as JsPluginConfigItem).key}}</el-form-item><br/>
                       <div style="width: 100%"><el-text>{{ (c as unknown as JsPluginConfigItem).description }}</el-text></div>
                       <div style="width: 100%; margin-bottom: .5rem;">
-                        <el-input type="textarea" v-model="(c as unknown as JsPluginConfigItem).value" @change="doTaskCronFormatCheck((c as unknown as JsPluginConfigItem).key, (c as unknown as JsPluginConfigItem).value)"></el-input>
-                        <el-text type="danger" v-if="jsConfigFormatErrKeys.indexOf((c as unknown as JsPluginConfigItem).key) !== -1">
+                        <el-input type="textarea" v-model="(c as unknown as JsPluginConfigItem).value" @change="doTaskCronFormatCheck((config as unknown as JsPluginConfig)['pluginName'], (c as unknown as JsPluginConfigItem).key, (c as unknown as JsPluginConfigItem).value)"></el-input>
+                        <el-text type="danger" v-if="jsConfigFormatErrKeys.indexOf((config as unknown as JsPluginConfig)['pluginName'] + '/' +  (c as unknown as JsPluginConfigItem).key) !== -1">
                           格式错误！
                         </el-text>
                       </div>
@@ -331,8 +331,8 @@
                       <el-form-item label="每日定时任务:">{{(c as unknown as JsPluginConfigItem).key}}</el-form-item><br/>
                       <div style="width: 100%"><el-text>{{ (c as unknown as JsPluginConfigItem).description }}</el-text></div>
                       <div style="width: 100%; margin-bottom: .5rem;">
-                        <el-input type="textarea" v-model="(c as unknown as JsPluginConfigItem).value" @change="doTaskDailyFormatCheck((c as unknown as JsPluginConfigItem).key, (c as unknown as JsPluginConfigItem).value)"></el-input>
-                        <el-text type="danger" v-if="jsConfigFormatErrKeys.indexOf((c as unknown as JsPluginConfigItem).key) !== -1">
+                        <el-input type="textarea" v-model="(c as unknown as JsPluginConfigItem).value" @change="doTaskDailyFormatCheck((config as unknown as JsPluginConfig)['pluginName'], (c as unknown as JsPluginConfigItem).key, (c as unknown as JsPluginConfigItem).value)"></el-input>
+                        <el-text type="danger" v-if="jsConfigFormatErrKeys.indexOf((config as unknown as JsPluginConfig)['pluginName'] + '/' + (c as unknown as JsPluginConfigItem).key) !== -1">
                           格式错误！
                         </el-text>
                       </div>
@@ -449,30 +449,30 @@ const doJsConfigChanged = () => {
 }
 
 let jsConfigFormatErrKeys: Ref<string[]> = ref([]);
-const doTaskCronFormatCheck = (key: string, expr: string) => {
+const doTaskCronFormatCheck = (pluginName: string, key: string, expr: string) => {
   try {
     cronParseExpression(expr);
-    let index = jsConfigFormatErrKeys.value.indexOf(key);
+    let index = jsConfigFormatErrKeys.value.indexOf(pluginName + '/' + key);
     if (index !== -1) {
       jsConfigFormatErrKeys.value.splice(index, 1);
     }
     jsConfigEdited.value = true;
   } catch (_err) {
-    jsConfigFormatErrKeys.value.push(key);
+    jsConfigFormatErrKeys.value.push(pluginName + '/' + key);
     jsConfigEdited.value = true;
   }
 };
 
-const doTaskDailyFormatCheck = (key: string, expr: string) => {
+const doTaskDailyFormatCheck = (pluginName: string, key: string, expr: string) => {
   const pattern = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
   if (pattern.test(expr)) {
-    let index = jsConfigFormatErrKeys.value.indexOf(key);
+    let index = jsConfigFormatErrKeys.value.indexOf(pluginName + '/' + key);
     if (index !== -1) {
       jsConfigFormatErrKeys.value.splice(index, 1);
     }
     jsConfigEdited.value = true;
   } else {
-    jsConfigFormatErrKeys.value.push(key);
+    jsConfigFormatErrKeys.value.push(pluginName + '/' + key);
     jsConfigEdited.value = true;
   } 
 };
@@ -513,6 +513,8 @@ const doResetJsConfig = (plginName: string, key: string) => {
     })
     setTimeout(() => {
       refreshConfig()
+      jsConfigEdited.value = false
+      jsConfigFormatErrKeys.value = []
     }, 1000);
   })
 }
