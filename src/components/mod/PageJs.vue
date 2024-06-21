@@ -449,9 +449,9 @@ const doJsConfigChanged = () => {
 }
 
 let jsConfigFormatErrKeys: Ref<string[]> = ref([]);
-const doTaskCronFormatCheck = (pluginName: string, key: string, expr: string) => {
-  try {
-    cronParseExpression(expr);
+const doTaskCronFormatCheck = async (pluginName: string, key: string, expr: string) => {
+  try{
+    await store.checkCronExpr(expr);
     let index = jsConfigFormatErrKeys.value.indexOf(pluginName + '/' + key);
     if (index !== -1) {
       jsConfigFormatErrKeys.value.splice(index, 1);
