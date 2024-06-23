@@ -1106,7 +1106,7 @@
             form.accountType === 9 && (form.botToken === '' || form.appToken === '') ||
             form.accountType === 11 && (form.account === '' || form.reverseAddr === '') ||
             form.accountType === 13 && (form.token === '' || form.url === '') ||
-            form.accountType === 15 && form.account === ''">
+            form.accountType === 15 && (form.account === '' || form.signServerType === 2 && form.signServerUrl === '')">
             下一步</el-button>
         </template>
         <template v-if="form.isEnd">
