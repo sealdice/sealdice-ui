@@ -555,7 +555,22 @@
           </el-select>
         </el-form-item> -->
 
-        <el-form-item v-if="form.accountType === 0 || form.accountType === 15" label="账号" :label-width="formLabelWidth" required>
+        <el-form-item v-if="form.accountType === 15" label="账号" :label-width="formLabelWidth" required>
+          <el-input v-model="form.account" type="number" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item v-if="form.accountType === 15" label="签名服务" :label-width="formLabelWidth" required>
+          <el-radio-group v-model="form.signServerType">
+            <el-radio :value="0">海豹</el-radio>
+            <el-radio :value="1">拉格朗</el-radio>
+            <el-radio :value="2">自定义地址</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-if="form.accountType === 15 && form.signServerType === 2" label="自定义签名地址"
+          :label-width="formLabelWidth" required>
+          <el-input v-model="form.signServerUrl" type="text" autocomplete="off"></el-input>
+        </el-form-item>
+
+        <el-form-item v-if="form.accountType === 0" label="账号" :label-width="formLabelWidth" required>
           <el-input v-model="form.account" type="number" autocomplete="off"></el-input>
         </el-form-item>
 
@@ -1581,6 +1596,7 @@ const form = reactive({
   },
   signServerUrl: '',
   signServerKey: '',
+  signServerType: 0,
 
   reverseAddr: ':4001',
   platform: 'QQ',
