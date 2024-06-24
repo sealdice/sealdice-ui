@@ -37,6 +37,8 @@ export interface AdapterQQ {
   ignoreFriendRequest: boolean;
   goCqHttpSmsNumberTip: string;
   useSignServer: boolean;
+  signServerType: number;
+  signServerUrl: string;
   signServerConfig: any;
   redVersion: string;
   host: string;

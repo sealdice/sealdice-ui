@@ -157,6 +157,15 @@
             <el-form-item label="接入方式">
               <div>内置客户端</div>
             </el-form-item>
+            <el-form-item label="签名服务">
+              <div>{{ showServerType(i) }}</div>
+              <div style="margin-left: 0.5rem;">
+                <el-tooltip class="item" effect="dark" :content="i.enable ? '禁用账号后方可修改签名服务地址' : '单击修改签名服务地址'"
+                  placement="bottom">
+                  <el-button :icon="Edit" size="small" circle :disabled="i.enable" />
+                </el-tooltip>
+              </div>
+            </el-form-item>
           </template>
 
           <template v-if="i.platform === 'QQ' && i.protocolType === 'red'">
@@ -1493,7 +1502,18 @@ const gocqhttpReLogin = async (i: DiceConnection) => {
     form.step = 4
   }
 }
-
+const showServerType = (i: DiceConnection) => {
+  switch (i.adapter.signServerType) {
+    case 0:
+      return '海豹'
+    case 1:
+      return '拉格朗'
+    case 2:
+      return i.adapter?.signServerUrl || '未知'
+    default:
+      return '未知'
+  }
+}
 const signConfigType: Ref<'none' | 'simple' | 'advanced'> = ref('none')
 const signConfigTypeChange = (value: any) => {
   switch (value) {
