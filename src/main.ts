@@ -9,7 +9,7 @@ import App from "./App.vue";
 
 // or use cdn, uncomment cdn link in `index.html`
 
-import "~/styles/index.scss";
+import "~/styles/index.css";
 
 // If you want to use ElMessage, import it.
 import "element-plus/theme-chalk/src/message.scss"
