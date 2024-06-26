@@ -157,14 +157,13 @@
             <el-form-item label="接入方式">
               <div>内置客户端</div>
             </el-form-item>
-            <el-form-item label="签名服务">
-              <div>{{ showServerType(i) }}</div>
-              <div style="margin-left: 0.5rem;">
-                <el-tooltip class="item" effect="dark" :content="i.enable ? '禁用账号后方可修改签名服务地址' : '单击修改签名服务地址'"
-                  placement="bottom">
-                  <el-button :icon="Edit" size="small" circle :disabled="i.enable" />
-                </el-tooltip>
-              </div>
+            <el-form-item label="签名地址">
+              <div>{{ showSignServerType(i) }}</div>
+              <el-tooltip class="item" effect="dark" :content="i.enable ? '禁用账号后方可修改签名服务地址' : '单击修改签名服务地址'"
+                placement="bottom">
+                <el-button :icon="Edit" size="small" circle :disabled="i.enable" style="margin-left: 0.5rem"
+                  @click="showSetSignServerDialog(i)" />
+              </el-tooltip>
             </el-form-item>
           </template>
 
@@ -484,7 +483,25 @@
       </span>
     </template>
   </el-dialog>
-
+  <el-dialog v-model="dialogSetSignServerVisible" title="签名地址修改" :close-on-click-modal="false"
+    :close-on-press-escape="false" :show-close="false" class="the-dialog">
+    <el-form-item label="签名地址" :label-width="formLabelWidth" required>
+      <el-radio-group v-model="form.signServerType">
+        <el-radio :value="0">海豹</el-radio>
+        <el-radio :value="1">拉格朗</el-radio>
+        <el-radio :value="2">自定义地址</el-radio>
+      </el-radio-group>
+    </el-form-item>
+    <el-form-item v-if="form.signServerType === 2" label="自定义签名地址" :label-width="formLabelWidth" required>
+      <el-input v-model="form.signServerUrl" type="text" autocomplete="off"></el-input>
+    </el-form-item>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="dialogSetSignServerVisible = false">取消</el-button>
+        <el-button type="primary" @click="doSetSignServer">确定</el-button>
+      </span>
+    </template>
+  </el-dialog>
   <el-dialog v-model="dialogFormVisible" title="帐号登录" :close-on-click-modal="false" :close-on-press-escape="false"
     :show-close="false" class="the-dialog">
     <el-button style="float: right; margin-top: -4rem;" @click="openSocks">辅助工具-13325端口</el-button>
@@ -1196,6 +1213,7 @@ const isRecentLogin = ref(false)
 const duringRelogin = ref(false)
 const dialogFormVisible = ref(false)
 const dialogSetDataFormVisible = ref(false)
+const dialogSetSignServerVisible = ref(false)
 const dialogSlideVisible = ref(false)
 const formLabelWidth = '120px'
 const isTestMode = ref(false)
@@ -1429,7 +1447,12 @@ const doSetData = async () => {
   ElMessage.success('修改完成，请手动重新登录');
   dialogSetDataFormVisible.value = false;
 }
-
+const showSetSignServerDialog = async (i: DiceConnection) => {
+  form.id = i.id
+  form.signServerType = i.adapter?.signServerType || 0
+  form.signServerUrl = i.adapter?.signServerUrl
+  dialogSetSignServerVisible.value = true;
+}
 
 const askSetEnable = async (i: DiceConnection, val: boolean) => {
   ElMessageBox.confirm(
@@ -1502,7 +1525,7 @@ const gocqhttpReLogin = async (i: DiceConnection) => {
     form.step = 4
   }
 }
-const showServerType = (i: DiceConnection) => {
+const showSignServerType = (i: DiceConnection) => {
   switch (i.adapter.signServerType) {
     case 0:
       return '海豹'
