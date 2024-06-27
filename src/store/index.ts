@@ -375,6 +375,11 @@ export const useStore = defineStore('main', {
       return info as any as DiceConnection
     },
 
+    async getImConnectionsSetSignServer(i: DiceConnection, { signServerType, signServerUrl }: { signServerType: number, signServerUrl: string }) {
+      const info: { result: false, err: string } | { result: true } = await backend.post(urlPrefix + '/im_connections/set_sign_server', { id: i.id, signServerType, signServerUrl })
+      return info
+    },
+
     async logFetchAndClear() {
       const info = await backend.get(urlPrefix + '/log/fetchAndClear')
       this.curDice.logs = info as any;

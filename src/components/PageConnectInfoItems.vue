@@ -498,7 +498,8 @@
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="dialogSetSignServerVisible = false">取消</el-button>
-        <el-button type="primary" @click="doSetSignServer">确定</el-button>
+        <el-button type="primary" @click="doSetSignServer"
+          :disabled="form.signServerType === 2 && form.signServerUrl === ''">确定</el-button>
       </span>
     </template>
   </el-dialog>
@@ -1448,10 +1449,23 @@ const doSetData = async () => {
   dialogSetDataFormVisible.value = false;
 }
 const showSetSignServerDialog = async (i: DiceConnection) => {
-  form.id = i.id
+  form.endpoint = i;
   form.signServerType = i.adapter?.signServerType || 0
   form.signServerUrl = i.adapter?.signServerUrl
   dialogSetSignServerVisible.value = true;
+}
+
+const doSetSignServer = async() =>{
+  let param = {
+    signServerType: form.signServerType,
+    signServerUrl: form.signServerUrl,
+  } as {
+    signServerType: number,
+    signServerUrl: string,
+  }
+  const ret = await store.getImConnectionsSetSignServer(form.endpoint, param);
+  ElMessage.success('修改完成，请手动启用账号以生效');
+  dialogSetSignServerVisible.value = false;
 }
 
 const askSetEnable = async (i: DiceConnection, val: boolean) => {
