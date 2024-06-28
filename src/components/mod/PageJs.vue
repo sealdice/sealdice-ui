@@ -449,29 +449,33 @@ const doJsConfigChanged = () => {
 
 let jsConfigFormatErrKeys: Ref<string[]> = ref([]);
 const doTaskCronFormatCheck = async (pluginName: string, key: string, expr: string) => {
+  let index = jsConfigFormatErrKeys.value.indexOf(pluginName + '/' + key);
   try{
     await store.checkCronExpr(expr);
-    let index = jsConfigFormatErrKeys.value.indexOf(pluginName + '/' + key);
     if (index !== -1) {
       jsConfigFormatErrKeys.value.splice(index, 1);
     }
     jsConfigEdited.value = true;
   } catch (_err) {
-    jsConfigFormatErrKeys.value.push(pluginName + '/' + key);
+    if (index === -1) {
+      jsConfigFormatErrKeys.value.push(pluginName + '/' + key);
+    }
     jsConfigEdited.value = true;
   }
 };
 
 const doTaskDailyFormatCheck = (pluginName: string, key: string, expr: string) => {
   const pattern = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
+  let index = jsConfigFormatErrKeys.value.indexOf(pluginName + '/' + key);
   if (pattern.test(expr)) {
-    let index = jsConfigFormatErrKeys.value.indexOf(pluginName + '/' + key);
     if (index !== -1) {
       jsConfigFormatErrKeys.value.splice(index, 1);
     }
     jsConfigEdited.value = true;
   } else {
-    jsConfigFormatErrKeys.value.push(pluginName + '/' + key);
+    if (index === -1) {
+      jsConfigFormatErrKeys.value.push(pluginName + '/' + key);
+    }
     jsConfigEdited.value = true;
   } 
 };
