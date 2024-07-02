@@ -1477,8 +1477,10 @@ const showSetSignServerDialog = async (i: DiceConnection) => {
         form.signServerType = 2;
         break;
     }
+    dialogSetSignServerVisible.value = true;
+  } else {
+    ElMessage.error(ret.err)
   }
-  dialogSetSignServerVisible.value = true;
 }
 
 const doSetSignServer = async() =>{
@@ -1491,9 +1493,9 @@ const doSetSignServer = async() =>{
       break;
   }
   const ret = await store.getImConnectionsSetSignServerUrl(form.endpoint, form.signServerUrl,true);
-  if (ret.result){
+  if (ret.result) {
     ElMessage.success('修改完成，请手动启用账号以生效');
-  }else{
+  } else {
     ElMessage.error(ret.err)
   }
   dialogSetSignServerVisible.value = false;
