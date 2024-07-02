@@ -158,7 +158,6 @@
               <div>内置客户端</div>
             </el-form-item>
             <el-form-item label="签名地址">
-              <div>{{ showSignServerType(i) }}</div>
               <el-tooltip class="item" effect="dark" :content="i.enable ? '禁用账号后方可修改签名服务地址' : '单击修改签名服务地址'"
                 placement="bottom">
                 <el-button :icon="Edit" size="small" circle :disabled="i.enable" style="margin-left: 0.5rem"
@@ -1345,6 +1344,17 @@ const goStepTwo = async () => {
   setRecentLogin()
   duringRelogin.value = false;
 
+  if (form.accountType === 15) {
+    switch (form.signServerType) {
+      case 0:
+        form.signServerUrl = "sealdice";
+        break;
+      case 1:
+        form.signServerUrl = "lagrange";
+        break;
+    }
+  }
+
   store.addImConnection(form as any).then((conn) => {
     if ((conn as any).testMode) {
       isTestMode.value = true
@@ -1359,6 +1369,7 @@ const goStepTwo = async () => {
   if (form.accountType > 0) {
     dialogFormVisible.value = false
     form.step = 1
+    form.signServerUrl=""
     return
   }
   activities.value = []
@@ -1450,21 +1461,41 @@ const doSetData = async () => {
 }
 const showSetSignServerDialog = async (i: DiceConnection) => {
   form.endpoint = i;
-  form.signServerType = i.adapter?.signServerType || 0
-  form.signServerUrl = i.adapter?.signServerUrl
+  const ret = await store.getImConnectionsSetSignServerUrl(form.endpoint, "",false);
+  if (ret.result) {
+    form.signServerUrl = ret.signServerUrl
+    switch (form.signServerUrl) {
+      case "sealdice":
+        form.signServerType = 0;
+        form.signServerUrl = "";
+        break;
+      case "lagrange":
+        form.signServerType = 1;
+        form.signServerUrl = "";
+        break;
+      default:
+        form.signServerType = 2;
+        break;
+    }
+  }
   dialogSetSignServerVisible.value = true;
 }
 
 const doSetSignServer = async() =>{
-  let param = {
-    signServerType: form.signServerType,
-    signServerUrl: form.signServerUrl,
-  } as {
-    signServerType: number,
-    signServerUrl: string,
+  switch (form.signServerType) {
+    case 0:
+      form.signServerUrl = "sealdice";
+      break;
+    case 1:
+      form.signServerUrl = "lagrange";
+      break;
   }
-  const ret = await store.getImConnectionsSetSignServer(form.endpoint, param);
-  ElMessage.success('修改完成，请手动启用账号以生效');
+  const ret = await store.getImConnectionsSetSignServerUrl(form.endpoint, form.signServerUrl,true);
+  if (ret.result){
+    ElMessage.success('修改完成，请手动启用账号以生效');
+  }else{
+    ElMessage.error(ret.err)
+  }
   dialogSetSignServerVisible.value = false;
 }
 
@@ -1537,18 +1568,6 @@ const gocqhttpReLogin = async (i: DiceConnection) => {
     activities.value.push(fullActivities[2])
   } else {
     form.step = 4
-  }
-}
-const showSignServerType = (i: DiceConnection) => {
-  switch (i.adapter.signServerType) {
-    case 0:
-      return '海豹'
-    case 1:
-      return '拉格朗'
-    case 2:
-      return i.adapter?.signServerUrl || '未知'
-    default:
-      return '未知'
   }
 }
 const signConfigType: Ref<'none' | 'simple' | 'advanced'> = ref('none')
@@ -1651,9 +1670,9 @@ const form = reactive({
     autoRefreshToken: false,
     refreshInterval: 40
   },
+  signServerType: 0,
   signServerUrl: '',
   signServerKey: '',
-  signServerType: 0,
 
   reverseAddr: ':4001',
   platform: 'QQ',

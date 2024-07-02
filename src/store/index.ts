@@ -37,8 +37,6 @@ export interface AdapterQQ {
   ignoreFriendRequest: boolean;
   goCqHttpSmsNumberTip: string;
   useSignServer: boolean;
-  signServerType: number;
-  signServerUrl: string;
   signServerConfig: any;
   redVersion: string;
   host: string;
@@ -280,7 +278,6 @@ export const useStore = defineStore('main', {
         accessToken,
         useSignServer,
         signServerConfig,
-        signServerType,
         signServerUrl,
         reverseAddr,
         onlyQQGuild,
@@ -342,7 +339,7 @@ export const useStore = defineStore('main', {
           info = await backend.post(urlPrefix + '/im_connections/addSatori', { platform, host, port, token }, { timeout: 65000 })
           break
         case 15:
-          info = await backend.post(urlPrefix + '/im_connections/addLagrange', { account, protocol, signServerType, signServerUrl }, { timeout: 65000 })
+          info = await backend.post(urlPrefix + '/im_connections/addLagrange', { account, signServerUrl }, { timeout: 65000 })
           break
       }
       return info as any as DiceConnection
@@ -379,8 +376,8 @@ export const useStore = defineStore('main', {
       return info as any as DiceConnection
     },
 
-    async getImConnectionsSetSignServer(i: DiceConnection, { signServerType, signServerUrl }: { signServerType: number, signServerUrl: string }) {
-      const info: { result: false, err: string } | { result: true } = await backend.post(urlPrefix + '/im_connections/set_sign_server', { id: i.id, signServerType, signServerUrl })
+    async getImConnectionsSetSignServerUrl(i: DiceConnection, signServerUrl: string, w: boolean) {
+      const info: { result: false, err: string } | { result: true ,signServerUrl:string} = await backend.post(urlPrefix + '/im_connections/set_sign_server', { id: i.id, signServerUrl, w })
       return info
     },
 
