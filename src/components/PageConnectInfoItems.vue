@@ -487,7 +487,7 @@
     <el-form-item label="签名地址" :label-width="formLabelWidth" required>
       <el-radio-group v-model="form.signServerType">
         <el-radio :value="0">海豹</el-radio>
-        <el-radio :value="1">拉格朗</el-radio>
+        <el-radio :value="1">Lagrange</el-radio>
         <el-radio :value="2">自定义地址</el-radio>
       </el-radio-group>
     </el-form-item>
@@ -587,7 +587,7 @@
         <el-form-item v-if="form.accountType === 15" label="签名服务" :label-width="formLabelWidth" required>
           <el-radio-group v-model="form.signServerType">
             <el-radio :value="0">海豹</el-radio>
-            <el-radio :value="1">拉格朗</el-radio>
+            <el-radio :value="1">Lagrange</el-radio>
             <el-radio :value="2">自定义地址</el-radio>
           </el-radio-group>
         </el-form-item>
