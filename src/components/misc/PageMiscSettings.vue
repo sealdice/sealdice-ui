@@ -578,11 +578,16 @@
 
 <script lang="ts" setup>
 import {
-  CircleClose,
+  Location,
+  Document,
+  Menu as IconMenu,
+  Setting,
   CirclePlusFilled,
+  CircleClose,
   QuestionFilled,
+  BrushFilled,
   Upload
-} from '@element-plus/icons-vue';
+} from '@element-plus/icons-vue'
 import { cloneDeep, toNumber } from 'lodash-es';
 import { useStore } from '~/store';
 import { objDiff, passwordHash } from '~/utils';
