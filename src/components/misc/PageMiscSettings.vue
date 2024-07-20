@@ -190,7 +190,7 @@
       </template>
       <el-space direction="vertical" alignment="flex-start" size="small">
         <el-checkbox label="开启" v-model="config.QQEnablePoke"/>
-        <el-text type="warning" size="small">启用前请确认你使用的 QQ 连接方式是支持该功能的，若不支持请关闭该功能来避免日志中出现相关报错。</el-text>
+        <el-text type="warning" size="small">启用前请确认你使用的 QQ 连接方式支持该功能，若不支持请关闭该功能来避免日志中出现相关报错。</el-text>
       </el-space>
     </el-form-item>
 
