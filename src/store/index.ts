@@ -1,13 +1,13 @@
 import { backend } from '~/backend'
 
-import { addImConnectionForm } from '~/components/PageConnectInfoItems.vue'
+import type { addImConnectionForm } from '~/components/PageConnectInfoItems.vue'
 import type {
   AdvancedConfig,
   HelpDoc,
   HelpTextItem,
   HelpTextItemQuery,
   JsScriptInfo,
-} from "~/type";
+} from "~/type.d.ts";
 
 export enum goCqHttpStateCode {
   Init = 0,
