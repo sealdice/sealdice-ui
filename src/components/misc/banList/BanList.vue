@@ -51,17 +51,10 @@ const doAdd = async () => {
 
 const searchBy = ref('')
 
-const showedRecordList = computed(() => {
-  const start = (recordPage.value.no - 1) * recordPage.value.pageSize;
-  const end = start + recordPage.value.pageSize;
-  return recordList.value.slice(start, end);
-})
-
-const groupItems = computed<any[]>(() => {
-  if (showedRecordList.value) {
-    // const groupListItems = cloneDeep(groupList.value.items)
+const filteredRecordList = computed<any[]>(() => {
+  if (recordList.value) {
     let items = []
-    for (let [k, _v] of Object.entries(showedRecordList.value)) {
+    for (let [k, _v] of Object.entries(recordList.value)) {
       const v = _v as any
       let ok = false
       if (v.rank === -30 && showBanned.value) {
@@ -94,15 +87,16 @@ const groupItems = computed<any[]>(() => {
       if (ok) items.push(v)
     }
 
-    // items = sortBy(items, ['recentCommandTime'])
-    // if (orderByTimeDesc.value) {
-    //   items = items.reverse()
-    // }
     return items
   }
   return []
 })
 
+const groupItems = computed(() => {
+  const start = (recordPage.value.no - 1) * recordPage.value.pageSize;
+  const end = start + recordPage.value.pageSize;
+  return filteredRecordList.value.slice(start, end);
+})
 
 const refreshList = async () => {
   const lst = await store.banConfigMapGet()
@@ -152,7 +146,7 @@ onBeforeMount(async () => {
   <header class="flex flex-wrap-reverse gap-y-4 justify-between">
     <el-space>
       <el-text size="large">搜索：</el-text>
-      <el-input v-model="searchBy" class="max-w-60" placeholder="请输入帐号或名字的一部分"></el-input>
+      <el-input v-model="searchBy" class="w-64" placeholder="请输入帐号或名字的一部分"></el-input>
     </el-space>
 
     <el-space>
@@ -176,8 +170,8 @@ onBeforeMount(async () => {
     <el-checkbox v-model="showOthers">其它</el-checkbox>
   </el-space>
 
-  <main style="margin-top: 2rem;">
-    <el-space :fill="true" size="small" class="w-full">
+  <main class="mt-4">
+    <el-space :fill="true" class="w-full">
       <el-card v-for="(i, index) in groupItems" :key="i.ID" shadow="hover" class="w-full">
         <template #header>
           <div class="flex flex-wrap gap-4 justify-between">
@@ -212,10 +206,11 @@ onBeforeMount(async () => {
   </main>
 
   <footer class="mt-4 flex justify-center">
-    <el-pagination class="bg-[#f3f5f7]" layout="prev, pager, next, total" background hide-on-single-page
+    <el-pagination class="bg-[#f3f5f7]" type="small" :pager-count=3
+                   layout="prev, pager, next, total" background hide-on-single-page
                    v-model:current-page="recordPage.no"
                    v-model:page-size="recordPage.pageSize"
-                   :total="recordPage.total"/>
+                   :total="filteredRecordList.length"/>
   </footer>
 
   <el-dialog v-model="dialogAddShow" title="添加用户/群组" :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false" class="the-dialog">
