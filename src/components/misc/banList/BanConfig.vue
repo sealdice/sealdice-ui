@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import { DocumentChecked } from "@element-plus/icons-vue";
 import { useStore } from "~/store";
+import type { BanConfig } from "~/type";
 
 const store = useStore()
 
-const banConfig = ref<any>({})
+const banConfig = ref<BanConfig>({} as BanConfig)
+const modified = ref<boolean>(false)
 
 const banConfigSave = async () => {
-  for (let [k, v] of Object.entries(banConfig.value)) {
-    let vVal = parseFloat(v as any)
-    if (!isNaN(vVal)) {
-      banConfig.value[k] = vVal
-    }
-  }
   await store.banConfigSet(banConfig.value)
   await configGet()
   ElMessage.success('已保存')
+  modified.value = false
+  await nextTick(() => {
+    modified.value = false
+  })
 }
 
 const configGet = async () => {
@@ -24,15 +24,21 @@ const configGet = async () => {
 
 onBeforeMount(async () => {
   await configGet()
+  modified.value = false
 })
+
+watch(banConfig, () => {
+  modified.value = true
+}, {deep: true});
+
 </script>
 
 <template>
   <header>
     <el-button type="primary" :icon="DocumentChecked" @click="banConfigSave">保存设置</el-button>
-<!--    <el-text style="margin-left: 1rem" v-if="modified" type="danger" size="large" tag="strong">-->
-<!--      内容已修改，不要忘记保存！-->
-<!--    </el-text>-->
+    <el-text style="margin-left: 1rem" v-if="modified" type="danger" size="large" tag="strong">
+      内容已修改，不要忘记保存！
+    </el-text>
   </header>
 
   <h4>基本设置</h4>

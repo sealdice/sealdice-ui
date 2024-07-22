@@ -3,6 +3,7 @@ import { backend } from '~/backend'
 import type { addImConnectionForm } from '~/components/PageConnectInfoItems.vue'
 import type {
   AdvancedConfig,
+  BanConfig,
   HelpDoc,
   HelpTextItem,
   HelpTextItemQuery,
@@ -519,8 +520,8 @@ export const useStore = defineStore('main', {
 
     // ban list相关
     async banConfigGet() {
-      const info = await backend.get(urlPrefix + '/banconfig/get')
-      return info as any
+      const info: BanConfig = await backend.get(urlPrefix + '/banconfig/get')
+      return info
     },
 
     async banConfigSet(data: any) {
