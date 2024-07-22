@@ -15,7 +15,12 @@ dayjs.extend(relativeTime)
 
 const store = useStore()
 
-const groupList = ref<any>({})
+const recordList = ref<any[]>([])
+const recordPage = ref({
+  no: 1,
+  total: 0,
+  pageSize: 10,
+})
 
 const showBanned = ref(true)
 const showWarn = ref(true)
@@ -46,11 +51,17 @@ const doAdd = async () => {
 
 const searchBy = ref('')
 
+const showedRecordList = computed(() => {
+  const start = (recordPage.value.no - 1) * recordPage.value.pageSize;
+  const end = start + recordPage.value.pageSize;
+  return recordList.value.slice(start, end);
+})
+
 const groupItems = computed<any[]>(() => {
-  if (groupList.value) {
+  if (showedRecordList.value) {
     // const groupListItems = cloneDeep(groupList.value.items)
     let items = []
-    for (let [k, _v] of Object.entries(groupList.value)) {
+    for (let [k, _v] of Object.entries(showedRecordList.value)) {
       const v = _v as any
       let ok = false
       if (v.rank === -30 && showBanned.value) {
@@ -95,7 +106,9 @@ const groupItems = computed<any[]>(() => {
 
 const refreshList = async () => {
   const lst = await store.banConfigMapGet()
-  groupList.value = lst
+  recordList.value = lst
+  recordPage.value.total = lst.length
+  recordPage.value.no = 1
 }
 
 const deleteOne = async (i: any, index: number) => {
@@ -164,10 +177,10 @@ onBeforeMount(async () => {
   </el-space>
 
   <main style="margin-top: 2rem;">
-    <el-space fill size="small">
-      <el-card v-for="(i, index) in groupItems" :key="i.ID" shadow="hover">
+    <el-space :fill="true" size="small" class="w-full">
+      <el-card v-for="(i, index) in groupItems" :key="i.ID" shadow="hover" class="w-full">
         <template #header>
-          <div class="ban-item-header">
+          <div class="flex flex-wrap gap-4 justify-between">
             <el-space alignment="center">
               <el-tag v-if="i.rankText === '禁止'" type="danger" disable-transitions>{{ i.rankText }}</el-tag>
               <el-tag v-else-if="i.rankText === '警告'" type="warning" disable-transitions>{{ i.rankText }}</el-tag>
@@ -197,6 +210,13 @@ onBeforeMount(async () => {
       </el-card>
     </el-space>
   </main>
+
+  <footer class="mt-4 flex justify-center">
+    <el-pagination class="bg-[#f3f5f7]" layout="prev, pager, next, total" background hide-on-single-page
+                   v-model:current-page="recordPage.no"
+                   v-model:page-size="recordPage.pageSize"
+                   :total="recordPage.total"/>
+  </footer>
 
   <el-dialog v-model="dialogAddShow" title="添加用户/群组" :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false" class="the-dialog">
     <el-form label-width="6rem">
