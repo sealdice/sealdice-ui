@@ -497,7 +497,7 @@
     <el-form-item v-else label="签名版本" :label-width="formLabelWidth" required>
       <el-space direction="vertical" alignment="flex-start">
         <el-radio-group v-model="form.signServerVersion">
-          <el-radio value="old">旧版</el-radio>
+          <el-radio value="13107">13107</el-radio>
           <el-radio value="25765">25765</el-radio>
         </el-radio-group>
         <el-text type="warning" size="small">如果不知道这是什么，请保持默认选中的最新版本</el-text>
@@ -607,7 +607,7 @@
         <el-form-item v-else-if="form.accountType === 15" label="签名版本" :label-width="formLabelWidth" required>
           <el-space direction="vertical" alignment="flex-start">
             <el-radio-group v-model="form.signServerVersion">
-              <el-radio value="old">旧版</el-radio>
+              <el-radio value="13107">13107</el-radio>
               <el-radio value="25765">25765</el-radio>
             </el-radio-group>
             <el-text type="warning" size="small">如果不知道这是什么，请保持默认选中的最新版本</el-text>
