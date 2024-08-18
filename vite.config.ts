@@ -9,6 +9,8 @@ import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 import Icons from "unplugin-icons/vite";
 import IconsResolver from "unplugin-icons/resolver";
 
+const __dirname = import.meta.url
+
 const pathSrc = path.resolve(__dirname, "src");
 
 // https://vitejs.dev/config/
