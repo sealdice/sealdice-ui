@@ -13,7 +13,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="mx-auto w-full max-w-screen-lg h-full">
+  <div class="mx-auto w-full h-full">
     <el-watermark :content="testMode ? '仅用于展示，修改无效' : ''" :font="{ fontSize: 24 }" :gap="[100, 32]">
       <Main />
     </el-watermark>
