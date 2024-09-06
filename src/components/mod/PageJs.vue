@@ -66,7 +66,7 @@
                   <el-text>{{ i.version || '&lt;未定义>' }}</el-text>
                   <el-tag v-if="i.official" size="small" type="success">官方</el-tag>
 
-                  <el-tooltip content="该插件直接使用了 TypeScript 编写">
+                  <el-tooltip content="该插件使用 TypeScript 编写">
                     <el-tag v-if="i.filename.toLowerCase().endsWith('.ts')" size="small" type="primary">TS</el-tag>
                   </el-tooltip>
                 </el-space>
