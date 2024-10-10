@@ -51,6 +51,7 @@ import type {CheckboxValueType} from "element-plus";
 import {Delete} from "@element-plus/icons-vue";
 import {filesize} from "filesize";
 import {useStoryStore} from "./story";
+import { getStoryBackUpList,postStoryBatchDel } from '~/api/story'
 import {urlBase} from "~/backend";
 
 const storyStore = useStoryStore()
@@ -58,7 +59,7 @@ const storyStore = useStoryStore()
 const backups = ref<Backup[]>([])
 
 const refreshList = async () => {
-  let resp = await storyStore.backupList();
+  let resp = await getStoryBackUpList();
   if (resp?.result) {
     backups.value = resp.data
   }
@@ -66,7 +67,7 @@ const refreshList = async () => {
 }
 
 const bakDownloadConfirm = async (name: string) => {
-  const res = await storyStore.backupBatchDelete([name])
+  const res = await postStoryBatchDel([name])
   if (res?.result) {
     ElMessage.success('已删除')
   } else {
@@ -81,7 +82,7 @@ const bakDeleteConfirm = async (name: string) => {
     type: 'warning'
   })
   if (ret) {
-    const res = await storyStore.backupBatchDelete([name])
+    const res = await postStoryBatchDel([name])
     if (res?.result) {
       ElMessage.success('已删除')
     } else {
@@ -113,7 +114,7 @@ const backupBatchDeleteConfirm = async () => {
     type: 'warning'
   })
   if (ret) {
-    const res = await storyStore.backupBatchDelete(selectedBackups.value.map(bak => bak.name))
+    const res = await postStoryBatchDel(selectedBackups.value.map(bak => bak.name))
     if (res.result) {
       ElMessage.success('已删除所选备份')
     } else {
