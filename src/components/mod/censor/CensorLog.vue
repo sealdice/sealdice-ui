@@ -42,6 +42,7 @@ import {urlPrefix, useStore} from "~/store";
 import dayjs from "dayjs";
 import {useCensorStore} from "~/components/mod/censor/censor";
 import {Refresh} from "@element-plus/icons-vue";
+import { getCensorLogs } from "~/api/censor";
 
 const url = (p: string) => urlPrefix + "/censor/" + p;
 const censorStore = useCensorStore()
@@ -88,12 +89,9 @@ const refreshCensorLog = async () => {
     result: true,
     data: CensorLog[],
     total: number
-  } = await backend.get(
-      url("logs/page"),
-      {
-        headers: {token},
-        params: {pageNum: logQuery.value.pageNum, pageSize: logQuery.value.pageSize},
-      }
+  } = await getCensorLogs(
+      logQuery.value.pageNum,
+      logQuery.value.pageSize
   )
   if (c?.result) {
     logs.value = c.data

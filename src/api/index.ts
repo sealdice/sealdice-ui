@@ -19,7 +19,8 @@ http.interceptors.request.use((config) => {
     const token = store.token
     if (token) {
         config.headers.Authorization = token
-        config.params['token'] = token
+        // config.params['token'] = token
+        config.headers['token'] = token
     }
   } catch (e) {
     // console.log(e);
@@ -32,7 +33,7 @@ http.interceptors.response.use(
   async (response) => {
     // HTTP响应状态码正常
     if (response.status === 200) {
-        return Promise.resolve(response.data)
+        return Promise.resolve(response)
         // return Promise.reject(response.data)
     } else {
       console.error("服务器出错或者连接不到服务器")
@@ -78,10 +79,6 @@ export default function request<T = any> (
       //   file.append('file',submitData[i]);
       // }
       submitData = file;
-      break;
-    case "rest":
-      url+='/'+submitData;
-      submitData=null;
       break;
     default:
         contentType = "application/json";

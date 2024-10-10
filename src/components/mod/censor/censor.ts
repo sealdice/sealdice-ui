@@ -1,4 +1,5 @@
 import {defineStore} from "pinia";
+import { getCensorConfig, postCensorConfig, postCensorRestart, postCensorStop } from "~/api/censor";
 import {backend} from "~/backend";
 import {urlPrefix, useStore} from "~/store";
 
@@ -32,14 +33,14 @@ export const useCensorStore = defineStore("censor", () => {
         enable: boolean,
         isLoading: boolean
     }> => {
-        return await backend.post(url("restart"), {token});
+        return await postCensorRestart(token)
     }
 
     const stopCensor = async (): Promise<{ result: true } | {
         result: false,
         err: string
     }> => {
-        return await backend.post(url("stop"), {token});
+        return await postCensorStop(token);
     }
 
     const getConfig = async (): Promise<{ result: false } | {
@@ -50,12 +51,10 @@ export const useCensorStore = defineStore("censor", () => {
         filterRegex: string
         levelConfig: unknown
     }> => {
-        return await backend.get(url("config"));
+        return await getCensorConfig();
     }
 
-    const saveConfig = async (modify: unknown): Promise<{ result: true } | { result: false, err: string }> => {
-        return await backend.post(url("config"), modify, {headers: {token}});
-    }
+    const saveConfig = postCensorConfig
 
     const fileUpload = async ({form}: { form: FormData }): Promise<{ result: true } | {
         result: false,
