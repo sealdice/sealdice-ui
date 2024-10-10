@@ -40,7 +40,7 @@
 import {Download, Refresh, Search} from '@element-plus/icons-vue';
 import {urlPrefix, useStore} from '~/store';
 import {backend, urlBase} from '~/backend'
-
+import { getCensorStatus } from '~/api/censor'
 onBeforeMount(() => {
   refreshCensorStatus()
 })
@@ -60,7 +60,7 @@ const refreshCensorStatus = async () => {
     result: true,
     enable: boolean,
     isLoading: boolean
-  } = await backend.get(url("status"), {});
+  } = await getCensorStatus()
   if (status.result) {
     censorEnable.value = status.enable
   }
