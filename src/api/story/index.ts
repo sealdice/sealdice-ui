@@ -45,11 +45,12 @@ export async function postStoryBatchDel(names: string[]) {
 
 
 type PageParams = {
-    pageNum: number, 
-    pageSize: number, 
-    name ?: string, 
-    groupId ?: string, 
-    createdTimeBegin ?: number, 
+    pageNum: number
+    pageSize: number
+    name ?: string
+    groupId ?: string
+    logName? :string
+    createdTimeBegin ?: number
     createdTimeEnd ?: number 
 }
 

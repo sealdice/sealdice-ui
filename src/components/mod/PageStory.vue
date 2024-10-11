@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 import { Back, Delete, Select, Upload } from '@element-plus/icons-vue'
-import { useStore, urlPrefix } from '~/store'
-import { backend } from '~/backend'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import randomColor from "randomcolor";
@@ -32,10 +30,6 @@ interface Item {
     isDice: boolean
     isEdit?: boolean
 }
-
-const store = useStore()
-const token = store.token
-const url = (p: string) => urlPrefix + "/story/" + p;
 
 async function getInfo() {
     return getStoryInfo()

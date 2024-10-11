@@ -33,7 +33,7 @@
         </el-checkbox>
         <el-space size="small" wrap style="margin-left: 1px; justify-content: flex-end;">
           <el-button size="small" tag="a" style="text-decoration: none; width: 8rem;"
-                     :href="`${urlBase}/sd-api/story/backup/download?name=${encodeURIComponent(backup.name)}&token=${encodeURIComponent(storyStore.token)}`">
+                     :href="`${urlBase}/sd-api/story/backup/download?name=${encodeURIComponent(backup.name)}&token=${encodeURIComponent(store.token)}`">
             下载 - {{ filesize(backup.fileSize) }}
           </el-button>
           <el-button type="danger" size="small" :icon="Delete" plain
@@ -50,11 +50,11 @@ import type {Backup} from "./story";
 import type {CheckboxValueType} from "element-plus";
 import {Delete} from "@element-plus/icons-vue";
 import {filesize} from "filesize";
-import {useStoryStore} from "./story";
+import {useStore} from "~/store";
 import { getStoryBackUpList,postStoryBatchDel } from '~/api/story'
 import {urlBase} from "~/backend";
 
-const storyStore = useStoryStore()
+const store = useStore()
 
 const backups = ref<Backup[]>([])
 
