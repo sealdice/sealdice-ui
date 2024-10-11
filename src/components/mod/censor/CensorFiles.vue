@@ -52,8 +52,7 @@
 <script setup lang="ts">
 import type {UploadUserFile} from "element-plus";
 import {Delete, Download, Upload} from "@element-plus/icons-vue";
-import {urlPrefix, useStore} from "~/store";
-import {backend, urlBase} from "~/backend";
+import { urlBase} from "~/backend";
 import {useCensorStore} from "~/components/mod/censor/censor";
 import { deleteCensorFiles, getCensorFiles, uploadCensorFile } from "~/api/censor";
 
@@ -61,9 +60,6 @@ onBeforeMount(() => {
   refreshFiles()
 })
 
-const store = useStore()
-const url = (p: string) => urlPrefix + "/censor/" + p;
-const token = store.token
 const censorStore = useCensorStore()
 
 interface SensitiveWordFile {

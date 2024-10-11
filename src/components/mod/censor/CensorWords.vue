@@ -74,10 +74,7 @@ onMounted(() => {
   refreshWords()
 })
 
-const url = (p: string) => urlPrefix + "/censor/" + p;
 const censorStore = useCensorStore()
-const store = useStore()
-const token = store.token
 
 interface SensitiveRelatedWord {
   word: string
