@@ -1,4 +1,7 @@
+import { id } from 'element-plus/es/locale/index.mjs';
 import { getCustomText, saveCustomText } from '~/api/configs';
+import { getConnectionList, getConnectQQVersion, postAddDingtalk, postAddDiscord, postAddDodo, postAddGocq, postAddGocqSeparate, postAddKook, postAddLagrange, postAddMinecraft, postAddOfficialQQ, postAddOnebot11ReverseWs, postAddRed, postAddSatori, postaddSealChat, postAddSlack, postAddTelegram, postAddWalleQ, postConnectionDel, postConnectionQrcode, postConnectSetData, postConnectSetEnable, postGoCqCaptchaSet, postGoCqHttpRelogin, postSetSignServer, postSmsCodeSet } from '~/api/im_connections';
+import { getBaseInfo, getPreInfo } from '~/api/others';
 import { backend } from '~/backend'
 
 import type { addImConnectionForm } from '~/components/PageConnectInfoItems.vue'
@@ -201,18 +204,18 @@ export const useStore = defineStore('main', {
     async getPreInfo() {
       const info: {
         testMode: boolean
-      } = await backend.get(urlPrefix + '/preInfo', {timeout: 5000})
+      } = await getPreInfo()
       return info
     },
 
     async getBaseInfo() {
-      const info = await backend.get(urlPrefix + '/baseInfo', { timeout: 5000 })
+      const info = await getBaseInfo()
       if (!document.title.includes('-')) {
-        if ((info as any).extraTitle && (info as any).extraTitle !== '') {
-          document.title = `${(info as any).extraTitle} - ${document.title}`;
+        if ((info).extraTitle && (info).extraTitle !== '') {
+          document.title = `${(info).extraTitle} - ${document.title}`;
         }
       }
-      this.curDice.baseInfo = info as any;
+      this.curDice.baseInfo = info;
       return info
     },
 
@@ -225,19 +228,19 @@ export const useStore = defineStore('main', {
     },
 
     async getImConnections() {
-      const info = await backend.get(urlPrefix + '/im_connections/list')
-      this.diceServers[this.index].conns = info as any;
+      const info = await getConnectionList()
+      this.diceServers[this.index].conns = info;
       return info
     },
 
     async getSupportedQQVersions() {
-      const info: { result: true, versions: string[] } | { result: false } = await backend.get(urlPrefix + '/im_connections/qq/get_versions')
+      const info = await getConnectQQVersion()
       return info
     },
 
     async gocqhttpReloginImConnection(i: DiceConnection) {
-      const info = await backend.post(urlPrefix + '/im_connections/gocqhttpRelogin', { id: i.id }, { timeout: 65000 })
-      return info as any as DiceConnection
+      const info = await postGoCqHttpRelogin(i.id)
+      return info
     },
 
     async news(): Promise<{ result: true, checked: boolean, news: string, newsMark: string } | { result: false, err?: string }> {
@@ -302,96 +305,96 @@ export const useStore = defineStore('main', {
         //QQ
         case 0:
           if (implementation === 'gocq') {
-            info = await backend.post(urlPrefix + '/im_connections/addGocq', { account, password, protocol, appVersion, useSignServer, signServerConfig }, { timeout: 65000 })
+            info = await postAddGocq(account,password,protocol,appVersion,useSignServer,signServerConfig)
           } else if (implementation === 'walle-q') {
-            info = await backend.post(urlPrefix + '/im_connections/addWalleQ', { account, password, protocol }, { timeout: 65000 })
+            info = await postAddWalleQ( account, password, protocol )
           }
           break
         case 1:
-          info = await backend.post(urlPrefix + '/im_connections/addDiscord', { token: token.trim(), proxyURL, reverseProxyUrl, reverseProxyCDNUrl }, { timeout: 65000 })
+          info = await postAddDiscord( token.trim(), proxyURL, reverseProxyUrl, reverseProxyCDNUrl )
           break
         case 2:
-          info = await backend.post(urlPrefix + '/im_connections/addKook', { token: token.trim() }, { timeout: 65000 })
+          info = await postAddKook( token.trim() )
           break
         case 3:
-          info = await backend.post(urlPrefix + '/im_connections/addTelegram', { token, proxyURL}, { timeout: 65000 })
+          info = await postAddTelegram(token.trim(),proxyURL)
           break
         case 4:
-          info = await backend.post(urlPrefix + '/im_connections/addMinecraft', { url }, { timeout: 65000 })
+          info = await postAddMinecraft(url)
           break
         case 5:
-          info = await backend.post(urlPrefix + '/im_connections/addDodo', { clientID: clientID.trim(), token: token.trim() }, { timeout: 65000 })
+          info = await postAddDodo(clientID.trim(),token.trim())
           break
         case 6: {
           // onebot11 正向
-          let realUrl = connectUrl.trim()
+          let realUrl:string = connectUrl.trim()
           if (!realUrl.startsWith('ws://') && !realUrl.startsWith('wss://')) {
             realUrl = `ws://${realUrl}`
           }
-          info = await backend.post(urlPrefix + '/im_connections/addGocqSeparate', { relWorkDir, connectUrl: realUrl, accessToken, account }, { timeout: 65000 })
+          info = await postAddGocqSeparate(relWorkDir, realUrl, accessToken, account)
           break
         }
         case 7:
-          info = await backend.post(urlPrefix + '/im_connections/addRed', { host, port, token }, { timeout: 65000 })
+          info = await postAddRed( host, port, token)
           break
         case 8:
-          info = await backend.post(urlPrefix + '/im_connections/addDingtalk', { clientID, token, nickname, robotCode }, { timeout: 65000 })
+          info = await postAddDingtalk( clientID, token, nickname, robotCode)
           break
         case 9:
-          info = await backend.post(urlPrefix + '/im_connections/addSlack', { botToken, appToken }, { timeout: 65000 })
+          info = await postAddSlack(botToken, appToken)
           break;
         case 10:
-          info = await backend.post(urlPrefix + '/im_connections/addOfficialQQ', { appID: Number(appID), appSecret, token,onlyQQGuild }, { timeout: 65000 })
+          info = await postAddOfficialQQ( Number(appID), appSecret, token,onlyQQGuild)
           break
         case 11:
-          info = await backend.post(urlPrefix + '/im_connections/addOnebot11ReverseWs', { account, reverseAddr: reverseAddr?.trim() }, { timeout: 65000 })
+          info = await postAddOnebot11ReverseWs(account, reverseAddr?.trim())
           break
         case 13:
-          info = await backend.post(urlPrefix + '/im_connections/addSealChat', { url: url.trim(), token: token.trim() }, { timeout: 65000 })
+          info = await postaddSealChat(url.trim(), token.trim())
           break
         case 14:
-          info = await backend.post(urlPrefix + '/im_connections/addSatori', { platform, host, port, token }, { timeout: 65000 })
+          info = await postAddSatori(platform, host, port, token)
           break
         case 15:
           let version = ""
           if (signServerUrl === "sealdice" || signServerUrl === "lagrange") {
             version = signServerVersion
           }
-          info = await backend.post(urlPrefix + '/im_connections/addLagrange', { account, signServerUrl, signServerVersion: version }, { timeout: 65000 })
+          info = await postAddLagrange( account, signServerUrl, version )
           break
       }
-      return info as any as DiceConnection
+      return info as DiceConnection
     },
 
     async removeImConnection(i: DiceConnection) {
-      const info = await backend.post(urlPrefix + '/im_connections/del', { id: i.id })
-      return info as any as DiceConnection
+      const info = await postConnectionDel( i.id )
+      return info
     },
 
     async getImConnectionsQrCode(i: DiceConnection) {
-      const info = await backend.post(urlPrefix + '/im_connections/qrcode', { id: i.id })
-      return info as any as { img: string }
+      const info = await postConnectionQrcode(i.id)
+      return info
     },
 
     async ImConnectionsSmsCodeSet(i: DiceConnection, smsCode: string) {
-      const info = await backend.post(urlPrefix + '/im_connections/sms_code_set', { id: i.id, code: smsCode })
+      const info = await postSmsCodeSet( i.id, smsCode)
       return info as any as {}
     },
 
     async ImConnectionsCaptchaSet(i: DiceConnection, code: string) {
       console.log('xxx', { id: i.id, code })
-      const info = await backend.post(urlPrefix + '/im_connections/gocq_captcha_set', { id: i.id, code })
+      const info = await postGoCqCaptchaSet(i.id, code)  
       return info as any as {}
     },
 
     async getImConnectionsSetEnable(i: DiceConnection, enable: boolean) {
-      const info = await backend.post(urlPrefix + '/im_connections/set_enable', { id: i.id, enable })
-      return info as any as DiceConnection
+      const info = await postConnectSetEnable( i.id, enable) 
+      return info
     },
 
     async getImConnectionsSetData(i: DiceConnection, { protocol, appVersion, ignoreFriendRequest, useSignServer, signServerConfig }: { protocol: number, appVersion: string, ignoreFriendRequest: boolean, useSignServer?: boolean, signServerConfig?: any }) {
-      const info = await backend.post(urlPrefix + '/im_connections/set_data', { id: i.id, protocol, appVersion, ignoreFriendRequest, useSignServer, signServerConfig })
-      return info as any as DiceConnection
+      const info = await postConnectSetData (i.id, protocol, appVersion, ignoreFriendRequest, useSignServer, signServerConfig)
+      return info
     },
 
     async getImConnectionsSetSignServerUrl(i: DiceConnection, signServerUrl: string, w: boolean, signServerVersion: string) {
@@ -399,8 +402,8 @@ export const useStore = defineStore('main', {
       if (signServerUrl === "sealdice" || signServerUrl === "lagrange") {
         version = signServerVersion
       }
-      const info: { result: false, err: string } | { result: true ,signServerUrl:string, signServerVersion: string} =
-        await backend.post(urlPrefix + '/im_connections/set_sign_server', { id: i.id, signServerUrl, w, signServerVersion: version })
+      const info =
+        await postSetSignServer( i.id, signServerUrl, w, version)
       return info
     },
 

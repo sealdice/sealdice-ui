@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosRequestConfig } from "axios";
 import qs from "qs";
 import { useStore} from "~/store";
 const http = axios.create({
@@ -56,7 +56,7 @@ export default function request<T = any> (
     method: 'post'|'get'|'put'|'delete', 
     url: string, 
     submitData?: any, 
-    ContentType?: 'form'|'json'|'formdata') {
+    ContentType?: 'form'|'json'|'formdata',config?:AxiosRequestConfig) {
   let file: FormData,contentType:string
   switch (ContentType) {
     case "form":
@@ -84,17 +84,14 @@ export default function request<T = any> (
         contentType = "application/json";
   }
   return new Promise<T>((resolve, reject) => {
-    const reqParams = {
+    const reqParams = Object.assign({
       method,
       url,
       [method.toLowerCase() === "get" //|| method.toLowerCase() === "delete"
         ? "params"
         : "data"]: submitData,
         contentType,
-      // paramsSerializer: function (params) {
-      //   return qs.stringify(params, { indices: false });
-      // },
-    };
+    },config);
     http(reqParams)
       .then((res) => {
         resolve(res.data);
@@ -111,7 +108,9 @@ export function createRequest(baseUrl: string) {
         method: 'post'|'get'|'put'|'delete', 
         url: string, 
         submitData?: any, 
-        ContentType?: 'form'|'json'|'formdata'){
-            return request<T>(method,baseUrl+url,submitData,ContentType)
+        ContentType?: 'form'|'json'|'formdata',
+        config?:AxiosRequestConfig
+      ){
+            return request<T>(method,baseUrl+url,submitData,ContentType,config)
         }
 }
