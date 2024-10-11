@@ -1,3 +1,4 @@
+import { getCustomText, saveCustomText } from '~/api/configs';
 import { backend } from '~/backend'
 
 import type { addImConnectionForm } from '~/components/PageConnectInfoItems.vue'
@@ -9,7 +10,6 @@ import type {
   HelpTextItemQuery,
   JsScriptInfo,
 } from "~/type.d.ts";
-
 export enum goCqHttpStateCode {
   Init = 0,
   InLogin = 1,
@@ -195,7 +195,7 @@ export const useStore = defineStore('main', {
   },
   actions: {
     async customTextSave(category: string) {
-      await backend.post(urlPrefix + '/configs/customText/save', { data: this.curDice.customTexts[category], category })
+      await saveCustomText(category,this.curDice.customTexts[category])
     },
 
     async getPreInfo() {
@@ -217,12 +217,11 @@ export const useStore = defineStore('main', {
     },
 
     async getCustomText() {
-      const info = await backend.get(urlPrefix + '/configs/customText')
-      const data = info as any;
+      const data = await getCustomText()
       this.curDice.customTexts = data.texts;
       this.curDice.customTextsHelpInfo = data.helpInfo;
       this.curDice.previewInfo = data.previewInfo;
-      return info
+      return data
     },
 
     async getImConnections() {
@@ -451,51 +450,6 @@ export const useStore = defineStore('main', {
     async getRecentMessage() {
       const info = await backend.get(urlPrefix + '/dice/recentMessage')
       return info as any
-    },
-
-    async setCustomReply(data: any) {
-      const info = await backend.post(urlPrefix + '/configs/custom_reply/save', data)
-      return info
-    },
-
-    async getCustomReply(filename: string) {
-      const info = await backend.get(urlPrefix + '/configs/custom_reply', { params: { filename } })
-      return info
-    },
-
-    async customReplyFileNew(filename: string) {
-      const info = await backend.post(urlPrefix + '/configs/custom_reply/file_new', { filename });
-      return info
-    },
-
-    async customReplyFileDelete(filename: string) {
-      const info = await backend.post(urlPrefix + '/configs/custom_reply/file_delete', { filename });
-      return info
-    },
-
-    async customReplyFileDownload(filename: string) {
-      const info = await backend.post(urlPrefix + '/configs/custom_reply/file_download', { filename });
-      return info
-    },
-
-    async customReplyFileUpload({ form }: any) {
-      const info = await backend.post(urlPrefix + '/configs/custom_reply/file_upload', form,  { headers: { "Content-Type": "multipart/form-data" } })
-      return info as any
-    },
-
-    async customReplyFileList() {
-      const info = await backend.get(urlPrefix + '/configs/custom_reply/file_list')
-      return info
-    },
-
-    async customReplyDebugModeGet() {
-      const info: { value: boolean } = await backend.get(urlPrefix + '/configs/custom_reply/debug_mode')
-      return info
-    },
-
-    async customReplyDebugModeSet(value: boolean) {
-      const info = await backend.post(urlPrefix + '/configs/custom_reply/debug_mode', { value })
-      return info
     },
 
     async backupList() {
