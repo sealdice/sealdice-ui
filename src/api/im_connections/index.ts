@@ -209,11 +209,7 @@ export function postConnectSetEnable(id: string, enable: boolean) {
 
 export function postConnectSetData(
     id: string,
-    protocol: number,
-    appVersion: string,
-    ignoreFriendRequest: boolean,
-    useSignServer?: boolean,
-    signServerConfig?: SignServerConfig
+    { protocol, appVersion, ignoreFriendRequest, useSignServer, signServerConfig }:{ protocol: number, appVersion: string, ignoreFriendRequest: boolean, useSignServer?: boolean, signServerConfig?: SignServerConfig}
 ) {
     return request<DiceConnection>('post', 'set_data', {
         id,
@@ -223,7 +219,7 @@ export function postConnectSetData(
 
 export function postSetSignServer(
     id: string,
-    signServerUrl: string,
+    signServerUrl: ''|"sealdice"|"lagrange",
     w: boolean,
     signServerVersion: string
 ) {

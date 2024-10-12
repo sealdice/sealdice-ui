@@ -1,6 +1,6 @@
 import { id } from 'element-plus/es/locale/index.mjs';
 import { getCustomText, saveCustomText } from '~/api/configs';
-import { getConnectionList, getConnectQQVersion, postAddDingtalk, postAddDiscord, postAddDodo, postAddGocq, postAddGocqSeparate, postAddKook, postAddLagrange, postAddMinecraft, postAddOfficialQQ, postAddOnebot11ReverseWs, postAddRed, postAddSatori, postaddSealChat, postAddSlack, postAddTelegram, postAddWalleQ, postConnectionDel, postConnectionQrcode, postConnectSetData, postConnectSetEnable, postGoCqCaptchaSet, postGoCqHttpRelogin, postSetSignServer, postSmsCodeSet } from '~/api/im_connections';
+import { getConnectionList, postAddDingtalk, postAddDiscord, postAddDodo, postAddGocq, postAddGocqSeparate, postAddKook, postAddLagrange, postAddMinecraft, postAddOfficialQQ, postAddOnebot11ReverseWs, postAddRed, postAddSatori, postaddSealChat, postAddSlack, postAddTelegram, postAddWalleQ, } from '~/api/im_connections';
 import { getBaseInfo, getPreInfo } from '~/api/others';
 import { backend } from '~/backend'
 
@@ -233,16 +233,6 @@ export const useStore = defineStore('main', {
       return info
     },
 
-    async getSupportedQQVersions() {
-      const info = await getConnectQQVersion()
-      return info
-    },
-
-    async gocqhttpReloginImConnection(i: DiceConnection) {
-      const info = await postGoCqHttpRelogin(i.id)
-      return info
-    },
-
     async addImConnection(form: addImConnectionForm ) {
       const {
         accountType,
@@ -341,48 +331,6 @@ export const useStore = defineStore('main', {
       }
       return info as DiceConnection
     },
-
-    async removeImConnection(i: DiceConnection) {
-      const info = await postConnectionDel( i.id )
-      return info
-    },
-
-    async getImConnectionsQrCode(i: DiceConnection) {
-      const info = await postConnectionQrcode(i.id)
-      return info
-    },
-
-    async ImConnectionsSmsCodeSet(i: DiceConnection, smsCode: string) {
-      const info = await postSmsCodeSet( i.id, smsCode)
-      return info as any as {}
-    },
-
-    async ImConnectionsCaptchaSet(i: DiceConnection, code: string) {
-      console.log('xxx', { id: i.id, code })
-      const info = await postGoCqCaptchaSet(i.id, code)  
-      return info as any as {}
-    },
-
-    async getImConnectionsSetEnable(i: DiceConnection, enable: boolean) {
-      const info = await postConnectSetEnable( i.id, enable) 
-      return info
-    },
-
-    async getImConnectionsSetData(i: DiceConnection, { protocol, appVersion, ignoreFriendRequest, useSignServer, signServerConfig }: { protocol: number, appVersion: string, ignoreFriendRequest: boolean, useSignServer?: boolean, signServerConfig?: any }) {
-      const info = await postConnectSetData (i.id, protocol, appVersion, ignoreFriendRequest, useSignServer, signServerConfig)
-      return info
-    },
-
-    async getImConnectionsSetSignServerUrl(i: DiceConnection, signServerUrl: string, w: boolean, signServerVersion: string) {
-      let version = ""
-      if (signServerUrl === "sealdice" || signServerUrl === "lagrange") {
-        version = signServerVersion
-      }
-      const info =
-        await postSetSignServer( i.id, signServerUrl, w, version)
-      return info
-    },
-
     async logFetchAndClear() {
       const info = await backend.get(urlPrefix + '/log/fetchAndClear')
       this.curDice.logs = info as any;
