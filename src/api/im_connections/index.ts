@@ -26,191 +26,208 @@ export function postAddGocq(
     return request<DiceConnection>(
         'post', 'addGocq',
         { account, password, protocol, appVersion, useSignServer, signServerConfig }, 'json',
-        { timeout: 65000 })
+        { timeout: 65000 }
+    )
 }
 
 export function postAddWalleQ(
     account: number,
-    password: string, 
+    password: string,
     protocol: number
 ) {
     return request<DiceConnection>('post', 'addWalleQ',
-        {account, password, protocol}, 'json',
-        { timeout: 65000 })
+        { account, password, protocol }, 'json',
+        { timeout: 65000 }
+
+    )
 }
 
 export function postAddDiscord(
     token: string,
-    proxyURL:string, 
-    reverseProxyUrl:string, 
-    reverseProxyCDNUrl:string
+    proxyURL: string,
+    reverseProxyUrl: string,
+    reverseProxyCDNUrl: string
 ) {
     return request<DiceConnection>('post', 'addDiscord',
-        {token, proxyURL, reverseProxyUrl, reverseProxyCDNUrl}, 'json',
-        { timeout: 65000 })
+        { token, proxyURL, reverseProxyUrl, reverseProxyCDNUrl }, 'json',
+        { timeout: 65000 }
+    )
 }
 
 export function postAddKook(
     token: string,
 ) {
     return request<DiceConnection>('post', 'addKook',
-        {token}, 'json',
-        { timeout: 65000 })
+        { token }, 'json',
+        { timeout: 65000 }
+    )
 }
 
 export function postAddTelegram(
     token: string,
-    proxyURL:string, 
+    proxyURL: string,
 ) {
     return request<DiceConnection>('post', 'addTelegram',
-        {token,proxyURL}, 'json',
-        { timeout: 65000 })
+        { token, proxyURL }, 'json',
+        { timeout: 65000 }
+    )
 }
 
-export function postAddMinecraft(url:string) {
+export function postAddMinecraft(url: string) {
     return request<DiceConnection>('post', 'addMinecraft',
-        {url}, 'json',
-        { timeout: 65000 })
+        { url }, 'json',
+        { timeout: 65000 }
+    )
 }
 
-export function postAddDodo(clientID:string,token:string) {
+export function postAddDodo(clientID: string, token: string) {
     return request<DiceConnection>('post', 'addDodo',
-        {clientID,token}, 'json',
-        { timeout: 65000 })
+        { clientID, token }, 'json',
+        { timeout: 65000 }
+    )
 }
 
 export function postAddGocqSeparate(
-    relWorkDir:string, 
-    connectUrl:string, 
-    accessToken:string, 
-    account:number
+    relWorkDir: string,
+    connectUrl: string,
+    accessToken: string,
+    account: number
 ) {
     return request<DiceConnection>('post', 'addGocqSeparate',
         { relWorkDir, connectUrl, accessToken, account }, 'json',
-        { timeout: 65000 })
+        { timeout: 65000 }
+    )
 }
 
 export function postAddRed(
-    host:string, 
-    port:string, 
-    token:string
+    host: string,
+    port: string,
+    token: string
 ) {
     return request<DiceConnection>('post', 'addRed',
-        {host, port, token}, 'json',
-        { timeout: 65000 })
+        { host, port, token }, 'json',
+        { timeout: 65000 }
+    )
 }
 
 export function postAddDingtalk(
-    clientID:string, 
-    token:string, 
-    nickname:string, 
-    robotCode:string
+    clientID: string,
+    token: string,
+    nickname: string,
+    robotCode: string
 ) {
     return request<DiceConnection>('post', 'addDingtalk',
-        {clientID, token, nickname, robotCode}, 'json',
-        { timeout: 65000 })
+        { clientID, token, nickname, robotCode }, 'json',
+        { timeout: 65000 }
+    )
 }
 
 export function postAddSlack(
-    botToken:string, 
-    appToken:string
+    botToken: string,
+    appToken: string
 ) {
     return request<DiceConnection>('post', 'addSlack',
-        {botToken, appToken}, 'json',
-        { timeout: 65000 })
+        { botToken, appToken }, 'json',
+        { timeout: 65000 }
+    )
 }
 
 export function postAddOfficialQQ(
-    appID: number, 
-    appSecret:string, 
-    token:string,
-    onlyQQGuild:boolean
+    appID: number,
+    appSecret: string,
+    token: string,
+    onlyQQGuild: boolean
 ) {
     return request<DiceConnection>('post', 'addOfficialQQ',
-        {appID, appSecret, token,onlyQQGuild}, 'json',
-        { timeout: 65000 })
+        { appID, appSecret, token, onlyQQGuild }, 'json',
+        { timeout: 65000 }
+    )
 }
 
 export function postAddOnebot11ReverseWs(
-    account:number, 
-    reverseAddr?:string
+    account: number,
+    reverseAddr?: string
 ) {
     return request<DiceConnection>('post', 'addOnebot11ReverseWs',
-        {account, reverseAddr}, 'json',
-        { timeout: 65000 })
+        { account, reverseAddr }, 'json',
+        { timeout: 65000 }
+    )
 }
 
 export function postaddSealChat(
-    url: string, 
+    url: string,
     token: string
 ) {
     return request<DiceConnection>('post', 'addSealChat',
-        {url, token}, 'json',
-        { timeout: 65000 })
+        { url, token }, 'json',
+        { timeout: 65000 }
+    )
 }
 
 export function postAddSatori(
-    platform:string, 
-    host:string, 
-    port:string, 
-    token:string
+    platform: string,
+    host: string,
+    port: string,
+    token: string
 ) {
     return request<DiceConnection>('post', 'addSatori',
-        {platform, host, port, token}, 'json',
-        { timeout: 65000 })
+        { platform, host, port, token }, 'json',
+        { timeout: 65000 }
+    )
 }
 
 export function postAddLagrange(
-    account:number, 
-    signServerUrl:string, 
-    signServerVersion:string
+    account: number,
+    signServerUrl: string,
+    signServerVersion: string
 ) {
     return request<DiceConnection>('post', 'addLagrange',
-        {account, signServerUrl, signServerVersion}, 'json',
-        { timeout: 65000 })
+        { account, signServerUrl, signServerVersion }, 'json',
+        { timeout: 65000 }
+    )
 }
 
-export function postConnectionDel(id:string) {
-    return request<DiceConnection>('post', 'del',{id})
+export function postConnectionDel(id: string) {
+    return request<DiceConnection>('post', 'del', { id })
 }
 
-export function postConnectionQrcode(id:string) {
-    return request<{ img: string }>('post', 'qrcode',{id})
+export function postConnectionQrcode(id: string) {
+    return request<{ img: string }>('post', 'qrcode', { id })
 }
 
-export function postSmsCodeSet(id:string, code:string) {
-    return request('post', 'sms_code_set',{id,code})
+export function postSmsCodeSet(id: string, code: string) {
+    return request('post', 'sms_code_set', { id, code })
 }
 
-export function postGoCqCaptchaSet(id:string, code:string) {
-    return request('post', 'gocq_captcha_set',{id,code})
+export function postGoCqCaptchaSet(id: string, code: string) {
+    return request('post', 'gocq_captcha_set', { id, code })
 }
 
-export function postConnectSetEnable(id:string,enable:boolean) {
-    return request<DiceConnection>('post', 'set_enable',{id,enable})
+export function postConnectSetEnable(id: string, enable: boolean) {
+    return request<DiceConnection>('post', 'set_enable', { id, enable })
 }
 
 export function postConnectSetData(
-    id:string,
-    protocol: number, 
-    appVersion: string, 
-    ignoreFriendRequest: boolean, 
+    id: string,
+    protocol: number,
+    appVersion: string,
+    ignoreFriendRequest: boolean,
     useSignServer?: boolean,
-    signServerConfig?:SignServerConfig
+    signServerConfig?: SignServerConfig
 ) {
-    return request<DiceConnection>('post', 'set_data',{
+    return request<DiceConnection>('post', 'set_data', {
         id,
         protocol, appVersion, ignoreFriendRequest, useSignServer, signServerConfig
     })
 }
 
 export function postSetSignServer(
-    id:string,
+    id: string,
     signServerUrl: string,
-    w: boolean, 
+    w: boolean,
     signServerVersion: string
 ) {
-    return request<{ result: false, err: string } | { result: true ,signServerUrl:string, signServerVersion: string}>('post', 'set_sign_server',
+    return request<{ result: false, err: string } | { result: true, signServerUrl: string, signServerVersion: string }>('post', 'set_sign_server',
         { id, signServerUrl, w, signServerVersion }
     )
 }
