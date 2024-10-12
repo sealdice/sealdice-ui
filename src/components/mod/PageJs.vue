@@ -390,6 +390,7 @@ import {basicSetup, EditorView} from "codemirror"
 import {javascript} from "@codemirror/lang-javascript"
 import {isEqual, size} from "lodash-es";
 import type {JsPluginConfig, JsPluginConfigItem, JsScriptInfo} from "~/type.d.ts";
+import { postUtilsCheckCronExpr } from '~/api/utils'
 
 const store = useStore()
 const jsEnable = ref(false)
@@ -455,7 +456,7 @@ let jsConfigFormatErrKeys: Ref<string[]> = ref([]);
 const doTaskCronFormatCheck = async (pluginName: string, key: string, expr: string) => {
   let index = jsConfigFormatErrKeys.value.indexOf(pluginName + '/' + key);
   try{
-    await store.checkCronExpr(expr);
+    await postUtilsCheckCronExpr(expr);
     if (index !== -1) {
       jsConfigFormatErrKeys.value.splice(index, 1);
     }

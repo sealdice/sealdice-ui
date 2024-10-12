@@ -243,30 +243,6 @@ export const useStore = defineStore('main', {
       return info
     },
 
-    async news(): Promise<{ result: true, checked: boolean, news: string, newsMark: string } | { result: false, err?: string }> {
-      const info = await backend.get(urlPrefix + '/utils/news')
-      return info as any
-    },
-
-    async checkNews(newsMark: string): Promise<{ result: true; newsMark: string; } | { result: false }> {
-      const info = await backend.post(urlPrefix + '/utils/check_news', { newsMark }, { timeout: 5000 })
-      return info as any
-    },
-
-    async checkCronExpr(expr: string) {
-      return await backend.post(urlPrefix + '/utils/check_cron_expr', {expr: expr}) as any
-    },
-
-    async checkNetworkHealth() {
-      const result: {
-        result: true,
-        total: number,
-        ok: string[],
-        timestamp: number
-      } | { result: false } =  await backend.get(urlPrefix + '/utils/check_network_health') 
-      return result
-    },
-
     async addImConnection(form: addImConnectionForm ) {
       const {
         accountType,

@@ -171,6 +171,7 @@ import {
   CircleCheckFilled,
   CircleCloseFilled,
 } from '@element-plus/icons-vue'
+import { getUtilsCheckNetWorkHealth } from '~/api/utils';
 
 const store = useStore()
 
@@ -236,7 +237,7 @@ const getWebsiteHealthComponent = (ok: boolean): VNode => <>
 
 const refreshNetworkHealth = async () => {
   networkHealth.value.timestamp = 0
-  const ret = await store.checkNetworkHealth()
+  const ret = await getUtilsCheckNetWorkHealth()
   if (ret.result) {
     networkHealth.value = ret
   }
