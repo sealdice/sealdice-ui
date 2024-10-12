@@ -123,6 +123,7 @@ import {
   DocumentChecked,
   Warning,
 } from '@element-plus/icons-vue'
+import { getBackupConfig, setBackupConfig } from '~/api/backup';
 
 const store = useStore()
 
@@ -152,7 +153,7 @@ const refreshList = async () => {
 }
 
 const configGet = async () => {
-  const data = await store.backupConfigGet()
+  const data = await getBackupConfig()
   cfg.value = data
 }
 
@@ -195,7 +196,7 @@ const setEnable = async (index: number, enable: boolean) => {
 }
 
 const doSave = async () => {
-  await store.backupConfigSave(cfg.value)
+  await setBackupConfig(cfg.value)
   ElMessage.success('已保存')
 }
 

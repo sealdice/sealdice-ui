@@ -358,76 +358,7 @@ export const useStore = defineStore('main', {
       await this.diceAdvancedConfigGet()
     },
 
-    async backupList() {
-      const info = await backend.get(urlPrefix + '/backup/list')
-      return info as any
-    },
-
-    async backupConfigGet() {
-      const info = await backend.get(urlPrefix + '/backup/config_get')
-      return info as any
-    },
-
-    async backupConfigSave(data: any) {
-      const info = await backend.post(urlPrefix + '/backup/config_set', data)
-      return info as any
-    },
-
-    async backupDoSimple(params: { selection: number }) {
-      const info = await backend.post(urlPrefix + '/backup/do_backup', params)
-      return info as any
-    },
-
-    async backupDelete(name: string) {
-      const info = await backend.post(urlPrefix + '/backup/delete', {}, { params: { name } })
-      return info as any
-    },
-
-    async backupBatchDelete(names: string[]) {
-      const info: { result: true } | {
-        result: false,
-        fails: string[],
-      } = await backend.post(urlPrefix + '/backup/batch_delete', { names }, { headers: { token: this.token } })
-      return info
-    },
-
     // ban list相关
-    async banConfigGet() {
-      const info: BanConfig = await backend.get(urlPrefix + '/banconfig/get')
-      return info
-    },
-
-    async banConfigSet(data: any) {
-      const info = await backend.post(urlPrefix + '/banconfig/set', data)
-      return info as any
-    },
-
-    async banConfigMapGet() {
-      const info = await backend.get(urlPrefix + '/banconfig/list')
-      return info as any
-    },
-
-    async banConfigMapDeleteOne(data: any) {
-      const info = await backend.post(urlPrefix + '/banconfig/map_delete_one', data)
-      return info as any
-    },
-
-    async banConfigMapAddOne(id: string, rank: number, name: string, reason: string) {
-      const info = await backend.post(urlPrefix + '/banconfig/map_add_one', {
-        ID: id,
-        rank,
-        name,
-        reasons: reason ? [reason] : []
-      })
-      return info as any
-    },
-
-    async banUpload({ form }: { form: FormData }): Promise<{ result: true } | {
-      result: false,
-      err: string
-    }> {
-      return await backend.post(urlPrefix + '/banconfig/import', form, { headers: { token: this.token, "Content-Type": "multipart/form-data" } })
-    },
 
     // 群组列表
     async groupList() {
