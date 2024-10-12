@@ -172,6 +172,7 @@ import {
   CircleCloseFilled,
 } from '@element-plus/icons-vue'
 import { getUtilsCheckNetWorkHealth } from '~/api/utils';
+import { postUpgrade } from '~/api/dice';
 
 const store = useStore()
 
@@ -195,8 +196,8 @@ const doUpgrade = async () => {
   upgradeDialogVisible.value = false
   ElMessageBox.alert('开始下载更新，请等待……<br>完成后将自动重启海豹，并进入更新流程', '升级', { dangerouslyUseHTMLString: true })
   try {
-    const ret = await store.upgrade()
-    ElMessageBox.alert((ret as any).text + '<br>如果几分钟后服务没有恢复，检查一下海豹目录', '升级', { dangerouslyUseHTMLString: true })
+    const ret = await postUpgrade()
+    ElMessageBox.alert((ret).text + '<br>如果几分钟后服务没有恢复，检查一下海豹目录', '升级', { dangerouslyUseHTMLString: true })
   } catch (e) {
     // ElMessageBox.alert('升级失败', '升级')
   }

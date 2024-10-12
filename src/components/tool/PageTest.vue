@@ -50,6 +50,7 @@ import { useStore } from '~/store';
 import imgSeal from '~/assets/seal.png'
 import imgMe from '~/assets/me.jpg'
 import { Plus } from '@element-plus/icons-vue'
+import { getRecentMessage, postExec } from '~/api/dice';
 
 const store = useStore()
 
@@ -60,7 +61,7 @@ onBeforeMount(async () => {
   restaurants.value = loadAll()
     timerMsg = setInterval(async () => {
         try {
-            let msg = await store.getRecentMessage()
+            let msg = await getRecentMessage()
           console.log('msg:', msg)
             for (let i of msg) {
                 store.talkLogs.push({
@@ -120,7 +121,7 @@ const doSend = async () => {
       mode: mode.value
     })
     try {
-      await store.diceExec(text, mode.value)
+      await postExec(text, mode.value)
       // for (let i of ret) {
       //   store.talkLogs.push({
       //     content: i.message,

@@ -1,7 +1,8 @@
 import { id } from 'element-plus/es/locale/index.mjs';
 import { getCustomText, saveCustomText } from '~/api/configs';
+import { getAdvancedConfig, getDiceConfig, postExec, postMailTest, setAdvancedConfig, setDiceConfig, type DiceConfig } from '~/api/dice';
 import { getConnectionList, postAddDingtalk, postAddDiscord, postAddDodo, postAddGocq, postAddGocqSeparate, postAddKook, postAddLagrange, postAddMinecraft, postAddOfficialQQ, postAddOnebot11ReverseWs, postAddRed, postAddSatori, postaddSealChat, postAddSlack, postAddTelegram, postAddWalleQ, } from '~/api/im_connections';
-import { getBaseInfo, getPreInfo } from '~/api/others';
+import { getBaseInfo, getLogFetchAndClear, getPreInfo } from '~/api/others';
 import { backend } from '~/backend'
 
 import type { addImConnectionForm } from '~/components/PageConnectInfoItems.vue'
@@ -321,62 +322,40 @@ export const useStore = defineStore('main', {
         case 14:
           info = await postAddSatori(platform, host, port, token)
           break
-        case 15:
+        case 15:{
           let version = ""
           if (signServerUrl === "sealdice" || signServerUrl === "lagrange") {
             version = signServerVersion
           }
           info = await postAddLagrange( account, signServerUrl, version )
-          break
+        }
+        break
       }
       return info as DiceConnection
     },
     async logFetchAndClear() {
-      const info = await backend.get(urlPrefix + '/log/fetchAndClear')
-      this.curDice.logs = info as any;
+      const info = await getLogFetchAndClear()
+      this.curDice.logs = info;
     },
 
     async diceConfigGet() {
-      const info = await backend.get(urlPrefix + '/dice/config/get')
-      this.curDice.config = info as any;
+      const info = await getDiceConfig()
+      this.curDice.config = info;
     },
 
-    async diceConfigSet(data: any) {
-      await backend.post(urlPrefix + '/dice/config/set', data)
+    async diceConfigSet(data: DiceConfig) {
+      await setDiceConfig(data)
       await this.diceConfigGet()
     },
 
     async diceAdvancedConfigGet() {
-      const info: AdvancedConfig = await backend.get(urlPrefix + '/dice/config/advanced/get')
+      const info: AdvancedConfig = await getAdvancedConfig()
       return info
     },
 
     async diceAdvancedConfigSet(data: AdvancedConfig) {
-      await backend.post(urlPrefix + '/dice/config/advanced/set', data, { headers: { token: this.token } })
+      await setAdvancedConfig(data)
       await this.diceAdvancedConfigGet()
-    },
-
-    async diceMailTest() {
-      const res: { result: true } | {
-        result: false,
-        err: string
-      } = await backend.post(urlPrefix + '/dice/config/mail_test')
-      return res
-    },
-
-    async diceExec(text: string, messageType: 'private' | 'group') {
-      const info = await backend.post(urlPrefix + '/dice/exec', { message: text, messageType })
-      return info as any
-    },
-
-    async diceUploadToUpgrade({ form }: any) {
-      const info = await backend.post(urlPrefix + '/dice/upload_to_upgrade', form, { headers: { "Content-Type": "multipart/form-data" } })
-      return info as any
-    },
-
-    async getRecentMessage() {
-      const info = await backend.get(urlPrefix + '/dice/recentMessage')
-      return info as any
     },
 
     async backupList() {
@@ -615,11 +594,6 @@ export const useStore = defineStore('main', {
         ip: string,
         errText: string
       }
-    },
-
-    async upgrade() {
-      const info = await backend.post(urlPrefix + '/dice/upgrade', null, { timeout: 120000 })
-      return info
     },
 
     async signIn(password: string) {

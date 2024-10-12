@@ -10,6 +10,10 @@ export function getBaseInfo() {
     return request<DiceBaseInfo>('get','baseInfo',null,'form',{timeout:5000})
 }
 
+export function getLogFetchAndClear() {
+    return request<SysLog[]>('get','log/fetchAndClear')
+}
+
 
 interface DiceBaseInfo {
     appChannel: string
@@ -28,3 +32,10 @@ interface DiceBaseInfo {
     containerMode: boolean
     extraTitle?: string
   }
+
+type SysLog={
+    level: string;
+    ts: number;
+    caller: string;
+    msg: string;
+}

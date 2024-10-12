@@ -1,6 +1,6 @@
 import axios, { type AxiosRequestConfig } from "axios";
 import qs from "qs";
-import { useStore} from "~/store";
+import { useStore } from "~/store";
 const http = axios.create({
   baseURL: "/sd-api",
   timeout: 10000,
@@ -11,16 +11,16 @@ const http = axios.create({
 http.interceptors.request.use((config) => {
   // console.log(config.data)
   try {
-    if ('ContentType' in config&&config.ContentType === "application/x-www-form-urlencoded") {
+    if ('ContentType' in config && config.ContentType === "application/x-www-form-urlencoded") {
       config.data =
         config.data && qs.stringify(config.data, { indices: false });
     }
     const store = useStore()
     const token = store.token
     if (token) {
-        config.headers.Authorization = token
-        // config.params['token'] = token
-        config.headers['token'] = token
+      config.headers.Authorization = token
+      // config.params['token'] = token
+      config.headers['token'] = token
     }
   } catch (e) {
     // console.log(e);
@@ -33,8 +33,8 @@ http.interceptors.response.use(
   async (response) => {
     // HTTP响应状态码正常
     if (response.status === 200) {
-        return Promise.resolve(response)
-        // return Promise.reject(response.data)
+      return Promise.resolve(response)
+      // return Promise.reject(response.data)
     } else {
       console.error("服务器出错或者连接不到服务器")
       return Promise.reject(response);
@@ -43,8 +43,8 @@ http.interceptors.response.use(
   (error) => {
 
     if (error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK')
-    // KMessage("连接不到服务器",'danger')
-    console.error("连接不到服务器")
+      // KMessage("连接不到服务器",'danger')
+      console.error("连接不到服务器")
 
     return Promise.reject(error);
   }
@@ -52,26 +52,29 @@ http.interceptors.response.use(
 
 
 
-export default function request<T = any> (
-    method: 'post'|'get'|'put'|'delete', 
-    url: string, 
-    submitData?: any, 
-    ContentType?: 'form'|'json'|'formdata',config?:AxiosRequestConfig) {
-  let file: FormData,contentType:string
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default function request<T = any>(
+  method: 'post' | 'get' | 'put' | 'delete',
+  url: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  submitData?: any,
+  ContentType?: 'form' | 'json' | 'formdata', config?: AxiosRequestConfig) {
+  let file: FormData, contentType: string
   switch (ContentType) {
     case "form":
       contentType = "application/x-www-form-urlencoded";
       break;
     case "formdata":
-    contentType = "multipart/form-data";
+      contentType = "multipart/form-data";
       file = new FormData();
-      for(const key in submitData){
-        if(!(submitData[key] instanceof Array)){
+      for (const key in submitData) {
+        if (!(submitData[key] instanceof Array)) {
           // console.log(submitData[key]);
-          file.append(key,submitData[key]);
+          file.append(key, submitData[key]);
         } else {
-          submitData[key].forEach((item:any) => {
-            file.append(key,item);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          submitData[key].forEach((item: any) => {
+            file.append(key, item);
           });
         }
       }
@@ -81,7 +84,7 @@ export default function request<T = any> (
       submitData = file;
       break;
     default:
-        contentType = "application/json";
+      contentType = "application/json";
   }
   return new Promise<T>((resolve, reject) => {
     const reqParams = Object.assign({
@@ -90,8 +93,8 @@ export default function request<T = any> (
       [method.toLowerCase() === "get" //|| method.toLowerCase() === "delete"
         ? "params"
         : "data"]: submitData,
-        contentType,
-    },config);
+      contentType,
+    }, config);
     http(reqParams)
       .then((res) => {
         resolve(res.data);
@@ -104,13 +107,15 @@ export default function request<T = any> (
 }
 
 export function createRequest(baseUrl: string) {
-    return function<T> (
-        method: 'post'|'get'|'put'|'delete', 
-        url: string, 
-        submitData?: any, 
-        ContentType?: 'form'|'json'|'formdata',
-        config?:AxiosRequestConfig
-      ){
-            return request<T>(method,baseUrl+url,submitData,ContentType,config)
-        }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return function <T = any>(
+    method: 'post' | 'get' | 'put' | 'delete',
+    url: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    submitData?: any,
+    ContentType?: 'form' | 'json' | 'formdata',
+    config?: AxiosRequestConfig
+  ) {
+    return request<T>(method, baseUrl + url, submitData, ContentType, config)
+  }
 }
