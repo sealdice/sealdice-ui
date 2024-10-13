@@ -124,6 +124,8 @@ import {
   Warning,
 } from '@element-plus/icons-vue'
 import { getBackupConfig, setBackupConfig } from '~/api/backup';
+import { checkDeckUpdate, deleteDeck, enableDeck, getDeckList, reloadDeck, updateDeck, uploadDeck } from '~/api/deck';
+import type { UploadRawFile } from 'element-plus/es/components/upload/src/upload.mjs';
 
 const store = useStore()
 
@@ -148,7 +150,7 @@ const filtered = computed(() => data.value.filter((deck) => {
 const cfg = ref<any>({})
 
 const refreshList = async () => {
-  const lst = await store.deckList()
+  const lst = await getDeckList()
   data.value = lst
 }
 
@@ -160,7 +162,7 @@ const configGet = async () => {
 const fileList = ref<any[]>([])
 
 const doBackup = async () => {
-  const ret = await store.deckReload()
+  const ret = await reloadDeck()
   if (ret.testMode) {
     ElMessage.success('展示模式无法重载牌堆')
   } else {
@@ -179,8 +181,8 @@ const doDelete = async (data: any, index: number) => {
       type: 'warning',
     }
   ).then(async (data) => {
-    await store.deckDelete({ index })
-    await store.deckReload()
+    await deleteDeck(index)
+    await reloadDeck()
     await refreshList()
     ElMessage.success('牌堆已删除')
   })
@@ -191,7 +193,7 @@ const setEnable = async (index: number, enable: boolean) => {
   const now = (new Date()).getTime()
   if (now - lastSetEnable < 100) return
   lastSetEnable = now
-  const ret = await store.deckSetEnable({ index, enable })
+  const ret = await enableDeck(index, enable)
   ElMessage.success('完成')
 }
 
@@ -200,12 +202,10 @@ const doSave = async () => {
   ElMessage.success('已保存')
 }
 
-const beforeUpload = async (file: any) => { // UploadRawFile
-  let fd = new FormData()
-  fd.append('file', file)
-  await store.deckUpload({ form: fd })
+const beforeUpload = async (file: UploadRawFile) => { // UploadRawFile
+  await uploadDeck(file)
   ElMessage.success('上传完成，即将自动重载牌堆')
-  await store.deckReload()
+  await reloadDeck()
   await refreshList()
 }
 
@@ -235,7 +235,7 @@ const deckCheck = ref<DeckCheckResult>({
 
 const doCheckUpdate = async (data: any, index: number) => {
   diffLoading.value = true
-  const checkResult = await store.deckCheckUpdate({ index });
+  const checkResult = await checkDeckUpdate(index);
   diffLoading.value = false
   if (checkResult.result) {
     deckCheck.value = { ...checkResult, index }
@@ -246,11 +246,11 @@ const doCheckUpdate = async (data: any, index: number) => {
 }
 
 const deckUpdate = async () => {
-  const res = await store.deckUpdate(deckCheck.value);
+  const res = await updateDeck(deckCheck.value.index,deckCheck.value.tempFileName);
   if (res.result) {
     showDiff.value = false
     ElMessage.success('更新成功，即将自动重载牌堆')
-    await store.deckReload()
+    await reloadDeck()
     await refreshList()
   } else {
     showDiff.value = false

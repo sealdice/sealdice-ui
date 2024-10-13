@@ -363,48 +363,6 @@ export const useStore = defineStore('main', {
     // 群组列表
 
     // 牌堆
-    async deckList() {
-      const info = await backend.get(urlPrefix + '/deck/list')
-      return info as any
-    },
-
-    async deckReload() {
-      const info = await backend.post(urlPrefix + '/deck/reload')
-      return info as any
-    },
-
-    async deckSetEnable({ index, enable }: any) {
-      const info = await backend.post(urlPrefix + '/deck/enable', { index, enable })
-      return info as any
-    },
-
-    async deckDelete({ index }: any) {
-      const info = await backend.post(urlPrefix + '/deck/delete', { index })
-      return info as any
-    },
-
-    async deckUpload({ form }: any) {
-      const info = await backend.post(urlPrefix + '/deck/upload', form, { headers: { "Content-Type": "multipart/form-data" } })
-      return info as any
-    },
-
-    async deckCheckUpdate({ index }: any) {
-      const info: { result: false, err: string } | {
-        result: true,
-        old: string,
-        new: string,
-        format: 'json' | 'yaml' | 'toml',
-        tempFileName: string,
-      } = await backend.post(urlPrefix + '/deck/check_update', { index })
-      return info
-    },
-
-    async deckUpdate({ index, tempFileName }: any) {
-      const res: { result: false, err: string } | {
-        result: true,
-      } = await backend.post(urlPrefix + '/deck/update', { index, tempFileName })
-      return res
-    },
 
     async jsStatus(): Promise<boolean> {
       const resp: { result: true, status: boolean } | {
