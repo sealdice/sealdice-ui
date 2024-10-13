@@ -20,7 +20,6 @@ export default defineConfig(({mode})=>({
     },
   },
   server: {
-    port: 3000,
     proxy: {
       '/sd-api': {
         target: loadEnv(mode,'./').VITE_APP_APIURL,

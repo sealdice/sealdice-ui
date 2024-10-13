@@ -361,20 +361,6 @@ export const useStore = defineStore('main', {
     // ban list相关
 
     // 群组列表
-    async groupList() {
-      const info = await backend.get(urlPrefix + '/group/list')
-      return info as any
-    },
-
-    async groupSetOne(data: any) {
-      const info = await backend.post(urlPrefix + '/group/set_one', data)
-      return info as any
-    },
-
-    async setGroupQuit(data: any) {
-      const info = await backend.post(urlPrefix + '/group/quit_one', data)
-      return info
-    },
 
     // 牌堆
     async deckList() {
