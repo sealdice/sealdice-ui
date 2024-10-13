@@ -1,6 +1,5 @@
 import axios, { type AxiosRequestConfig } from "axios";
 import qs from "qs";
-import { useStore } from "~/store";
 const http = axios.create({
   baseURL: "/sd-api",
   timeout: 10000,
@@ -15,11 +14,9 @@ http.interceptors.request.use((config) => {
       config.data =
         config.data && qs.stringify(config.data, { indices: false });
     }
-    const store = useStore()
-    const token = store.token
+    const token = localStorage.getItem('t')
     if (token) {
       config.headers.Authorization = token
-      // config.params['token'] = token
       config.headers['token'] = token
     }
   } catch (e) {

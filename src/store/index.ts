@@ -404,35 +404,6 @@ export const useStore = defineStore('main', {
       return this.token != ''
     },
 
-    async helpDocTree(): Promise<{ result: true, data: HelpDoc[] } | { result: false, err?: string }> {
-      return await backend.get(urlPrefix + '/helpdoc/tree', { headers: { token: this.token } })
-    },
-
-    async helpDocReload(): Promise<{ result: true } | { result: false, err?: string }> {
-      return await backend.post(urlPrefix + '/helpdoc/reload', undefined,{ headers: { token: this.token } })
-    },
-
-    async helpDocUpload(form: any): Promise<{ result: true } | { result: false, err?: string }> {
-      return await backend.post(urlPrefix + '/helpdoc/upload', form, { headers: { token: this.token, "Content-Type": "multipart/form-data" } })
-    },
-
-    async helpDocDelete(keys: string[]): Promise<{ result: true } | { result: false, err?: string }> {
-      return await backend.post(urlPrefix + '/helpdoc/delete', { keys: keys }, { headers: { token: this.token } })
-    },
-
-    async helpGetTextItemPage(param: HelpTextItemQuery): Promise<{ result: true; total: number; data: HelpTextItem[] } | { result: false; err?: string }> {
-      return await backend.post(urlPrefix + "/helpdoc/textitem/get_page", param)
-    },
-
-    async helpGetConfig(): Promise<{ aliases: { [key: string]: string[] } }> {
-      return await backend.get(urlPrefix + "/helpdoc/config", { headers: { token: this.token } })
-    },
-
-    async helpSetConfig(param: { aliases: { [key: string]: string[] } }): Promise<{ result: true } | { result: false, err?: string }> {
-      return await backend.post(urlPrefix + "/helpdoc/config", param, { headers: { token: this.token } })
-    },
-
-
     async resourceList(type: ResourceType) {
       const info: { result: false, err: string } | {
         result: true,
