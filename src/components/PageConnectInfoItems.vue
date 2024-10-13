@@ -1185,6 +1185,7 @@ import * as dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { urlBase } from '~/backend';
 import { getConnectQQVersion, postConnectionDel, postConnectionQrcode, postConnectSetData, postConnectSetEnable, postGoCqCaptchaSet, postGoCqHttpRelogin, postSetSignServer, postSmsCodeSet } from '~/api/im_connections';
+import { postToolOnebot } from '~/api/others';
 
 dayjs.extend(relativeTime)
 
@@ -1331,7 +1332,7 @@ const setRecentLogin = () => {
 }
 
 const openSocks = async () => {
-  const ret = await store.toolOnebot()
+  const ret = await postToolOnebot()
   if (ret.ok) {
     const msg = h('p', null, [
       h('div', null, '将在服务器上开启临时socks5服务，端口13325'),

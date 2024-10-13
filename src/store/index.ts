@@ -1,19 +1,12 @@
-import { id } from 'element-plus/es/locale/index.mjs';
 import { getCustomText, saveCustomText } from '~/api/configs';
-import { getAdvancedConfig, getDiceConfig, postExec, postMailTest, setAdvancedConfig, setDiceConfig, type DiceConfig } from '~/api/dice';
+import { getAdvancedConfig, getDiceConfig, setAdvancedConfig, setDiceConfig, type DiceConfig } from '~/api/dice';
 import { getConnectionList, postAddDingtalk, postAddDiscord, postAddDodo, postAddGocq, postAddGocqSeparate, postAddKook, postAddLagrange, postAddMinecraft, postAddOfficialQQ, postAddOnebot11ReverseWs, postAddRed, postAddSatori, postaddSealChat, postAddSlack, postAddTelegram, postAddWalleQ, } from '~/api/im_connections';
 import { getBaseInfo, getHello, getLogFetchAndClear, getPreInfo } from '~/api/others';
 import { getSalt, signin } from '~/api/signin';
-import { backend } from '~/backend'
 
 import type { addImConnectionForm } from '~/components/PageConnectInfoItems.vue'
 import type {
   AdvancedConfig,
-  BanConfig,
-  HelpDoc,
-  HelpTextItem,
-  HelpTextItemQuery,
-  JsScriptInfo,
 } from "~/type.d.ts";
 export enum goCqHttpStateCode {
   Init = 0,
@@ -359,42 +352,35 @@ export const useStore = defineStore('main', {
       await this.diceAdvancedConfigGet()
     },
 
-    async toolOnebot() {
-      return await backend.post(
-        urlPrefix + '/tool/onebot',
-        undefined,
-        { headers: { token: this.token } }
-      ) as {
-        ok: boolean,
-        ip: string,
-        errText: string
-      }
-    },
+    // async toolOnebot() {
+    //   return await backend.post(
+    //     urlPrefix + '/tool/onebot',
+    //     undefined,
+    //     { headers: { token: this.token } }
+    //   ) as {
+    //     ok: boolean,
+    //     ip: string,
+    //     errText: string
+    //   }
+    // },
 
     async signIn(password: string) {
       try {
         const ret = await signin(password)
         const token = (ret).token
         this.token = token
-        // backend.defaults.headers.common['token'] = token
         localStorage.setItem('t', token)
         this.canAccess = true
       } catch {
         this.canAccess = false
       }
     },
-
-    async checkSecurity(): Promise<boolean> {
-      return (await backend.get(urlPrefix + '/checkSecurity') as any).isOk
-    },
-
     async trySignIn(): Promise<boolean> {
       this.salt = (await getSalt()).salt
       const token = localStorage.getItem('t')
       try {
         await getHello()
         this.token = token as string
-        // backend.defaults.headers.common['token'] = this.token
         this.canAccess = true
       } catch (e) {
         this.canAccess = false
@@ -403,53 +389,5 @@ export const useStore = defineStore('main', {
       }
       return this.token != ''
     },
-
-    async resourceList(type: ResourceType) {
-      const info: { result: false, err: string } | {
-        result: true,
-        total?: number,
-        data: Resource[]
-      } = await backend.get(urlPrefix + '/resource/page', {
-        headers: {
-          token: this.token
-        },
-        params: {
-          type
-        }
-      })
-      return info
-    },
-
-    async resourceUpload({ form }: any) {
-      const info: { result: false, err: string } | { result: true }
-          = await backend.post(urlPrefix + '/resource', form, {
-        headers: {
-          token: this.token,
-          "Content-Type": "multipart/form-data"
-        },
-      })
-      return info
-    },
-
-    async resourceDelete(path: string) {
-      const info: { result: false, err: string } | { result: true }
-          = await backend.delete(urlPrefix + '/resource', {
-        headers: {
-          token: this.token
-        },
-        params: {
-          path
-        }
-      })
-      return info
-    },
-
-    async resourceData(path: string, thumbnail: boolean = false)  {
-      const response = await backend.get(urlPrefix + '/resource/data', {
-        params: { path, thumbnail },
-        responseType: "blob",
-      })
-      return response as unknown as Blob;
-    }
   }
 })

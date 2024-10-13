@@ -18,7 +18,17 @@ export function getHello() {
     return request('get','hello')
 }
 
+export function checkSecurity() {
+    return request<{isOk:boolean}>('get','checkSecurity')
+}
 
+export function postToolOnebot() {
+    return request<{
+        ok: boolean,
+        ip: string,
+        errText: string
+      }>('post','/tool/onebot')
+}
 interface DiceBaseInfo {
     appChannel: string
     version: string
