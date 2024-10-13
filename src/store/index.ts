@@ -2,7 +2,8 @@ import { id } from 'element-plus/es/locale/index.mjs';
 import { getCustomText, saveCustomText } from '~/api/configs';
 import { getAdvancedConfig, getDiceConfig, postExec, postMailTest, setAdvancedConfig, setDiceConfig, type DiceConfig } from '~/api/dice';
 import { getConnectionList, postAddDingtalk, postAddDiscord, postAddDodo, postAddGocq, postAddGocqSeparate, postAddKook, postAddLagrange, postAddMinecraft, postAddOfficialQQ, postAddOnebot11ReverseWs, postAddRed, postAddSatori, postaddSealChat, postAddSlack, postAddTelegram, postAddWalleQ, } from '~/api/im_connections';
-import { getBaseInfo, getLogFetchAndClear, getPreInfo } from '~/api/others';
+import { getBaseInfo, getHello, getLogFetchAndClear, getPreInfo } from '~/api/others';
+import { getSalt, signin } from '~/api/signin';
 import { backend } from '~/backend'
 
 import type { addImConnectionForm } from '~/components/PageConnectInfoItems.vue'
@@ -372,10 +373,10 @@ export const useStore = defineStore('main', {
 
     async signIn(password: string) {
       try {
-        const ret = await backend.post(urlPrefix + '/signin', { password })
-        const token = (ret as any).token
+        const ret = await signin(password)
+        const token = (ret).token
         this.token = token
-        backend.defaults.headers.common['token'] = token
+        // backend.defaults.headers.common['token'] = token
         localStorage.setItem('t', token)
         this.canAccess = true
       } catch {
@@ -388,14 +389,12 @@ export const useStore = defineStore('main', {
     },
 
     async trySignIn(): Promise<boolean> {
-      this.salt = (await backend.get(urlPrefix + '/signin/salt') as any).salt
+      this.salt = (await getSalt()).salt
       const token = localStorage.getItem('t')
       try {
-        await backend.get(urlPrefix + '/hello', {
-          headers: { token: token as string }
-        })
+        await getHello()
         this.token = token as string
-        backend.defaults.headers.common['token'] = this.token
+        // backend.defaults.headers.common['token'] = this.token
         this.canAccess = true
       } catch (e) {
         this.canAccess = false

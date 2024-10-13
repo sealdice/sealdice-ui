@@ -14,6 +14,10 @@ export function getLogFetchAndClear() {
     return request<SysLog[]>('get','log/fetchAndClear')
 }
 
+export function getHello() {
+    return request('get','hello')
+}
+
 
 interface DiceBaseInfo {
     appChannel: string
