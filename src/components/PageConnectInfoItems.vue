@@ -213,7 +213,7 @@
           </el-form-item> -->
 
           <!-- <el-form-item label=""> -->
-          <div style="display: flex;justify-content: center; margin-bottom: 1rem;" 
+          <div style="display: flex;justify-content: center; margin-bottom: 1rem;"
             v-if="![goCqHttpStateCode.InLogin, goCqHttpStateCode.InLoginQrCode].includes(i.adapter?.loginState)">
             <el-button-group>
               <el-tooltip content="如果日志中出现帐号被风控，可以试试这个功能" placement="bottom-start">
@@ -877,7 +877,7 @@
           <el-input v-model="form.host" placeholder="Satori 服务的地址，如 127.0.0.1" type="text" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item v-if="form.accountType === 14" label="端口" :label-width="formLabelWidth" required>
-          <el-input-number v-model="form.port" placeholder="如 5500" autocomplete="off"></el-input-number>
+          <el-input-number v-model="form.port as any" placeholder="如 5500" autocomplete="off"></el-input-number>
         </el-form-item>
         <el-form-item v-if="form.accountType === 14" label="Token" :label-width="formLabelWidth">
           <el-input v-model="form.token" type="text" autocomplete="off" placeholder="填入鉴权 token，没有时无需填写"></el-input>
@@ -887,7 +887,7 @@
           <el-input v-model="form.host" placeholder="Red 服务的地址，如 127.0.0.1" type="text" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item v-if="form.accountType === 7" label="端口" :label-width="formLabelWidth" required>
-          <el-input-number v-model="form.port" placeholder="如 16530" autocomplete="off"></el-input-number>
+          <el-input-number v-model="form.port as any" placeholder="如 16530" autocomplete="off"></el-input-number>
         </el-form-item>
         <el-form-item v-if="form.accountType === 7" label="令牌" :label-width="formLabelWidth" required>
           <el-input v-model="form.token" placeholder="Red 服务的 token" type="text" autocomplete="off"></el-input>
@@ -1514,10 +1514,10 @@ const doSetSignServer = async() =>{
       break;
   }
   const ret = await postSetSignServer(
-    form.endpoint.id, 
-    ["sealdice","lagrange"].includes(form.signServerUrl) 
-    ? form.signServerUrl as "sealdice"|"lagrange" : '', 
-    true, 
+    form.endpoint.id,
+    ["sealdice","lagrange"].includes(form.signServerUrl)
+    ? form.signServerUrl as "sealdice"|"lagrange" : '',
+    true,
     form.signServerVersion);
   if (ret.result) {
     ElMessage.success('修改完成，请手动启用账号以生效');
@@ -1676,7 +1676,7 @@ const form = reactive({
   connectUrl: '',
 
   host: '',
-  port: undefined,
+  port: '',
 
   appID: undefined,
   appSecret: '',

@@ -182,6 +182,7 @@ import {
   Plus
 } from '@element-plus/icons-vue'
 import { getCustomReply, getCustomReplyFileList, postCustomReplyDel, postCustomReplyNew, saveCustomReply, uploadCustomReply } from "~/api/configs";
+import type { DiceConfig } from '~/api/dice'
 
 const store = useStore()
 const dialogFormVisible = ref(false)
@@ -191,7 +192,7 @@ const configForImport = ref('')
 const replyEnable = computed({
   get: () => store.curDice.config.customReplyConfigEnable,
   set: (value) => {
-    store.diceConfigSet({ customReplyConfigEnable: value })
+    store.diceConfigSet({ customReplyConfigEnable: value } as DiceConfig)
     if (!store.curDice.config.customReplyConfigEnable) {
       dialogLicenseVisible.value = true
     }
@@ -230,13 +231,13 @@ const switchClick = () => {
     dialogLicenseVisible.value = true
   }
 
-  store.diceConfigSet({ customReplyConfigEnable: !store.curDice.config.customReplyConfigEnable })
+  store.diceConfigSet({ customReplyConfigEnable: !store.curDice.config.customReplyConfigEnable } as DiceConfig)
 }
 
 const licenseRefuse = () => {
   dialogLicenseVisible.value = false
   store.curDice.config.customReplyConfigEnable = false
-  store.diceConfigSet({ customReplyConfigEnable: false })
+  store.diceConfigSet({ customReplyConfigEnable: false } as DiceConfig)
 }
 
 const modified = ref(false)

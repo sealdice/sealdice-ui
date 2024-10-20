@@ -52,6 +52,8 @@ import imgMe from '~/assets/me.jpg'
 import { Plus } from '@element-plus/icons-vue'
 import { getRecentMessage, postExec } from '~/api/dice';
 import { reloadDeck as postReloadDeck } from '~/api/deck';
+import { reloadHelpDoc } from '~/api/helpdoc'
+import { reloadJS } from '~/api/js'
 const store = useStore()
 
 const mode = ref<'private' | 'group'>('private')
@@ -61,9 +63,9 @@ onBeforeMount(async () => {
   restaurants.value = loadAll()
     timerMsg = setInterval(async () => {
         try {
-            let msg = await getRecentMessage()
+          const msg = await getRecentMessage()
           console.log('msg:', msg)
-            for (let i of msg) {
+            for (const i of msg) {
                 store.talkLogs.push({
                     content: i.message,
                     isSeal: true,
@@ -194,7 +196,7 @@ const reloadDeck = async () => {
 const jsReloading = ref<boolean>(false)
 const reloadJs = async () => {
   jsReloading.value = true
-  const ret = await store.jsReload()
+  const ret = await reloadJS()
   if (ret && ret?.testMode) {
     ElMessage.success('展示模式无法重载JS')
   } else {
@@ -206,7 +208,7 @@ const reloadJs = async () => {
 const helpdocReloading = ref<boolean>(false)
 const reloadHelpdoc = async () => {
   helpdocReloading.value = true
-  const ret = await store.helpDocReload()
+  const ret = await reloadHelpDoc()
   if (ret && ret?.result) {
     ElMessage.success('已重载帮助文档')
   } else {

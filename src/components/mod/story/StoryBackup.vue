@@ -46,12 +46,12 @@
 </template>
 
 <script setup lang="ts">
-import type {Backup} from "./story";
 import type {CheckboxValueType} from "element-plus";
 import {Delete} from "@element-plus/icons-vue";
 import {filesize} from "filesize";
 import {useStore} from "~/store";
-import { getStoryBackUpList,postStoryBatchDel } from '~/api/story'
+import type { Backup } from '~/api/story'
+import { getStoryBackUpList, postStoryBatchDel } from '~/api/story'
 import {urlBase} from "~/backend";
 
 const store = useStore()

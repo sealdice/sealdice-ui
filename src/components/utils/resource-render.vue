@@ -16,8 +16,8 @@ onMounted(async () => {
 
 const props = withDefaults(defineProps<{
   key: string
-  mini: boolean
   data: Resource
+  mini?: boolean
 }>(), {
   mini: false
 })

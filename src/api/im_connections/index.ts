@@ -16,7 +16,7 @@ export function postGoCqHttpRelogin(id: string) {
 }
 
 export function postAddGocq(
-    account: number,
+    account: string,
     password: string,
     protocol: number,
     appVersion: string,
@@ -31,7 +31,7 @@ export function postAddGocq(
 }
 
 export function postAddWalleQ(
-    account: number,
+    account: string,
     password: string,
     protocol: number
 ) {
@@ -91,7 +91,7 @@ export function postAddGocqSeparate(
     relWorkDir: string,
     connectUrl: string,
     accessToken: string,
-    account: number
+    account: string
 ) {
     return request<DiceConnection>('post', 'addGocqSeparate',
         { relWorkDir, connectUrl, accessToken, account }, 'json',
@@ -145,7 +145,7 @@ export function postAddOfficialQQ(
 }
 
 export function postAddOnebot11ReverseWs(
-    account: number,
+    account: string,
     reverseAddr?: string
 ) {
     return request<DiceConnection>('post', 'addOnebot11ReverseWs',
@@ -177,7 +177,7 @@ export function postAddSatori(
 }
 
 export function postAddLagrange(
-    account: number,
+    account: string,
     signServerUrl: string,
     signServerVersion: string
 ) {
@@ -228,7 +228,7 @@ export function postSetSignServer(
     )
 }
 
-interface DiceConnection {
+export interface DiceConnection {
     id: string;
     state: number;
     platform: string;
@@ -346,8 +346,8 @@ type SignServerConfig = {
     ruleChangeSignServer: number,
     maxCheckCount: number,
     signServerTimeout: number,
-    autoRegister: false,
-    autoRefreshToken: false,
+    autoRegister: boolean,
+    autoRefreshToken: boolean,
     refreshInterval: number
 }
 type ServerConfig = {

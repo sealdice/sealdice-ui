@@ -102,6 +102,7 @@ type ExtensionSettings = {
 
 
 type RecentMsg = {
-    content: string
-    mode: string
+    uid: string,
+    message: string
+    messageType: 'private' | 'group'
 }

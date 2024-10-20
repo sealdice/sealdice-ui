@@ -266,7 +266,7 @@ export const useStore = defineStore('main', {
         //QQ
         case 0:
           if (implementation === 'gocq') {
-            info = await postAddGocq(account,password,protocol,appVersion,useSignServer,signServerConfig)
+            info = await postAddGocq(account,password,protocol,appVersion,useSignServer, signServerConfig)
           } else if (implementation === 'walle-q') {
             info = await postAddWalleQ( account, password, protocol )
           }
@@ -296,7 +296,7 @@ export const useStore = defineStore('main', {
           break
         }
         case 7:
-          info = await postAddRed( host, port, token)
+          info = await postAddRed(host, port, token)
           break
         case 8:
           info = await postAddDingtalk( clientID, token, nickname, robotCode)

@@ -15,7 +15,7 @@
         <el-text type="danger" size="large" tag="strong">配置内容已修改，但存在格式错误，无法保存！</el-text>
       </div>
     </div>
-    <div v-else> 
+    <div v-else>
       <div class="tip-danger">
         <el-text type="danger" size="large" tag="strong">配置内容已修改，不要忘记保存！</el-text>
         <el-button class="button" type="primary" :icon="DocumentChecked" :disabled="!jsConfigEdited" @click="doJsConfigSave()">点我保存</el-button>
@@ -103,7 +103,7 @@
                 <el-descriptions-item label="许可协议">{{ i.license || '&lt;暂无>' }}</el-descriptions-item>
                 <el-descriptions-item label="安装时间">{{ dayjs.unix(i.installTime).fromNow() }}</el-descriptions-item>
                 <el-descriptions-item label="更新时间">
-                  {{ i.updateTime ? dayjs.unix(i.updateTime).fromNow() : '' || '&lt;暂无>' }}
+                  {{ dayjs.unix(i.updateTime).fromNow() || '&lt;暂无>' }}
                 </el-descriptions-item>
               </el-descriptions>
 
@@ -126,7 +126,7 @@
 
         <el-tab-pane label="插件设置" name="config">
           <main>
-            <div v-if="size(jsConfig as Map<any,any>) === 0" style="display: flex; justify-content: center">
+            <div v-if="size(jsConfig) === 0" style="display: flex; justify-content: center">
               <el-text size="large" tag="strong">暂无设置项</el-text>
             </div>
             <el-collapse v-else class="js-list-main" style="margin-top: 0.5rem;">
@@ -430,7 +430,7 @@ const doExecute = async () => {
   const data = await executeJS(txt);
 
   // 优先填充print输出
-  const lines = []
+  const lines = [] as string[]
   if (data.outputs) {
     lines.push(...data.outputs)
   }
@@ -438,7 +438,7 @@ const doExecute = async () => {
   if (data.err) {
     lines.push(data.err)
   } else {
-    lines.push(data.ret);
+    lines.push(data.ret as string);
     try {
       (window as any).lastJSValue = data.ret;
       (globalThis as any).lastJSValue = data.ret;
@@ -482,7 +482,7 @@ const doTaskDailyFormatCheck = (pluginName: string, key: string, expr: string) =
       jsConfigFormatErrKeys.value.push(pluginName + '/' + key);
     }
     jsConfigEdited.value = true;
-  } 
+  }
 };
 
 const doDeleteUnusedConfig = (pluginName: any, key: any, isTask: boolean) => {

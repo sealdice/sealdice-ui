@@ -29,7 +29,8 @@ export function postToolOnebot() {
         errText: string
       }>('post','/tool/onebot')
 }
-interface DiceBaseInfo {
+
+export interface DiceBaseInfo {
     appChannel: string
     version: string
     versionSimple: string

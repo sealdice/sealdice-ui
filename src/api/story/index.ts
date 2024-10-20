@@ -51,7 +51,7 @@ type PageParams = {
     groupId ?: string
     logName? :string
     createdTimeBegin ?: number
-    createdTimeEnd ?: number 
+    createdTimeEnd ?: number
 }
 
 interface Log {
@@ -65,7 +65,7 @@ interface Log {
     current?: number
 }
 
-interface Backup {
+export interface Backup {
     name: string,
     fileSize: number,
 }

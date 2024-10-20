@@ -378,9 +378,9 @@ const save = async () => {
 }
 
 const getPreview = (k: string, text: string) => {
-  const x = store.curDice.previewInfo;
+  const x = store.curDice.previewInfo as any;
   if (x) {
-    return x[`${props.category}:${k}`][text];
+    return x[`${props.category}:${k}`][text] as any;
   }
 }
 
