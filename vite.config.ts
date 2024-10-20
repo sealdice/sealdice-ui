@@ -40,9 +40,6 @@ export default defineConfig(({mode})=>({
       imports: ["vue", "pinia", "vue-router", "@vueuse/core"],
       dts: true,
       vueTemplate: true,
-      eslintrc: {
-        enabled: true,
-      },
       resolvers: [
         ElementPlusResolver({
           importStyle: "css",
