@@ -27,7 +27,7 @@ const props = withDefaults(
 
 <template>
   <template v-if="data.type === 'image'">
-    <el-image :key="key" :alt="data.name" :src="url" fit="contain" loading="lazy">
+    <el-image :key="url" :alt="data.name" :src="url" fit="contain" loading="lazy">
       <template #placeholder>
         <div>
           <el-icon>
