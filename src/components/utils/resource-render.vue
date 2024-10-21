@@ -1,26 +1,28 @@
 <script setup lang="ts">
-import type {Resource} from "~/store";
-import {Microphone, Picture, VideoCamera} from '@element-plus/icons-vue'
-import { getResourceData } from "~/api/resource";
+import type { Resource } from '~/store';
+import { Microphone, Picture, VideoCamera } from '@element-plus/icons-vue';
+import { getResourceData } from '~/api/resource';
 
-const url = ref<string>('')
+const url = ref<string>('');
 
 const getImageUrl = async (path: string) => {
-  const blob = await getResourceData(path, props.mini)
+  const blob = await getResourceData(path, props.mini);
   return window.URL.createObjectURL(blob);
-}
+};
 
 onMounted(async () => {
-  url.value = await getImageUrl(props.data.path)
-})
+  url.value = await getImageUrl(props.data.path);
+});
 
-const props = withDefaults(defineProps<{
-  key: string
-  data: Resource
-  mini?: boolean
-}>(), {
-  mini: false
-})
+const props = withDefaults(
+  defineProps<{
+    data: Resource;
+    mini?: boolean;
+  }>(),
+  {
+    mini: false,
+  },
+);
 </script>
 
 <template>
@@ -29,14 +31,14 @@ const props = withDefaults(defineProps<{
       <template #placeholder>
         <div>
           <el-icon>
-            <Picture/>
+            <Picture />
           </el-icon>
         </div>
       </template>
       <template #error>
         <div>
           <el-icon>
-            <Picture/>
+            <Picture />
           </el-icon>
         </div>
       </template>
@@ -44,12 +46,12 @@ const props = withDefaults(defineProps<{
   </template>
   <template v-else-if="data.type === 'audio'">
     <el-icon>
-      <Microphone/>
+      <Microphone />
     </el-icon>
   </template>
   <template v-else-if="data.type === 'video'">
     <el-icon>
-      <VideoCamera/>
+      <VideoCamera />
     </el-icon>
   </template>
   <template v-else>
@@ -57,5 +59,4 @@ const props = withDefaults(defineProps<{
   </template>
 </template>
 
-<style scoped lang="css">
-</style>
+<style scoped lang="css"></style>

@@ -22,5 +22,5 @@ jobs:
           cache: 'pnpm'
       - name: Install Dependencies
         run: pnpm install
-      - name: Type Check
-        run: pnpm run type-check
+      - name: Check
+        run: pnpm run check

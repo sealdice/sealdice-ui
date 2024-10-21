@@ -126,6 +126,12 @@ importers:
       eslint:
         specifier: ^9.13.0
         version: 9.13.0(jiti@1.21.6)
+      eslint-config-prettier:
+        specifier: ^9.1.0
+        version: 9.1.0(eslint@9.13.0(jiti@1.21.6))
+      eslint-plugin-prettier:
+        specifier: ^5.2.1
+        version: 5.2.1(eslint-config-prettier@9.1.0(eslint@9.13.0(jiti@1.21.6)))(eslint@9.13.0(jiti@1.21.6))(prettier@3.3.3)
       eslint-plugin-vue:
         specifier: ^9.29.1
         version: 9.29.1(eslint@9.13.0(jiti@1.21.6))
@@ -162,6 +168,9 @@ importers:
       vite:
         specifier: ^5.4.9
         version: 5.4.9(@types/node@22.7.7)(sass@1.77.8)(terser@5.31.2)
+      vue-eslint-parser:
+        specifier: ^9.4.3
+        version: 9.4.3(eslint@9.13.0(jiti@1.21.6))
       vue-tsc:
         specifier: ^2.1.6
         version: 2.1.6(typescript@5.6.3)
