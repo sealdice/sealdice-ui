@@ -180,6 +180,22 @@ export function postAddLagrange(account: string, signServerUrl: string, signServ
   );
 }
 
+export function postAddLagrangeGocq(
+  account: string,
+  signServerUrl: string,
+  signServerVersion: string,
+) {
+  return request<DiceConnection>(
+    'post',
+    'addLagrangeGocq',
+    { account, signServerUrl, signServerVersion },
+    'json',
+    {
+      timeout: 65000,
+    },
+  );
+}
+
 export function postConnectionDel(id: string) {
   return request<DiceConnection>('post', 'del', { id });
 }

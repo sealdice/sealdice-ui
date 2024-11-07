@@ -774,6 +774,17 @@
         class="mb-6">
         当前为容器模式，内置客户端被禁用。
       </el-alert>
+      <el-alert
+        v-if="
+          store.diceServers.length > 0 &&
+          store.diceServers[0].baseInfo.containerMode &&
+          (form.accountType === 16 || form.accountType === 0)
+        "
+        type="warning"
+        :closable="false"
+        class="mb-6">
+        当前为容器模式，内置 gocq 被禁用。
+      </el-alert>
 
       <el-form :model="form">
         <el-form-item label="账号类型" :label-width="formLabelWidth">
@@ -781,6 +792,12 @@
             <el-option
               label="QQ(内置客户端)"
               :value="15"
+              :disabled="
+                store.diceServers.length > 0 && store.diceServers[0].baseInfo.containerMode
+              "></el-option>
+            <el-option
+              label="QQ(内置gocq)"
+              :value="16"
               :disabled="
                 store.diceServers.length > 0 && store.diceServers[0].baseInfo.containerMode
               "></el-option>
@@ -796,12 +813,6 @@
             <el-option label="Dodo语音" :value="5"></el-option>
             <el-option label="钉钉" :value="8"></el-option>
             <el-option label="Slack" :value="9"></el-option>
-            <el-option
-              label="[已弃用]QQ(内置gocq)"
-              :value="0"
-              :disabled="
-                store.diceServers.length > 0 && store.diceServers[0].baseInfo.containerMode
-              "></el-option>
             <el-option label="[已弃用]QQ(red协议)" :value="7"></el-option>
           </el-select>
         </el-form-item>
@@ -854,14 +865,14 @@
         </el-form-item> -->
 
         <el-form-item
-          v-if="form.accountType === 15"
+          v-if="form.accountType === 15 || form.accountType === 16"
           label="账号"
           :label-width="formLabelWidth"
           required>
           <el-input v-model="form.account" type="number" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item
-          v-if="form.accountType === 15"
+          v-if="form.accountType === 15 || form.accountType === 16"
           label="签名服务"
           :label-width="formLabelWidth"
           required>
@@ -872,14 +883,14 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item
-          v-if="form.accountType === 15 && form.signServerType === 2"
+          v-if="(form.accountType === 15 || form.accountType === 16) && form.signServerType === 2"
           label="自定义签名地址"
           :label-width="formLabelWidth"
           required>
           <el-input v-model="form.signServerUrl" type="text" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item
-          v-else-if="form.accountType === 15"
+          v-else-if="form.accountType === 15 || form.accountType === 16"
           label="签名版本"
           :label-width="formLabelWidth"
           required>
@@ -1756,7 +1767,7 @@
               (form.accountType === 9 && (form.botToken === '' || form.appToken === '')) ||
               (form.accountType === 11 && (form.account === '' || form.reverseAddr === '')) ||
               (form.accountType === 13 && (form.token === '' || form.url === '')) ||
-              (form.accountType === 15 &&
+              ((form.accountType === 15 || form.accountType === 16) &&
                 (form.account === '' || (form.signServerType === 2 && form.signServerUrl === '')))
             "
             @click="goStepTwo">
@@ -2024,7 +2035,7 @@ const goStepTwo = async () => {
   setRecentLogin();
   duringRelogin.value = false;
 
-  if (form.accountType === 15) {
+  if (form.accountType === 15 || form.accountType === 16) {
     switch (form.signServerType) {
       case 0:
         form.signServerUrl = 'sealdice';
