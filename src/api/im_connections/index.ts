@@ -168,7 +168,12 @@ export function postAddSatori(platform: string, host: string, port: string, toke
   });
 }
 
-export function postAddLagrange(account: string, signServerUrl: string, signServerVersion: string, isGocq: boolean) {
+export function postAddLagrange(
+  account: string,
+  signServerUrl: string,
+  signServerVersion: string,
+  isGocq: boolean,
+) {
   return request<DiceConnection>(
     'post',
     'addLagrange',
