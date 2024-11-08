@@ -15,7 +15,6 @@ import {
   postAddGocqSeparate,
   postAddKook,
   postAddLagrange,
-  postAddLagrangeGocq,
   postAddMinecraft,
   postAddOfficialQQ,
   postAddOnebot11ReverseWs,
@@ -362,7 +361,7 @@ export const useStore = defineStore('main', {
             if (signServerUrl === 'sealdice' || signServerUrl === 'lagrange') {
               version = signServerVersion;
             }
-            info = await postAddLagrange(account, signServerUrl, version);
+            info = await postAddLagrange(account, signServerUrl, version, false);
           }
           break;
         case 16:
@@ -371,7 +370,7 @@ export const useStore = defineStore('main', {
             if (signServerUrl === 'sealdice' || signServerUrl === 'lagrange') {
               version = signServerVersion;
             }
-            info = await postAddLagrangeGocq(account, signServerUrl, version);
+            info = await postAddLagrange(account, signServerUrl, version, true);
           }
           break;
       }
