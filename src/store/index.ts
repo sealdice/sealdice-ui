@@ -65,7 +65,7 @@ export interface AdapterQQ {
   appID: number;
   isReverse: boolean;
   reverseAddr: string;
-  builtinMode: 'gocq' | 'lagrange';
+  builtinMode: 'gocq' | 'lagrange' | 'lagrange-gocq';
 }
 
 interface TalkLogItem {

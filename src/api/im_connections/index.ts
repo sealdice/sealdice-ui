@@ -283,7 +283,7 @@ interface AdapterQQ {
   appID: number;
   isReverse: boolean;
   reverseAddr: string;
-  builtinMode: 'gocq' | 'lagrange';
+  builtinMode: 'gocq' | 'lagrange' | 'lagrange-gocq';
 }
 enum goCqHttpStateCode {
   Init = 0,

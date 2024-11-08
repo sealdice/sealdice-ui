@@ -176,7 +176,7 @@
             v-if="
               i.platform === 'QQ' &&
               (i.protocolType === 'onebot' || i.protocolType === 'walle-q') &&
-              i.adapter.builtinMode !== 'lagrange'
+              i.adapter.builtinMode === 'gocq'
             ">
             <!-- <el-form-item label="忽略好友请求">
               <div>{{i.adapter?.ignoreFriendRequest ? '是' : '否'}}</div>
@@ -298,9 +298,7 @@
 
           <template
             v-if="
-              i.platform === 'QQ' &&
-              i.protocolType === 'onebot' &&
-              i.adapter.builtinMode !== 'lagrange'
+              i.platform === 'QQ' && i.protocolType === 'onebot' && i.adapter.builtinMode === 'gocq'
             ">
             <el-form-item label="其他">
               <el-tooltip content="导出gocq设置，用于转分离部署" placement="top-start">
