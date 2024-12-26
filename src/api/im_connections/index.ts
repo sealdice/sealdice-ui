@@ -233,7 +233,7 @@ export function postConnectSetData(
 
 export function postSetSignServer(
   id: string,
-  signServerUrl: string | 'sealdice' | 'lagrange' | 'newProxy',
+  signServerUrl: string | 'sealdice' | 'lagrange',
   w: boolean,
   signServerVersion: string,
 ) {
