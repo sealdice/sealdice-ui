@@ -712,7 +712,8 @@
       <el-radio-group v-model="form.signServerType">
         <el-radio :value="0">海豹</el-radio>
         <el-radio :value="1">Lagrange</el-radio>
-        <el-radio :value="2">自定义地址</el-radio>
+        <el-radio :value="2">mewProxy</el-radio>
+        <el-radio :value="3">自定义地址</el-radio>
       </el-radio-group>
     </el-form-item>
     <el-form-item
@@ -903,7 +904,8 @@
           <el-radio-group v-model="form.signServerType">
             <el-radio :value="0">海豹</el-radio>
             <el-radio :value="1">Lagrange</el-radio>
-            <el-radio :value="2">自定义地址</el-radio>
+            <el-radio :value="2">newProxy</el-radio>
+            <el-radio :value="3">自定义地址</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item
@@ -920,8 +922,8 @@
           required>
           <el-space direction="vertical" alignment="flex-start">
             <el-radio-group v-model="form.signServerVersion">
-              <el-radio value="13107">13107</el-radio>
               <el-radio value="25765">25765</el-radio>
+              <el-radio value="30366">30366</el-radio>
             </el-radio-group>
             <el-text type="warning" size="small"
               >如果不知道这是什么，请保持默认选中的最新版本</el-text
@@ -2404,7 +2406,7 @@ const form = reactive({
   signServerType: 0,
   signServerUrl: '',
   signServerKey: '',
-  signServerVersion: '25765',
+  signServerVersion: '30366',
 
   reverseAddr: ':4001',
   platform: 'QQ',
