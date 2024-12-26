@@ -712,7 +712,7 @@
       <el-radio-group v-model="form.signServerType">
         <el-radio :value="0">海豹</el-radio>
         <el-radio :value="1">Lagrange</el-radio>
-        <el-radio :value="2">newProxy</el-radio>
+        <el-radio :value="2">雪桃代理</el-radio>
         <el-radio :value="3">自定义地址</el-radio>
       </el-radio-group>
     </el-form-item>
