@@ -10,56 +10,39 @@
 
   <div v-if="!store.curDice.conns || (store.curDice.conns && store.curDice.conns.length === 0)">
     <span style="vertical-align: middle">似乎还没有账号，</span>
-    <el-link style="font-size: 16px; font-weight: bolder" type="primary" @click="addOne"
-      >点我添加一个</el-link
-    >
+    <el-link style="font-size: 16px; font-weight: bolder" type="primary" @click="addOne">点我添加一个</el-link>
   </div>
 
   <div style="display: flex; flex-wrap: wrap">
-    <div
-      v-for="(i, index) in reactive(store.curDice.conns)"
-      :key="index"
+    <div v-for="(i, index) in reactive(store.curDice.conns)" :key="index"
       style="min-width: 20rem; flex: 1 0 50%; flex-grow: 0">
-      <el-card
-        class="box-card"
-        shadow="hover"
-        style="margin-right: 1rem; margin-bottom: 1rem; position: relative">
+      <el-card class="box-card" shadow="hover" style="margin-right: 1rem; margin-bottom: 1rem; position: relative">
         <template #header>
           <div class="card-header">
-            <span style="word-break: break-all"
-              >{{ i.nickname || '<"未知">' }}({{ i.userId }})</span
-            >
+            <span style="word-break: break-all">{{ i.nickname || '<"未知">' }}({{ i.userId }})</span>
             <!-- <el-button class="button" type="text"  @click="doModify(i, index)">修改</el-button> -->
-            <el-button size="small" type="danger" :icon="Delete" plain @click="doRemove(i)"
-              >删除</el-button
-            >
+            <el-button size="small" type="danger" :icon="Delete" plain @click="doRemove(i)">删除</el-button>
           </div>
         </template>
 
-        <div
-          v-if="
-            i.adapter?.loginState === goCqHttpStateCode.InLoginQrCode && store.curDice.qrcodes[i.id]
-          "
-          style="position: absolute; width: 17rem; height: 14rem; background: #fff; z-index: 1">
+        <div v-if="
+          i.adapter?.loginState === goCqHttpStateCode.InLoginQrCode && store.curDice.qrcodes[i.id]
+        " style="position: absolute; width: 17rem; height: 14rem; background: #fff; z-index: 1">
           <div style="margin-left: 2rem">需要同账号的手机 QQ 扫码登录 (限 2 分钟内完成):</div>
-          <img
-            style="
+          <img style="
               margin-left: -3rem;
               image-rendering: pixelated;
               width: 10rem;
               height: 10rem;
               margin-left: 3.5rem;
               margin-top: 2rem;
-            "
-            :src="store.curDice.qrcodes[i.id]" />
+            " :src="store.curDice.qrcodes[i.id]" />
         </div>
 
-        <div
-          v-if="
-            i.adapter?.loginState === goCqHttpStateCode.InLoginBar &&
-            i.adapter?.goCqHttpLoginDeviceLockUrl
-          "
-          style="position: absolute; width: 17rem; height: 14rem; background: #fff; z-index: 1">
+        <div v-if="
+          i.adapter?.loginState === goCqHttpStateCode.InLoginBar &&
+          i.adapter?.goCqHttpLoginDeviceLockUrl
+        " style="position: absolute; width: 17rem; height: 14rem; background: #fff; z-index: 1">
           <!-- <div style="position: absolute; width: 17rem; height: 14rem; background: #fff; z-index: 1;"> -->
 
           <template v-if="i.id === curCaptchaIdSet">
@@ -69,18 +52,14 @@
             <div style="margin-left: 2rem">滑条验证码流程</div>
             <!-- <div><a style="line-break: anywhere;" :href="i.adapter?.goCqHttpLoginDeviceLockUrl" target="_blank">{{ i.adapter?.goCqHttpLoginDeviceLockUrl }}</a></div> -->
             <div>
-              <a
-                style="line-break: anywhere"
-                href="javascript:void(0)"
-                @click="captchaUrlSet(i, i.adapter?.goCqHttpLoginDeviceLockUrl)"
-                >{{ i.adapter?.goCqHttpLoginDeviceLockUrl }}</a
-              >
+              <a style="line-break: anywhere" href="javascript:void(0)"
+                @click="captchaUrlSet(i, i.adapter?.goCqHttpLoginDeviceLockUrl)">{{
+                  i.adapter?.goCqHttpLoginDeviceLockUrl }}</a>
             </div>
           </template>
         </div>
 
-        <div
-          v-if="i.adapter?.loginState === goCqHttpStateCode.InLoginVerifyCode"
+        <div v-if="i.adapter?.loginState === goCqHttpStateCode.InLoginVerifyCode"
           style="position: absolute; width: 17rem; height: 18rem; background: #fff; z-index: 1">
           <div style="margin-left: 2rem">短信验证码流程</div>
           <div style="margin-top: 4rem">
@@ -89,19 +68,14 @@
                 <el-input v-model="smsCode"></el-input>
               </el-form-item>
               <el-form-item label="">
-                <el-button :disabled="smsCode == ''" type="primary" @click="submitSmsCode(i)"
-                  >提交</el-button
-                >
+                <el-button :disabled="smsCode == ''" type="primary" @click="submitSmsCode(i)">提交</el-button>
               </el-form-item>
             </el-form>
           </div>
         </div>
 
         <el-form ref="formRef" :model="i" label-width="100px">
-          <el-alert
-            v-if="i.platform === 'QQ' && i.protocolType === 'red'"
-            type="error"
-            :closable="false"
+          <el-alert v-if="i.platform === 'QQ' && i.protocolType === 'red'" type="error" :closable="false"
             style="margin-bottom: 1rem">
             新版 Chronocat（0.2.x 以上）不再提供 red 协议，故海豹将在未来移除该支持，请尽快迁移。
           </el-alert>
@@ -128,15 +102,12 @@
               <div v-if="i.state === 3">
                 <el-tag type="danger" disable-transitions>失败</el-tag>
               </div>
-              <el-tooltip
-                v-if="
-                  Math.round(new Date().getTime() / 1000) -
-                    i.adapter?.inPackGoCqHttpLastRestricted <
-                  30 * 60
-                "
-                :content="
-                  `看到这个标签是因为最近20分钟内有风控警告，将在重新登录后临时消除。触发时间: ` +
-                  dayjs.unix(i.adapter?.inPackGoCqHttpLastRestricted).fromNow()
+              <el-tooltip v-if="
+                Math.round(new Date().getTime() / 1000) -
+                i.adapter?.inPackGoCqHttpLastRestricted <
+                30 * 60
+              " :content="`看到这个标签是因为最近20分钟内有风控警告，将在重新登录后临时消除。触发时间: ` +
+                dayjs.unix(i.adapter?.inPackGoCqHttpLastRestricted).fromNow()
                 ">
                 <el-tag type="warning">风控</el-tag>
               </el-tooltip>
@@ -172,12 +143,11 @@
             <div>{{ i.adapter?.reverseAddr }}/ws</div>
           </el-form-item>
 
-          <template
-            v-if="
-              i.platform === 'QQ' &&
-              (i.protocolType === 'onebot' || i.protocolType === 'walle-q') &&
-              i.adapter.builtinMode === 'gocq'
-            ">
+          <template v-if="
+            i.platform === 'QQ' &&
+            (i.protocolType === 'onebot' || i.protocolType === 'walle-q') &&
+            i.adapter.builtinMode === 'gocq'
+          ">
             <!-- <el-form-item label="忽略好友请求">
               <div>{{i.adapter?.ignoreFriendRequest ? '是' : '否'}}</div>
             </el-form-item> -->
@@ -191,19 +161,14 @@
               <div v-if="i.adapter?.inPackGoCqHttpProtocol === 5">iPad</div>
               <div v-if="i.adapter?.inPackGoCqHttpProtocol === 6">AndroidPad</div>
               <!-- <el-button type="primary" class="btn-add" :icon="Plus" circle @click="addOne"></el-button> -->
-              <el-button
-                size="small"
-                type="primary"
-                style="margin-left: 1rem"
-                :icon="Edit"
+              <el-button size="small" type="primary" style="margin-left: 1rem" :icon="Edit"
                 @click="askSetData(i)"></el-button>
             </el-form-item>
             <el-form-item v-if="i.adapter.useInPackGoCqhttp" label="协议版本">
               <div v-if="i.adapter?.inPackGoCqHttpAppVersion === ''">未指定</div>
-              <div
-                v-if="
-                  i.adapter?.inPackGoCqHttpAppVersion && i.adapter.inPackGoCqHttpAppVersion !== ''
-                ">
+              <div v-if="
+                i.adapter?.inPackGoCqHttpAppVersion && i.adapter.inPackGoCqHttpAppVersion !== ''
+              ">
                 {{ i.adapter.inPackGoCqHttpAppVersion }}
               </div>
             </el-form-item>
@@ -223,53 +188,35 @@
             </el-form-item>
           </template>
 
-          <template
-            v-if="
-              i.platform === 'QQ' &&
-              i.protocolType === 'onebot' &&
-              i.adapter.builtinMode === 'lagrange'
-            ">
+          <template v-if="
+            i.platform === 'QQ' &&
+            i.protocolType === 'onebot' &&
+            i.adapter.builtinMode === 'lagrange'
+          ">
             <el-form-item label="接入方式">
               <div>内置客户端</div>
             </el-form-item>
             <el-form-item label="签名地址">
-              <el-tooltip
-                class="item"
-                effect="dark"
-                :content="i.enable ? '禁用账号后方可修改签名服务地址' : '单击修改签名服务地址'"
+              <el-tooltip class="item" effect="dark" :content="i.enable ? '禁用账号后方可修改签名服务地址' : '单击修改签名服务地址'"
                 placement="bottom">
-                <el-button
-                  :icon="Edit"
-                  size="small"
-                  circle
-                  :disabled="i.enable"
-                  style="margin-left: 0.5rem"
+                <el-button :icon="Edit" size="small" circle :disabled="i.enable" style="margin-left: 0.5rem"
                   @click="showSetSignServerDialog(i)" />
               </el-tooltip>
             </el-form-item>
           </template>
 
-          <template
-            v-if="
-              i.platform === 'QQ' &&
-              i.protocolType === 'onebot' &&
-              i.adapter.builtinMode === 'lagrange-gocq'
-            ">
+          <template v-if="
+            i.platform === 'QQ' &&
+            i.protocolType === 'onebot' &&
+            i.adapter.builtinMode === 'lagrange-gocq'
+          ">
             <el-form-item label="接入方式">
               <div>内置 gocq</div>
             </el-form-item>
             <el-form-item label="签名地址">
-              <el-tooltip
-                class="item"
-                effect="dark"
-                :content="i.enable ? '禁用账号后方可修改签名服务地址' : '单击修改签名服务地址'"
+              <el-tooltip class="item" effect="dark" :content="i.enable ? '禁用账号后方可修改签名服务地址' : '单击修改签名服务地址'"
                 placement="bottom">
-                <el-button
-                  :icon="Edit"
-                  size="small"
-                  circle
-                  :disabled="i.enable"
-                  style="margin-left: 0.5rem"
+                <el-button :icon="Edit" size="small" circle :disabled="i.enable" style="margin-left: 0.5rem"
                   @click="showSetSignServerDialog(i)" />
               </el-tooltip>
             </el-form-item>
@@ -296,10 +243,9 @@
             </el-form-item>
           </template>
 
-          <template
-            v-if="
-              i.platform === 'QQ' && i.protocolType === 'onebot' && i.adapter.builtinMode === 'gocq'
-            ">
+          <template v-if="
+            i.platform === 'QQ' && i.protocolType === 'onebot' && i.adapter.builtinMode === 'gocq'
+          ">
             <el-form-item label="其他">
               <el-tooltip content="导出gocq设置，用于转分离部署" placement="top-start">
                 <el-button type="" @click="doGocqExport(i)">导出</el-button>
@@ -325,25 +271,17 @@
           </el-form-item> -->
 
           <!-- <el-form-item label=""> -->
-          <div
-            v-if="
-              ![goCqHttpStateCode.InLogin, goCqHttpStateCode.InLoginQrCode].includes(
-                i.adapter?.loginState,
-              )
-            "
-            style="display: flex; justify-content: center; margin-bottom: 1rem">
+          <div v-if="
+            ![goCqHttpStateCode.InLogin, goCqHttpStateCode.InLoginQrCode].includes(
+              i.adapter?.loginState,
+            )
+          " style="display: flex; justify-content: center; margin-bottom: 1rem">
             <el-button-group>
-              <el-tooltip
-                content="如果日志中出现帐号被风控，可以试试这个功能"
-                placement="bottom-start">
+              <el-tooltip content="如果日志中出现帐号被风控，可以试试这个功能" placement="bottom-start">
                 <el-button type="warning" @click="askGocqhttpReLogin(i)">重新登录</el-button>
               </el-tooltip>
-              <el-tooltip
-                content="离线/启用此账号，重启骰子后仍将保持离线/启用状态"
-                placement="bottom-start">
-                <el-button v-if="i.enable" type="warning" @click="askSetEnable(i, false)"
-                  >禁用</el-button
-                >
+              <el-tooltip content="离线/启用此账号，重启骰子后仍将保持离线/启用状态" placement="bottom-start">
+                <el-button v-if="i.enable" type="warning" @click="askSetEnable(i, false)">禁用</el-button>
                 <el-button v-else type="warning" @click="askSetEnable(i, true)">启用</el-button>
               </el-tooltip>
             </el-button-group>
@@ -354,13 +292,8 @@
     </div>
   </div>
 
-  <el-dialog
-    v-model="dialogSetDataFormVisible"
-    title="属性修改"
-    :close-on-click-modal="false"
-    :close-on-press-escape="false"
-    :show-close="false"
-    class="the-dialog">
+  <el-dialog v-model="dialogSetDataFormVisible" title="属性修改" :close-on-click-modal="false"
+    :close-on-press-escape="false" :show-close="false" class="the-dialog">
     <el-form :model="form">
       <el-form-item label="类型" :label-width="formLabelWidth">
         <div>QQ 账号</div>
@@ -379,16 +312,13 @@
           <el-option label="Android 手表协议 - 可共存,但不支持频道/戳一戳" :value="2"></el-option>
           <el-option label="MacOS" :value="3"></el-option>
           <el-option label="iPad" :value="5"></el-option>
-          <el-option
-            v-if="form.implementation === 'gocq' || form.implementation === ''"
-            label="AndroidPad - 稳定协议，建议！"
+          <el-option v-if="form.implementation === 'gocq' || form.implementation === ''" label="AndroidPad - 稳定协议，建议！"
             :value="6"></el-option>
           <!-- <el-option label="MacOS" :value="3"></el-option> -->
         </el-select>
       </el-form-item>
 
-      <el-form-item
-        v-if="form.accountType === 0 && (form.protocol === 1 || form.protocol === 6)"
+      <el-form-item v-if="form.accountType === 0 && (form.protocol === 1 || form.protocol === 6)"
         :label-width="formLabelWidth">
         <template #label>
           <div style="display: flex; align-items: center">
@@ -401,23 +331,17 @@
           </div>
         </template>
         <el-select v-model="form.appVersion">
-          <el-option
-            v-for="version of supportedQQVersions"
-            :key="version"
-            :value="version"
+          <el-option v-for="version of supportedQQVersions" :key="version" :value="version"
             :label="version || '不指定版本'" />
         </el-select>
       </el-form-item>
 
-      <el-form-item
-        v-if="form.accountType === 0 && (form.protocol === 1 || form.protocol === 6)"
+      <el-form-item v-if="form.accountType === 0 && (form.protocol === 1 || form.protocol === 6)"
         :label-width="formLabelWidth">
         <template #label>
           <div style="display: flex; align-items: center">
             <span>签名服务</span>
-            <el-tooltip
-              content="如果不知道这是什么，请选择 不使用。允许填写签名服务相关信息。"
-              style="">
+            <el-tooltip content="如果不知道这是什么，请选择 不使用。允许填写签名服务相关信息。" style="">
               <el-icon>
                 <QuestionFilled />
               </el-icon>
@@ -430,65 +354,43 @@
           <el-radio-button value="advanced">高级配置</el-radio-button>
         </el-radio-group>
       </el-form-item>
-      <el-form-item
-        v-if="
-          form.accountType === 0 &&
-          (form.protocol === 1 || form.protocol === 6) &&
-          signConfigType === 'simple'
-        "
-        label="服务url"
-        :label-width="formLabelWidth">
-        <el-input
-          v-model="form.signServerConfig.signServers[0].url"
-          type="string"
-          autocomplete="off"
+      <el-form-item v-if="
+        form.accountType === 0 &&
+        (form.protocol === 1 || form.protocol === 6) &&
+        signConfigType === 'simple'
+      " label="服务url" :label-width="formLabelWidth">
+        <el-input v-model="form.signServerConfig.signServers[0].url" type="string" autocomplete="off"
           placeholder="http://127.0.0.1:13579"></el-input>
       </el-form-item>
-      <el-form-item
-        v-if="
-          form.accountType === 0 &&
-          (form.protocol === 1 || form.protocol === 6) &&
-          signConfigType === 'simple'
-        "
-        label="服务key"
-        :label-width="formLabelWidth">
-        <el-input
-          v-model="form.signServerConfig.signServers[0].key"
-          type="string"
-          autocomplete="off"
+      <el-form-item v-if="
+        form.accountType === 0 &&
+        (form.protocol === 1 || form.protocol === 6) &&
+        signConfigType === 'simple'
+      " label="服务key" :label-width="formLabelWidth">
+        <el-input v-model="form.signServerConfig.signServers[0].key" type="string" autocomplete="off"
           placeholder="114514"></el-input>
       </el-form-item>
-      <el-form-item
-        v-if="
-          form.accountType === 0 &&
-          (form.protocol === 1 || form.protocol === 6) &&
-          signConfigType === 'simple'
-        "
-        label="服务鉴权"
-        :label-width="formLabelWidth">
-        <el-input
-          v-model="form.signServerConfig.signServers[0].authorization"
-          type="string"
-          autocomplete="off"
+      <el-form-item v-if="
+        form.accountType === 0 &&
+        (form.protocol === 1 || form.protocol === 6) &&
+        signConfigType === 'simple'
+      " label="服务鉴权" :label-width="formLabelWidth">
+        <el-input v-model="form.signServerConfig.signServers[0].authorization" type="string" autocomplete="off"
           placeholder="Bearer xxxx 未设置可不填"></el-input>
       </el-form-item>
 
-      <el-form-item
-        v-if="
-          form.accountType === 0 &&
-          (form.protocol === 1 || form.protocol === 6) &&
-          signConfigType === 'advanced'
-        ">
-        <el-alert type="warning" :closable="false"
-          >如果不理解以下配置项，请使用 <strong>简易配置</strong></el-alert
-        >
+      <el-form-item v-if="
+        form.accountType === 0 &&
+        (form.protocol === 1 || form.protocol === 6) &&
+        signConfigType === 'advanced'
+      ">
+        <el-alert type="warning" :closable="false">如果不理解以下配置项，请使用 <strong>简易配置</strong></el-alert>
       </el-form-item>
-      <el-form-item
-        v-if="
-          form.accountType === 0 &&
-          (form.protocol === 1 || form.protocol === 6) &&
-          signConfigType === 'advanced'
-        ">
+      <el-form-item v-if="
+        form.accountType === 0 &&
+        (form.protocol === 1 || form.protocol === 6) &&
+        signConfigType === 'advanced'
+      ">
         <el-table :data="form.signServerConfig.signServers" table-layout="auto">
           <el-table-column prop="url" label="服务url">
             <template #default="scope">
@@ -508,25 +410,19 @@
           <el-table-column align="right">
             <!-- eslint-disable-next-line vue/no-unused-vars -->
             <template #header="scope">
-              <el-button size="small" type="primary" @click="handleSignServerAdd"
-                >新增一行</el-button
-              >
+              <el-button size="small" type="primary" @click="handleSignServerAdd">新增一行</el-button>
             </template>
             <template #default="scope">
-              <el-button size="small" type="danger" @click="handleSignServerDelete(scope.row.url)"
-                >删除</el-button
-              >
+              <el-button size="small" type="danger" @click="handleSignServerDelete(scope.row.url)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
       </el-form-item>
-      <el-form-item
-        v-if="
-          form.accountType === 0 &&
-          (form.protocol === 1 || form.protocol === 6) &&
-          signConfigType === 'advanced'
-        "
-        :label-width="formLabelWidth">
+      <el-form-item v-if="
+        form.accountType === 0 &&
+        (form.protocol === 1 || form.protocol === 6) &&
+        signConfigType === 'advanced'
+      " :label-width="formLabelWidth">
         <template #label>
           <div style="display: flex; align-items: center">
             <span>自动切换规则</span>
@@ -550,13 +446,11 @@
           <el-radio-button :value="2">sign/token为空时切换</el-radio-button>
         </el-radio-group>
       </el-form-item>
-      <el-form-item
-        v-if="
-          form.accountType === 0 &&
-          (form.protocol === 1 || form.protocol === 6) &&
-          signConfigType === 'advanced'
-        "
-        :label-width="formLabelWidth">
+      <el-form-item v-if="
+        form.accountType === 0 &&
+        (form.protocol === 1 || form.protocol === 6) &&
+        signConfigType === 'advanced'
+      " :label-width="formLabelWidth">
         <template #label>
           <div style="display: flex; align-items: center">
             <span>最大尝试次数</span>
@@ -573,19 +467,13 @@
             </el-tooltip>
           </div>
         </template>
-        <el-input-number
-          v-model="form.signServerConfig.maxCheckCount"
-          size="small"
-          :precision="0"
-          :min="0" />
+        <el-input-number v-model="form.signServerConfig.maxCheckCount" size="small" :precision="0" :min="0" />
       </el-form-item>
-      <el-form-item
-        v-if="
-          form.accountType === 0 &&
-          (form.protocol === 1 || form.protocol === 6) &&
-          signConfigType === 'advanced'
-        "
-        :label-width="formLabelWidth">
+      <el-form-item v-if="
+        form.accountType === 0 &&
+        (form.protocol === 1 || form.protocol === 6) &&
+        signConfigType === 'advanced'
+      " :label-width="formLabelWidth">
         <template #label>
           <div style="display: flex; align-items: center">
             <span>请求超时时间</span>
@@ -597,20 +485,14 @@
             </el-tooltip>
           </div>
         </template>
-        <el-input-number
-          v-model="form.signServerConfig.signServerTimeout"
-          size="small"
-          :precision="0"
-          :min="0" />
+        <el-input-number v-model="form.signServerConfig.signServerTimeout" size="small" :precision="0" :min="0" />
         <span>&nbsp;秒</span>
       </el-form-item>
-      <el-form-item
-        v-if="
-          form.accountType === 0 &&
-          (form.protocol === 1 || form.protocol === 6) &&
-          signConfigType === 'advanced'
-        "
-        :label-width="formLabelWidth">
+      <el-form-item v-if="
+        form.accountType === 0 &&
+        (form.protocol === 1 || form.protocol === 6) &&
+        signConfigType === 'advanced'
+      " :label-width="formLabelWidth">
         <template #label>
           <div style="display: flex; align-items: center">
             <span>自动注册实例</span>
@@ -630,17 +512,13 @@
             </el-tooltip>
           </div>
         </template>
-        <el-switch
-          v-model="form.signServerConfig.autoRegister"
-          style="--el-switch-on-color: #67c23a" />
+        <el-switch v-model="form.signServerConfig.autoRegister" style="--el-switch-on-color: #67c23a" />
       </el-form-item>
-      <el-form-item
-        v-if="
-          form.accountType === 0 &&
-          (form.protocol === 1 || form.protocol === 6) &&
-          signConfigType === 'advanced'
-        "
-        :label-width="formLabelWidth">
+      <el-form-item v-if="
+        form.accountType === 0 &&
+        (form.protocol === 1 || form.protocol === 6) &&
+        signConfigType === 'advanced'
+      " :label-width="formLabelWidth">
         <template #label>
           <div style="display: flex; align-items: center">
             <span>自动刷新 token</span>
@@ -656,17 +534,13 @@
             </el-tooltip>
           </div>
         </template>
-        <el-switch
-          v-model="form.signServerConfig.autoRefreshToken"
-          style="--el-switch-on-color: #67c23a" />
+        <el-switch v-model="form.signServerConfig.autoRefreshToken" style="--el-switch-on-color: #67c23a" />
       </el-form-item>
-      <el-form-item
-        v-if="
-          form.accountType === 0 &&
-          (form.protocol === 1 || form.protocol === 6) &&
-          signConfigType === 'advanced'
-        "
-        :label-width="formLabelWidth">
+      <el-form-item v-if="
+        form.accountType === 0 &&
+        (form.protocol === 1 || form.protocol === 6) &&
+        signConfigType === 'advanced'
+      " :label-width="formLabelWidth">
         <template #label>
           <div style="display: flex; align-items: center">
             <span>刷新间隔</span>
@@ -681,11 +555,7 @@
             </el-tooltip>
           </div>
         </template>
-        <el-input-number
-          v-model="form.signServerConfig.refreshInterval"
-          size="small"
-          :precision="0"
-          :min="0" />
+        <el-input-number v-model="form.signServerConfig.refreshInterval" size="small" :precision="0" :min="0" />
         <span>&nbsp;分钟</span>
       </el-form-item>
 
@@ -701,26 +571,17 @@
       </span>
     </template>
   </el-dialog>
-  <el-dialog
-    v-model="dialogSetSignServerVisible"
-    title="签名地址修改"
-    :close-on-click-modal="false"
-    :close-on-press-escape="false"
-    :show-close="false"
-    class="the-dialog">
+  <el-dialog v-model="dialogSetSignServerVisible" title="签名地址修改" :close-on-click-modal="false"
+    :close-on-press-escape="false" :show-close="false" class="the-dialog">
     <el-form-item label="签名地址" :label-width="formLabelWidth" required>
       <el-radio-group v-model="form.signServerType">
-            <el-radio :value="0">海豹</el-radio>
-            <el-radio :value="1">Lagrange</el-radio>
-            <el-radio :value="2">新反代</el-radio>
-            <el-radio :value="3">自定义地址</el-radio>
+        <el-radio :value="0">海豹</el-radio>
+        <el-radio :value="1">Lagrange</el-radio>
+        <el-radio :value="2">新反代</el-radio>
+        <el-radio :value="3">自定义地址</el-radio>
       </el-radio-group>
     </el-form-item>
-    <el-form-item
-      v-if="form.signServerType === 2"
-      label="自定义签名地址"
-      :label-width="formLabelWidth"
-      required>
+    <el-form-item v-if="form.signServerType === 2" label="自定义签名地址" :label-width="formLabelWidth" required>
       <el-input v-model="form.signServerUrl" type="text" autocomplete="off"></el-input>
     </el-form-item>
     <el-form-item v-else label="签名版本" :label-width="formLabelWidth" required>
@@ -735,96 +596,50 @@
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="dialogSetSignServerVisible = false">取消</el-button>
-        <el-button
-          type="primary"
-          :disabled="form.signServerType === 2 && isEmpty(trim(form.signServerUrl))"
-          @click="doSetSignServer"
-          >确定</el-button
-        >
+        <el-button type="primary" :disabled="form.signServerType === 2 && isEmpty(trim(form.signServerUrl))"
+          @click="doSetSignServer">确定</el-button>
       </span>
     </template>
   </el-dialog>
-  <el-dialog
-    v-model="dialogFormVisible"
-    title="帐号登录"
-    :close-on-click-modal="false"
-    :close-on-press-escape="false"
-    :show-close="false"
-    class="the-dialog">
-    <el-button style="float: right; margin-top: -4rem" @click="openSocks"
-      >辅助工具 -13325 端口</el-button
-    >
+  <el-dialog v-model="dialogFormVisible" title="帐号登录" :close-on-click-modal="false" :close-on-press-escape="false"
+    :show-close="false" class="the-dialog">
+    <el-button style="float: right; margin-top: -4rem" @click="openSocks">辅助工具 -13325 端口</el-button>
     <template v-if="form.step === 1">
-      <el-alert
-        v-if="form.accountType === 7"
-        type="error"
-        :closable="false"
-        style="margin-bottom: 1.5rem"
-        >该支持功能不完善，所适配的目标 Chronocat 版本为 0.0.54，低于该版本不建议使用。<br />同时，新版
-        Chronocat（0.2.x 以上）不再提供 red 协议，海豹也将在未来移除该支持。</el-alert
-      >
-      <el-alert
-        v-if="form.accountType === 10"
-        type="warning"
-        :closable="false"
-        style="margin-bottom: 1.5rem"
-        >该支持仍处于实验阶段，部分功能尚未完善。<br />同时，受到腾讯官方提供的 API
-        能力的限制，一些功能暂时无法实现。</el-alert
-      >
-      <el-alert
-        v-if="form.accountType === 14"
-        type="warning"
-        :closable="false"
-        style="margin-bottom: 1.5rem"
-        >该支持仍处于实验阶段，部分功能尚未完善。<br />- QQ 平台适配目标版本 0.2.x 以上的
-        Chronocat。</el-alert
-      >
-      <el-alert
-        v-if="form.accountType === 0"
-        type="error"
-        :closable="false"
-        style="margin-bottom: 1.5rem">
+      <el-alert v-if="form.accountType === 7" type="error" :closable="false"
+        style="margin-bottom: 1.5rem">该支持功能不完善，所适配的目标 Chronocat 版本为 0.0.54，低于该版本不建议使用。<br />同时，新版
+        Chronocat（0.2.x 以上）不再提供 red 协议，海豹也将在未来移除该支持。</el-alert>
+      <el-alert v-if="form.accountType === 10" type="warning" :closable="false"
+        style="margin-bottom: 1.5rem">该支持仍处于实验阶段，部分功能尚未完善。<br />同时，受到腾讯官方提供的 API
+        能力的限制，一些功能暂时无法实现。</el-alert>
+      <el-alert v-if="form.accountType === 14" type="warning" :closable="false"
+        style="margin-bottom: 1.5rem">该支持仍处于实验阶段，部分功能尚未完善。<br />- QQ 平台适配目标版本 0.2.x 以上的
+        Chronocat。</el-alert>
+      <el-alert v-if="form.accountType === 0" type="error" :closable="false" style="margin-bottom: 1.5rem">
         内置 gocq 方案已不再支持，目前仅为兼容性保留，<strong>新增入口已关闭</strong>。<br />
         使用内置方案请切换到新的内置客户端。<br />
         如果你依然需要使用 gocq，可以切换到分离部署方式进行连接，但我们非常不建议您再继续使用 gocq。
       </el-alert>
-      <el-alert
-        v-if="
-          store.diceServers.length > 0 &&
-          store.diceServers[0].baseInfo.containerMode &&
-          (form.accountType === 15 || form.accountType === 0)
-        "
-        type="warning"
-        :closable="false"
-        class="mb-6">
+      <el-alert v-if="
+        store.diceServers.length > 0 &&
+        store.diceServers[0].baseInfo.containerMode &&
+        (form.accountType === 15 || form.accountType === 0)
+      " type="warning" :closable="false" class="mb-6">
         当前为容器模式，内置客户端被禁用。
       </el-alert>
-      <el-alert
-        v-if="
-          store.diceServers.length > 0 &&
-          store.diceServers[0].baseInfo.containerMode &&
-          (form.accountType === 16 || form.accountType === 0)
-        "
-        type="warning"
-        :closable="false"
-        class="mb-6">
+      <el-alert v-if="
+        store.diceServers.length > 0 &&
+        store.diceServers[0].baseInfo.containerMode &&
+        (form.accountType === 16 || form.accountType === 0)
+      " type="warning" :closable="false" class="mb-6">
         当前为容器模式，内置 gocq 被禁用。
       </el-alert>
 
       <el-form :model="form">
         <el-form-item label="账号类型" :label-width="formLabelWidth">
           <el-select v-model="form.accountType">
-            <el-option
-              label="QQ(内置客户端)"
-              :value="15"
-              :disabled="
-                store.diceServers.length > 0 && store.diceServers[0].baseInfo.containerMode
+            <el-option label="QQ(内置客户端)" :value="15" :disabled="store.diceServers.length > 0 && store.diceServers[0].baseInfo.containerMode
               "></el-option>
-            <el-option
-              label="QQ(内置gocq)"
-              :value="16"
-              :disabled="
-                store.diceServers.length > 0 && store.diceServers[0].baseInfo.containerMode
+            <el-option label="QQ(内置gocq)" :value="16" :disabled="store.diceServers.length > 0 && store.diceServers[0].baseInfo.containerMode
               "></el-option>
             <el-option label="QQ(onebot11正向WS)" :value="6"></el-option>
             <el-option label="QQ(onebot11反向WS)" :value="11"></el-option>
@@ -842,27 +657,20 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 0"
-          label="设备"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 0" label="设备" :label-width="formLabelWidth" required>
           <el-select v-model="form.protocol">
             <!-- <el-option label="Unset" :value="0"></el-option> -->
             <el-option label="Android 协议" :value="1"></el-option>
             <el-option label="Android 手表协议 - 可共存,但不支持频道/戳一戳" :value="2"></el-option>
             <el-option label="MacOS" :value="3"></el-option>
             <el-option label="iPad" :value="5"></el-option>
-            <el-option
-              v-if="form.implementation === 'gocq' || form.implementation === ''"
-              label="AndroidPad - 可共存"
+            <el-option v-if="form.implementation === 'gocq' || form.implementation === ''" label="AndroidPad - 可共存"
               :value="6"></el-option>
             <!-- <el-option label="MacOS" :value="3"></el-option> -->
           </el-select>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 0 && (form.protocol === 1 || form.protocol === 6)"
+        <el-form-item v-if="form.accountType === 0 && (form.protocol === 1 || form.protocol === 6)"
           :label-width="formLabelWidth">
           <template #label>
             <div style="display: flex; align-items: center">
@@ -875,10 +683,7 @@
             </div>
           </template>
           <el-select v-model="form.appVersion">
-            <el-option
-              v-for="version of supportedQQVersions"
-              :key="version"
-              :value="version"
+            <el-option v-for="version of supportedQQVersions" :key="version" :value="version"
               :label="version || '不指定版本'" />
           </el-select>
         </el-form-item>
@@ -889,18 +694,12 @@
           </el-select>
         </el-form-item> -->
 
-        <el-form-item
-          v-if="form.accountType === 15 || form.accountType === 16"
-          label="账号"
-          :label-width="formLabelWidth"
+        <el-form-item v-if="form.accountType === 15 || form.accountType === 16" label="账号" :label-width="formLabelWidth"
           required>
           <el-input v-model="form.account" type="number" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item
-          v-if="form.accountType === 15 || form.accountType === 16"
-          label="签名服务"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 15 || form.accountType === 16" label="签名服务"
+          :label-width="formLabelWidth" required>
           <el-radio-group v-model="form.signServerType">
             <el-radio :value="0">海豹</el-radio>
             <el-radio :value="1">Lagrange</el-radio>
@@ -908,34 +707,22 @@
             <el-radio :value="3">自定义地址</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item
-          v-if="(form.accountType === 15 || form.accountType === 16) && form.signServerType === 2"
-          label="自定义签名地址"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="(form.accountType === 15 || form.accountType === 16) && form.signServerType === 2"
+          label="自定义签名地址" :label-width="formLabelWidth" required>
           <el-input v-model="form.signServerUrl" type="text" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item
-          v-else-if="form.accountType === 15 || form.accountType === 16"
-          label="签名版本"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-else-if="form.accountType === 15 || form.accountType === 16" label="签名版本"
+          :label-width="formLabelWidth" required>
           <el-space direction="vertical" alignment="flex-start">
             <el-radio-group v-model="form.signServerVersion">
               <el-radio value="25765">25765</el-radio>
               <el-radio value="30366">30366</el-radio>
             </el-radio-group>
-            <el-text type="warning" size="small"
-              >如果不知道这是什么，请保持默认选中的最新版本</el-text
-            >
+            <el-text type="warning" size="small">如果不知道这是什么，请保持默认选中的最新版本</el-text>
           </el-space>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 0"
-          label="账号"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 0" label="账号" :label-width="formLabelWidth" required>
           <el-input v-model="form.account" type="number" autocomplete="off"></el-input>
         </el-form-item>
 
@@ -967,15 +754,12 @@
           <el-input v-model="form.extraArgs" type="string" autocomplete="off"></el-input>
         </el-form-item> -->
 
-        <el-form-item
-          v-if="form.accountType === 0 && (form.protocol === 1 || form.protocol === 6)"
+        <el-form-item v-if="form.accountType === 0 && (form.protocol === 1 || form.protocol === 6)"
           :label-width="formLabelWidth">
           <template #label>
             <div style="display: flex; align-items: center">
               <span>签名服务</span>
-              <el-tooltip
-                content="如果不知道这是什么，请选择 不使用。允许填写签名服务相关信息。"
-                style="">
+              <el-tooltip content="如果不知道这是什么，请选择 不使用。允许填写签名服务相关信息。" style="">
                 <el-icon>
                   <QuestionFilled />
                 </el-icon>
@@ -988,65 +772,43 @@
             <el-radio-button value="advanced">高级配置</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item
-          v-if="
-            form.accountType === 0 &&
-            (form.protocol === 1 || form.protocol === 6) &&
-            signConfigType === 'simple'
-          "
-          label="服务url"
-          :label-width="formLabelWidth">
-          <el-input
-            v-model="form.signServerConfig.signServers[0].url"
-            type="string"
-            autocomplete="off"
+        <el-form-item v-if="
+          form.accountType === 0 &&
+          (form.protocol === 1 || form.protocol === 6) &&
+          signConfigType === 'simple'
+        " label="服务url" :label-width="formLabelWidth">
+          <el-input v-model="form.signServerConfig.signServers[0].url" type="string" autocomplete="off"
             placeholder="http://127.0.0.1:8080"></el-input>
         </el-form-item>
-        <el-form-item
-          v-if="
-            form.accountType === 0 &&
-            (form.protocol === 1 || form.protocol === 6) &&
-            signConfigType === 'simple'
-          "
-          label="服务key"
-          :label-width="formLabelWidth">
-          <el-input
-            v-model="form.signServerConfig.signServers[0].key"
-            type="string"
-            autocomplete="off"
+        <el-form-item v-if="
+          form.accountType === 0 &&
+          (form.protocol === 1 || form.protocol === 6) &&
+          signConfigType === 'simple'
+        " label="服务key" :label-width="formLabelWidth">
+          <el-input v-model="form.signServerConfig.signServers[0].key" type="string" autocomplete="off"
             placeholder="114514"></el-input>
         </el-form-item>
-        <el-form-item
-          v-if="
-            form.accountType === 0 &&
-            (form.protocol === 1 || form.protocol === 6) &&
-            signConfigType === 'simple'
-          "
-          label="服务鉴权"
-          :label-width="formLabelWidth">
-          <el-input
-            v-model="form.signServerConfig.signServers[0].authorization"
-            type="string"
-            autocomplete="off"
+        <el-form-item v-if="
+          form.accountType === 0 &&
+          (form.protocol === 1 || form.protocol === 6) &&
+          signConfigType === 'simple'
+        " label="服务鉴权" :label-width="formLabelWidth">
+          <el-input v-model="form.signServerConfig.signServers[0].authorization" type="string" autocomplete="off"
             placeholder="Bearer xxxx"></el-input>
         </el-form-item>
 
-        <el-form-item
-          v-if="
-            form.accountType === 0 &&
-            (form.protocol === 1 || form.protocol === 6) &&
-            signConfigType === 'advanced'
-          ">
-          <el-alert type="warning" :closable="false"
-            >如果不理解以下配置项，请使用 <strong>简易配置</strong></el-alert
-          >
+        <el-form-item v-if="
+          form.accountType === 0 &&
+          (form.protocol === 1 || form.protocol === 6) &&
+          signConfigType === 'advanced'
+        ">
+          <el-alert type="warning" :closable="false">如果不理解以下配置项，请使用 <strong>简易配置</strong></el-alert>
         </el-form-item>
-        <el-form-item
-          v-if="
-            form.accountType === 0 &&
-            (form.protocol === 1 || form.protocol === 6) &&
-            signConfigType === 'advanced'
-          ">
+        <el-form-item v-if="
+          form.accountType === 0 &&
+          (form.protocol === 1 || form.protocol === 6) &&
+          signConfigType === 'advanced'
+        ">
           <el-table :data="form.signServerConfig.signServers" table-layout="auto">
             <el-table-column prop="url" label="服务url">
               <template #default="scope">
@@ -1066,25 +828,19 @@
             <el-table-column align="right">
               <!-- eslint-disable-next-line vue/no-unused-vars -->
               <template #header="scope">
-                <el-button size="small" type="primary" @click="handleSignServerAdd"
-                  >新增一行</el-button
-                >
+                <el-button size="small" type="primary" @click="handleSignServerAdd">新增一行</el-button>
               </template>
               <template #default="scope">
-                <el-button size="small" type="danger" @click="handleSignServerDelete(scope.row.url)"
-                  >删除</el-button
-                >
+                <el-button size="small" type="danger" @click="handleSignServerDelete(scope.row.url)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
         </el-form-item>
-        <el-form-item
-          v-if="
-            form.accountType === 0 &&
-            (form.protocol === 1 || form.protocol === 6) &&
-            signConfigType === 'advanced'
-          "
-          :label-width="formLabelWidth">
+        <el-form-item v-if="
+          form.accountType === 0 &&
+          (form.protocol === 1 || form.protocol === 6) &&
+          signConfigType === 'advanced'
+        " :label-width="formLabelWidth">
           <template #label>
             <div style="display: flex; align-items: center">
               <span>自动切换规则</span>
@@ -1108,13 +864,11 @@
             <el-radio-button :value="2">sign/token为空时切换</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item
-          v-if="
-            form.accountType === 0 &&
-            (form.protocol === 1 || form.protocol === 6) &&
-            signConfigType === 'advanced'
-          "
-          :label-width="formLabelWidth">
+        <el-form-item v-if="
+          form.accountType === 0 &&
+          (form.protocol === 1 || form.protocol === 6) &&
+          signConfigType === 'advanced'
+        " :label-width="formLabelWidth">
           <template #label>
             <div style="display: flex; align-items: center">
               <span>最大尝试次数</span>
@@ -1131,19 +885,13 @@
               </el-tooltip>
             </div>
           </template>
-          <el-input-number
-            v-model="form.signServerConfig.maxCheckCount"
-            size="small"
-            :precision="0"
-            :min="0" />
+          <el-input-number v-model="form.signServerConfig.maxCheckCount" size="small" :precision="0" :min="0" />
         </el-form-item>
-        <el-form-item
-          v-if="
-            form.accountType === 0 &&
-            (form.protocol === 1 || form.protocol === 6) &&
-            signConfigType === 'advanced'
-          "
-          :label-width="formLabelWidth">
+        <el-form-item v-if="
+          form.accountType === 0 &&
+          (form.protocol === 1 || form.protocol === 6) &&
+          signConfigType === 'advanced'
+        " :label-width="formLabelWidth">
           <template #label>
             <div style="display: flex; align-items: center">
               <span>请求超时时间</span>
@@ -1155,20 +903,14 @@
               </el-tooltip>
             </div>
           </template>
-          <el-input-number
-            v-model="form.signServerConfig.signServerTimeout"
-            size="small"
-            :precision="0"
-            :min="0" />
+          <el-input-number v-model="form.signServerConfig.signServerTimeout" size="small" :precision="0" :min="0" />
           <span>&nbsp;秒</span>
         </el-form-item>
-        <el-form-item
-          v-if="
-            form.accountType === 0 &&
-            (form.protocol === 1 || form.protocol === 6) &&
-            signConfigType === 'advanced'
-          "
-          :label-width="formLabelWidth">
+        <el-form-item v-if="
+          form.accountType === 0 &&
+          (form.protocol === 1 || form.protocol === 6) &&
+          signConfigType === 'advanced'
+        " :label-width="formLabelWidth">
           <template #label>
             <div style="display: flex; align-items: center">
               <span>自动注册实例</span>
@@ -1188,17 +930,13 @@
               </el-tooltip>
             </div>
           </template>
-          <el-switch
-            v-model="form.signServerConfig.autoRegister"
-            style="--el-switch-on-color: #67c23a" />
+          <el-switch v-model="form.signServerConfig.autoRegister" style="--el-switch-on-color: #67c23a" />
         </el-form-item>
-        <el-form-item
-          v-if="
-            form.accountType === 0 &&
-            (form.protocol === 1 || form.protocol === 6) &&
-            signConfigType === 'advanced'
-          "
-          :label-width="formLabelWidth">
+        <el-form-item v-if="
+          form.accountType === 0 &&
+          (form.protocol === 1 || form.protocol === 6) &&
+          signConfigType === 'advanced'
+        " :label-width="formLabelWidth">
           <template #label>
             <div style="display: flex; align-items: center">
               <span>自动刷新 token</span>
@@ -1214,17 +952,13 @@
               </el-tooltip>
             </div>
           </template>
-          <el-switch
-            v-model="form.signServerConfig.autoRefreshToken"
-            style="--el-switch-on-color: #67c23a" />
+          <el-switch v-model="form.signServerConfig.autoRefreshToken" style="--el-switch-on-color: #67c23a" />
         </el-form-item>
-        <el-form-item
-          v-if="
-            form.accountType === 0 &&
-            (form.protocol === 1 || form.protocol === 6) &&
-            signConfigType === 'advanced'
-          "
-          :label-width="formLabelWidth">
+        <el-form-item v-if="
+          form.accountType === 0 &&
+          (form.protocol === 1 || form.protocol === 6) &&
+          signConfigType === 'advanced'
+        " :label-width="formLabelWidth">
           <template #label>
             <div style="display: flex; align-items: center">
               <span>刷新间隔</span>
@@ -1239,192 +973,76 @@
               </el-tooltip>
             </div>
           </template>
-          <el-input-number
-            v-model="form.signServerConfig.refreshInterval"
-            size="small"
-            :precision="0"
-            :min="0" />
+          <el-input-number v-model="form.signServerConfig.refreshInterval" size="small" :precision="0" :min="0" />
           <span>&nbsp;分钟</span>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 6"
-          label="账号"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 6" label="账号" :label-width="formLabelWidth" required>
           <el-input v-model="form.account" type="number" autocomplete="off"></el-input>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 6"
-          label="连接地址"
-          :label-width="formLabelWidth"
-          required>
-          <el-input
-            v-model="form.connectUrl"
-            placeholder="正向WS连接地址，如 ws://127.0.0.1:1234"
-            type="text"
+        <el-form-item v-if="form.accountType === 6" label="连接地址" :label-width="formLabelWidth" required>
+          <el-input v-model="form.connectUrl" placeholder="正向WS连接地址，如 ws://127.0.0.1:1234" type="text"
             autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item v-if="form.accountType === 6" label="访问令牌" :label-width="formLabelWidth">
-          <el-input
-            v-model="form.accessToken"
-            placeholder="gocqhttp配置的access token，没有不用填写"
-            type="text"
+          <el-input v-model="form.accessToken" placeholder="gocqhttp配置的access token，没有不用填写" type="text"
             autocomplete="off"></el-input>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 11"
-          label="账号"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 11" label="账号" :label-width="formLabelWidth" required>
           <el-input v-model="form.account" type="number" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item
-          v-if="form.accountType === 11"
-          label="连接地址"
-          :label-width="formLabelWidth"
-          required>
-          <el-input
-            v-model="form.reverseAddr"
-            placeholder="反向WS服务地址，如 0.0.0.0:4001 (允许全部IP连入，4001端口)"
-            type="text"
+        <el-form-item v-if="form.accountType === 11" label="连接地址" :label-width="formLabelWidth" required>
+          <el-input v-model="form.reverseAddr" placeholder="反向WS服务地址，如 0.0.0.0:4001 (允许全部IP连入，4001端口)" type="text"
             autocomplete="off"></el-input>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 13"
-          label="连接地址"
-          :label-width="formLabelWidth"
-          required>
-          <el-input
-            v-model="form.url"
-            placeholder="连接地址，如 ws://127.0.0.1:3212/ws/seal"
-            type="text"
+        <el-form-item v-if="form.accountType === 13" label="连接地址" :label-width="formLabelWidth" required>
+          <el-input v-model="form.url" placeholder="连接地址，如 ws://127.0.0.1:3212/ws/seal" type="text"
             autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item
-          v-if="form.accountType === 13"
-          label="Token"
-          :label-width="formLabelWidth"
-          required>
-          <el-input
-            v-model="form.token"
-            type="text"
-            autocomplete="off"
-            placeholder="填入平台管理界面中获取的token"></el-input>
+        <el-form-item v-if="form.accountType === 13" label="Token" :label-width="formLabelWidth" required>
+          <el-input v-model="form.token" type="text" autocomplete="off" placeholder="填入平台管理界面中获取的token"></el-input>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 14"
-          label="平台"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 14" label="平台" :label-width="formLabelWidth" required>
           <el-radio-group v-model="form.platform">
             <el-radio-button value="QQ" />
           </el-radio-group>
         </el-form-item>
-        <el-form-item
-          v-if="form.accountType === 14"
-          label="主机"
-          :label-width="formLabelWidth"
-          required>
-          <el-input
-            v-model="form.host"
-            placeholder="Satori 服务的地址，如 127.0.0.1"
-            type="text"
+        <el-form-item v-if="form.accountType === 14" label="主机" :label-width="formLabelWidth" required>
+          <el-input v-model="form.host" placeholder="Satori 服务的地址，如 127.0.0.1" type="text"
             autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item
-          v-if="form.accountType === 14"
-          label="端口"
-          :label-width="formLabelWidth"
-          required>
-          <el-input-number
-            v-model="form.port as any"
-            placeholder="如 5500"
-            autocomplete="off"></el-input-number>
+        <el-form-item v-if="form.accountType === 14" label="端口" :label-width="formLabelWidth" required>
+          <el-input-number v-model="form.port as any" placeholder="如 5500" autocomplete="off"></el-input-number>
         </el-form-item>
         <el-form-item v-if="form.accountType === 14" label="Token" :label-width="formLabelWidth">
-          <el-input
-            v-model="form.token"
-            type="text"
-            autocomplete="off"
-            placeholder="填入鉴权 token，没有时无需填写"></el-input>
+          <el-input v-model="form.token" type="text" autocomplete="off" placeholder="填入鉴权 token，没有时无需填写"></el-input>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 7"
-          label="主机"
-          :label-width="formLabelWidth"
-          required>
-          <el-input
-            v-model="form.host"
-            placeholder="Red 服务的地址，如 127.0.0.1"
-            type="text"
-            autocomplete="off"></el-input>
+        <el-form-item v-if="form.accountType === 7" label="主机" :label-width="formLabelWidth" required>
+          <el-input v-model="form.host" placeholder="Red 服务的地址，如 127.0.0.1" type="text" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item
-          v-if="form.accountType === 7"
-          label="端口"
-          :label-width="formLabelWidth"
-          required>
-          <el-input-number
-            v-model="form.port as any"
-            placeholder="如 16530"
-            autocomplete="off"></el-input-number>
+        <el-form-item v-if="form.accountType === 7" label="端口" :label-width="formLabelWidth" required>
+          <el-input-number v-model="form.port as any" placeholder="如 16530" autocomplete="off"></el-input-number>
         </el-form-item>
-        <el-form-item
-          v-if="form.accountType === 7"
-          label="令牌"
-          :label-width="formLabelWidth"
-          required>
-          <el-input
-            v-model="form.token"
-            placeholder="Red 服务的 token"
-            type="text"
-            autocomplete="off"></el-input>
+        <el-form-item v-if="form.accountType === 7" label="令牌" :label-width="formLabelWidth" required>
+          <el-input v-model="form.token" placeholder="Red 服务的 token" type="text" autocomplete="off"></el-input>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 10"
-          label="机器人ID"
-          :label-width="formLabelWidth"
-          required>
-          <el-input
-            v-model="form.appID"
-            placeholder="填写在开放平台获取的AppID"
-            autocomplete="off"
-            type="number"></el-input>
+        <el-form-item v-if="form.accountType === 10" label="机器人ID" :label-width="formLabelWidth" required>
+          <el-input v-model="form.appID" placeholder="填写在开放平台获取的AppID" autocomplete="off" type="number"></el-input>
         </el-form-item>
-        <el-form-item
-          v-if="form.accountType === 10"
-          label="机器人令牌"
-          :label-width="formLabelWidth"
-          required>
-          <el-input
-            v-model="form.token"
-            placeholder="填写在开放平台获取的Token"
-            type="text"
+        <el-form-item v-if="form.accountType === 10" label="机器人令牌" :label-width="formLabelWidth" required>
+          <el-input v-model="form.token" placeholder="填写在开放平台获取的Token" type="text" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item v-if="form.accountType === 10" label="机器人密钥" :label-width="formLabelWidth" required>
+          <el-input v-model="form.appSecret" placeholder="填写在开放平台获取的AppSecret" type="text"
             autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item
-          v-if="form.accountType === 10"
-          label="机器人密钥"
-          :label-width="formLabelWidth"
-          required>
-          <el-input
-            v-model="form.appSecret"
-            placeholder="填写在开放平台获取的AppSecret"
-            type="text"
-            autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item
-          v-if="form.accountType === 10"
-          label="只在频道使用"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 10" label="只在频道使用" :label-width="formLabelWidth" required>
           <el-switch v-model="form.onlyQQGuild" />
         </el-form-item>
 
@@ -1437,11 +1055,7 @@
           </small>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 1"
-          label="Token"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 1" label="Token" :label-width="formLabelWidth" required>
           <el-input v-model="form.token" type="string" autocomplete="off"></el-input>
           <small>
             <div>提示：首先去 discord 开发者平台创建一个新的 Application</div>
@@ -1451,29 +1065,13 @@
             <div>最后把 bot 的 token 复制下来粘贴进来</div>
           </small>
         </el-form-item>
-        <el-form-item
-          v-if="form.accountType === 1"
-          label="http 代理地址"
-          :label-width="formLabelWidth">
-          <el-input
-            v-model="form.proxyURL"
-            type="string"
-            autocomplete="off"
-            placeholder="例：http://127.0.0.1:7890" />
+        <el-form-item v-if="form.accountType === 1" label="http 代理地址" :label-width="formLabelWidth">
+          <el-input v-model="form.proxyURL" type="string" autocomplete="off" placeholder="例：http://127.0.0.1:7890" />
         </el-form-item>
-        <el-form-item
-          v-if="form.accountType === 1"
-          label="反向代理地址"
-          :label-width="formLabelWidth">
-          <el-input
-            v-model="form.reverseProxyUrl"
-            type="string"
-            autocomplete="off"
+        <el-form-item v-if="form.accountType === 1" label="反向代理地址" :label-width="formLabelWidth">
+          <el-input v-model="form.reverseProxyUrl" type="string" autocomplete="off"
             placeholder="此地址需要代理到 https://discord.com/ 通常来说正向代理和反向代理只需要一个" />
-          <el-input
-            v-model="form.reverseProxyCDNUrl"
-            type="string"
-            autocomplete="off"
+          <el-input v-model="form.reverseProxyCDNUrl" type="string" autocomplete="off"
             placeholder="此地址需要代理到 https://cdn.discordapp.com/ " />
           <div style="color: #aa4422">
             注意：反向代理是全局生效的，你一旦设置反向代理地址，这个骰子的所有 Discord
@@ -1481,11 +1079,7 @@
           </div>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 2"
-          label="Token"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 2" label="Token" :label-width="formLabelWidth" required>
           <el-input v-model="form.token" type="string" autocomplete="off"></el-input>
           <small>
             <div>提示：进入 KOOK 开发者平台创建一个新的应用</div>
@@ -1495,11 +1089,7 @@
           </small>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 3"
-          label="Token"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 3" label="Token" :label-width="formLabelWidth" required>
           <el-input v-model="form.token" type="string" autocomplete="off"></el-input>
           <small>
             <div>提示：私聊 BotFather(https://t.me/BotFather)</div>
@@ -1510,22 +1100,11 @@
             <div>把机器人的 token 复制下来粘贴进来</div>
           </small>
         </el-form-item>
-        <el-form-item
-          v-if="form.accountType === 3"
-          label="http 代理地址"
-          :label-width="formLabelWidth">
-          <el-input
-            v-model="form.proxyURL"
-            type="string"
-            autocomplete="off"
-            placeholder="http://127.0.0.1:7890" />
+        <el-form-item v-if="form.accountType === 3" label="http 代理地址" :label-width="formLabelWidth">
+          <el-input v-model="form.proxyURL" type="string" autocomplete="off" placeholder="http://127.0.0.1:7890" />
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 4"
-          label="Url"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 4" label="Url" :label-width="formLabelWidth" required>
           <el-input v-model="form.url" type="string" autocomplete="off"></el-input>
           <small>
             <div>提示：前往 https://github.com/sealdice/sealdice-minecraft/releases/latest</div>
@@ -1537,19 +1116,11 @@
           </small>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 5"
-          label="ClientID"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 5" label="ClientID" :label-width="formLabelWidth" required>
           <el-input v-model="form.clientID" type="string" autocomplete="off"></el-input>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 5"
-          label="Token"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 5" label="Token" :label-width="formLabelWidth" required>
           <el-input v-model="form.token" type="string" autocomplete="off"></el-input>
           <small>
             <div>提示：前往 Dodo 开发者平台 https://doker.imdodo.com/bot-list</div>
@@ -1560,32 +1131,16 @@
         </el-form-item>
 
         <el-form-item v-if="form.accountType === 8" label="昵称" :label-width="formLabelWidth">
-          <el-input
-            v-model="form.nickname"
-            type="string"
-            autocomplete="off"
-            placeholder="机器人的昵称"></el-input>
+          <el-input v-model="form.nickname" type="string" autocomplete="off" placeholder="机器人的昵称"></el-input>
         </el-form-item>
-        <el-form-item
-          v-if="form.accountType === 8"
-          label="ClientID"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 8" label="ClientID" :label-width="formLabelWidth" required>
           <el-input v-model="form.clientID" type="string" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item
-          v-if="form.accountType === 8"
-          label="RobotCode"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 8" label="RobotCode" :label-width="formLabelWidth" required>
           <el-input v-model="form.robotCode" type="string" autocomplete="off"></el-input>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 8"
-          label="Token"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 8" label="Token" :label-width="formLabelWidth" required>
           <el-input v-model="form.token" type="string" autocomplete="off"></el-input>
           <small>
             <div>提示：前往钉钉开发者平台 https://open-dev.dingtalk.com/fe/app</div>
@@ -1599,18 +1154,10 @@
           </small>
         </el-form-item>
 
-        <el-form-item
-          v-if="form.accountType === 9"
-          label="AppToken"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 9" label="AppToken" :label-width="formLabelWidth" required>
           <el-input v-model="form.appToken" type="string" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item
-          v-if="form.accountType === 9"
-          label="BotToken"
-          :label-width="formLabelWidth"
-          required>
+        <el-form-item v-if="form.accountType === 9" label="BotToken" :label-width="formLabelWidth" required>
           <el-input v-model="form.botToken" type="string" autocomplete="off"></el-input>
           <small>
             <div>提示：前往 Slack 开发者平台 https://api.slack.com/apps</div>
@@ -1634,13 +1181,8 @@
     </template>
     <template v-else-if="form.step === 2">
       <el-timeline style="min-height: 260px">
-        <el-timeline-item
-          v-for="(activity, index) in activities"
-          :key="index"
-          :type="activity.type as any"
-          :color="activity.color"
-          :size="activity.size as any"
-          :hollow="activity.hollow">
+        <el-timeline-item v-for="(activity, index) in activities" :key="index" :type="activity.type as any"
+          :color="activity.color" :size="activity.size as any" :hollow="activity.hollow">
           <div>{{ activity.content }}</div>
           <div v-if="index === 2 && isTestMode">
             <div>欢迎体验海豹骰点核心，展示模式下不提供登录功能，请谅解。</div>
@@ -1649,22 +1191,19 @@
             <div>展示版本未必是最新版，建议您下载体验。</div>
             <el-button style="margin-top: 1rem" @click="formClose">再会</el-button>
           </div>
-          <div
-            v-else-if="
-              index === 2 && curConn.adapter?.loginState === goCqHttpStateCode.InLoginQrCode
-            ">
+          <div v-else-if="
+            index === 2 && curConn.adapter?.loginState === goCqHttpStateCode.InLoginQrCode
+          ">
             <div>登录需要扫码验证，请使用登录此账号的手机 QQ 扫描二维码以继续登录：</div>
-            <img
-              :src="store.curDice.qrcodes[curConn.id]"
+            <img :src="store.curDice.qrcodes[curConn.id]"
               style="width: 20rem; height: 20rem; image-rendering: pixelated" />
           </div>
 
-          <div
-            v-else-if="
-              index === 2 &&
-              curConn.adapter?.loginState === goCqHttpStateCode.InLoginDeviceLock &&
-              curConn.adapter?.goCqHttpLoginDeviceLockUrl
-            ">
+          <div v-else-if="
+            index === 2 &&
+            curConn.adapter?.loginState === goCqHttpStateCode.InLoginDeviceLock &&
+            curConn.adapter?.goCqHttpLoginDeviceLockUrl
+          ">
             <template v-if="curConn.id === curCaptchaIdSet">
               <div>已提交 ticket，正在等待 gocqhttp 回应</div>
             </template>
@@ -1686,12 +1225,11 @@
             </div>
           </div>
 
-          <div
-            v-else-if="
-              index === 2 &&
-              curConn.adapter?.loginState === goCqHttpStateCode.InLoginBar &&
-              curConn.adapter?.goCqHttpLoginDeviceLockUrl
-            ">
+          <div v-else-if="
+            index === 2 &&
+            curConn.adapter?.loginState === goCqHttpStateCode.InLoginBar &&
+            curConn.adapter?.goCqHttpLoginDeviceLockUrl
+          ">
             <template v-if="curConn.id === curCaptchaIdSet">
               <div>已提交 ticket，正在等待 gocqhttp 回应</div>
             </template>
@@ -1699,22 +1237,18 @@
               <div>滑条验证码流程，访问以下链接操作：</div>
               <div style="line-break: anywhere">
                 <div>
-                  <a
-                    style="line-break: anywhere"
-                    href="javascript:void(0)"
-                    @click="captchaUrlSet(curConn, curConn.adapter?.goCqHttpLoginDeviceLockUrl)"
-                    >{{ curConn.adapter?.goCqHttpLoginDeviceLockUrl }}</a
-                  >
+                  <a style="line-break: anywhere" href="javascript:void(0)"
+                    @click="captchaUrlSet(curConn, curConn.adapter?.goCqHttpLoginDeviceLockUrl)">{{
+                      curConn.adapter?.goCqHttpLoginDeviceLockUrl }}</a>
                 </div>
                 <!-- <el-link :href="curConn.adapter?.goCqHttpLoginDeviceLockUrl" target="_blank">{{curConn.adapter?.goCqHttpLoginDeviceLockUrl}}</el-link> -->
               </div>
             </template>
           </div>
 
-          <div
-            v-else-if="
-              index === 2 && curConn.adapter?.loginState === goCqHttpStateCode.InLoginVerifyCode
-            ">
+          <div v-else-if="
+            index === 2 && curConn.adapter?.loginState === goCqHttpStateCode.InLoginVerifyCode
+          ">
             <!-- <div v-else-if="1"> -->
             <div>短信验证码流程：</div>
             <div style="line-break: anywhere">
@@ -1726,21 +1260,15 @@
                   <el-input v-model="smsCode"></el-input>
                 </el-form-item>
                 <el-form-item label="">
-                  <el-button
-                    :disabled="smsCode == ''"
-                    type="primary"
-                    @click="submitSmsCode(curConn)"
-                    >提交</el-button
-                  >
+                  <el-button :disabled="smsCode == ''" type="primary" @click="submitSmsCode(curConn)">提交</el-button>
                 </el-form-item>
               </el-form>
             </div>
           </div>
 
-          <div
-            v-else-if="
-              index === 2 && curConn.adapter?.loginState === goCqHttpStateCode.LoginFailed
-            ">
+          <div v-else-if="
+            index === 2 && curConn.adapter?.loginState === goCqHttpStateCode.LoginFailed
+          ">
             <div>
               <div>登录失败！可能是以下原因：</div>
               <ul>
@@ -1751,19 +1279,14 @@
               </ul>
               <div>具体请参见日志。如果不出现“确定”按钮，请直接刷新。</div>
               <div>若删除账号重复尝试无果，请回报 bug 给开发者。</div>
-              <el-link href="javascript:window.location.reload()" type="primary"
-                >点我前往日志界面</el-link
-              >
+              <el-link href="javascript:window.location.reload()" type="primary">点我前往日志界面</el-link>
             </div>
           </div>
         </el-timeline-item>
       </el-timeline>
     </template>
     <template v-else-if="form.step === 3">
-      <el-result
-        icon="success"
-        title="成功啦!"
-        sub-title="现在账号状态应该是“已连接”了，去试一试骰子吧！">
+      <el-result icon="success" title="成功啦!" sub-title="现在账号状态应该是“已连接”了，去试一试骰子吧！">
         <!-- <template #extra></template> -->
       </el-result>
     </template>
@@ -1777,28 +1300,23 @@
       <span class="dialog-footer">
         <template v-if="form.step === 1">
           <el-button @click="dialogFormVisible = false">取消</el-button>
-          <el-button
-            type="primary"
-            :disabled="
-              form.accountType === 0 ||
-              ((form.accountType === 1 || form.accountType === 2 || form.accountType === 3) &&
-                form.token === '') ||
-              (form.accountType === 4 && form.url === '') ||
-              (form.accountType === 5 && (form.clientID === '' || form.token === '')) ||
-              (form.accountType === 8 &&
-                (form.clientID === '' || form.token === '' || form.robotCode === '')) ||
-              (form.accountType === 6 && (form.account === '' || form.connectUrl === '')) ||
-              (form.accountType === 7 &&
-                (form.host === '' || form.port === '' || form.token === '')) ||
-              (form.accountType === 9 && (form.botToken === '' || form.appToken === '')) ||
-              (form.accountType === 11 && (form.account === '' || form.reverseAddr === '')) ||
-              (form.accountType === 13 && (form.token === '' || form.url === '')) ||
-              ((form.accountType === 15 || form.accountType === 16) &&
-                (form.account === '' || (form.signServerType === 2 && form.signServerUrl === '')))
-            "
-            @click="goStepTwo">
-            下一步</el-button
-          >
+          <el-button type="primary" :disabled="form.accountType === 0 ||
+            ((form.accountType === 1 || form.accountType === 2 || form.accountType === 3) &&
+              form.token === '') ||
+            (form.accountType === 4 && form.url === '') ||
+            (form.accountType === 5 && (form.clientID === '' || form.token === '')) ||
+            (form.accountType === 8 &&
+              (form.clientID === '' || form.token === '' || form.robotCode === '')) ||
+            (form.accountType === 6 && (form.account === '' || form.connectUrl === '')) ||
+            (form.accountType === 7 &&
+              (form.host === '' || form.port === '' || form.token === '')) ||
+            (form.accountType === 9 && (form.botToken === '' || form.appToken === '')) ||
+            (form.accountType === 11 && (form.account === '' || form.reverseAddr === '')) ||
+            (form.accountType === 13 && (form.token === '' || form.url === '')) ||
+            ((form.accountType === 15 || form.accountType === 16) &&
+              (form.account === '' || (form.signServerType === 2 && form.signServerUrl === '')))
+            " @click="goStepTwo">
+            下一步</el-button>
         </template>
         <template v-if="form.isEnd">
           <el-button @click="formClose">确定</el-button>
@@ -1808,10 +1326,7 @@
   </el-dialog>
 
   <!-- 滑条验证，需要 3000 z-index 的原因是 element 的 overlay 是 2012，其移动端页面上是 2017，我不知道是不是累加的，所以给一个很大的值 -->
-  <div
-    v-show="dialogSlideVisible"
-    id="slide"
-    style="
+  <div v-show="dialogSlideVisible" id="slide" style="
       position: fixed;
       top: 0;
       left: 0;
@@ -1820,15 +1335,9 @@
       background: rgba(1, 1, 1, 0.7);
       z-index: 3000;
     ">
-    <iframe
-      id="slideIframe"
-      ref="slideIframe"
-      src="about:blank"
-      rel="noreferrer"
+    <iframe id="slideIframe" ref="slideIframe" src="about:blank" rel="noreferrer"
       style="width: 100%; height: 100%"></iframe>
-    <div
-      v-show="slideBottomShow"
-      style="
+    <div v-show="slideBottomShow" style="
         position: absolute;
         bottom: 0;
         width: 100%;
@@ -1840,9 +1349,7 @@
         align-items: center;
       ">
       <div style="margin-bottom: 0.5rem">
-        <a style="line-break: anywhere; font-size: 0.5rem" :href="slideLink" target="_blank"
-          >方式 2:新页面打开 (如无法验证)</a
-        >
+        <a style="line-break: anywhere; font-size: 0.5rem" :href="slideLink" target="_blank">方式 2:新页面打开 (如无法验证)</a>
       </div>
       <el-button type="" @click="closeCaptchaFrame">关闭，滑条完成后点击</el-button>
     </div>
@@ -1990,7 +1497,7 @@ const captchaUrlSet = (i: DiceConnection, url: string) => {
   }
 };
 
-onMounted(() => {});
+onMounted(() => { });
 
 const closeCaptchaFrame = () => {
   clearTimeout(captchaTimer);
@@ -2192,7 +1699,7 @@ const showSetSignServerDialog = async (i: DiceConnection) => {
         form.signServerType = 1;
         form.signServerUrl = '';
         break;
-        case 'newProxy':
+      case 'newProxy':
         form.signServerType = 3;
         form.signServerUrl = '';
       default:
