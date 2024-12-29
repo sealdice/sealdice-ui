@@ -2201,7 +2201,6 @@ const showSetSignServerDialog = async (i: DiceConnection) => {
         break;
       default:
         form.signServerType = 3;
-        form.signServerUrl = '';
         break;
     }
     form.signServerVersion = ret.signServerVersion;
