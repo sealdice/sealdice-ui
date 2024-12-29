@@ -2195,7 +2195,7 @@ const showSetSignServerDialog = async (i: DiceConnection) => {
         form.signServerType = 1;
         form.signServerUrl = '';
         break;
-      case 'newproxy':
+      case 'newProxy':
         form.signServerType = 2;
         form.signServerUrl = '';
         break;
