@@ -712,7 +712,7 @@
       <el-radio-group v-model="form.signServerType">
         <el-radio :value="0">海豹</el-radio>
         <el-radio :value="1">Lagrange</el-radio>
-        <el-radio :value="2">雪桃代理</el-radio>
+        <el-radio :value="2">newProxy</el-radio>
         <el-radio :value="3">自定义地址</el-radio>
       </el-radio-group>
     </el-form-item>
@@ -737,7 +737,7 @@
         <el-button @click="dialogSetSignServerVisible = false">取消</el-button>
         <el-button
           type="primary"
-          :disabled="form.signServerType === 2 && isEmpty(trim(form.signServerUrl))"
+          :disabled="form.signServerType === 3 && isEmpty(trim(form.signServerUrl))"
           @click="doSetSignServer"
           >确定</el-button
         >
@@ -1794,7 +1794,7 @@
               (form.accountType === 11 && (form.account === '' || form.reverseAddr === '')) ||
               (form.accountType === 13 && (form.token === '' || form.url === '')) ||
               ((form.accountType === 15 || form.accountType === 16) &&
-                (form.account === '' || (form.signServerType === 2 && form.signServerUrl === '')))
+                (form.account === '' || (form.signServerType === 3 && form.signServerUrl === '')))
             "
             @click="goStepTwo">
             下一步</el-button
@@ -2068,6 +2068,8 @@ const goStepTwo = async () => {
         break;
       case 1:
         form.signServerUrl = 'lagrange';
+      case 2:
+        form.signServerUrl = 'newProxy'
         break;
     }
   }
@@ -2192,8 +2194,11 @@ const showSetSignServerDialog = async (i: DiceConnection) => {
         form.signServerType = 1;
         form.signServerUrl = '';
         break;
+      case 'newProxy':
+      form.signServerType = 2;
+      form.signServerUrl = '';
       default:
-        form.signServerType = 2;
+        form.signServerType = 3;
         break;
     }
     form.signServerVersion = ret.signServerVersion;
@@ -2210,11 +2215,13 @@ const doSetSignServer = async () => {
       break;
     case 1:
       form.signServerUrl = 'lagrange';
+    case 2:
+      form.signServerUrl = 'newProxy';
       break;
   }
   const ret = await postSetSignServer(
     form.endpoint.id,
-    trim(form.signServerUrl),
+    trim(form.),
     true,
     form.signServerVersion,
   );
