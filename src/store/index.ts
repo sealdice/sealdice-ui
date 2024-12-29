@@ -294,7 +294,6 @@ export const useStore = defineStore('main', {
       } = form;
 
       let info = null;
-      console.log(accountType,form)
       switch (accountType) {
         //QQ
         case 0:

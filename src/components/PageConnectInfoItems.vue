@@ -2070,7 +2070,7 @@ const goStepTwo = async () => {
         form.signServerUrl = 'lagrange';
         break;
       case 2:
-        form.signServerUrl = 'newProxy'
+        form.signServerUrl = 'newProxy';
         break;
     }
   }
@@ -2195,8 +2195,12 @@ const showSetSignServerDialog = async (i: DiceConnection) => {
         form.signServerType = 1;
         form.signServerUrl = '';
         break;
-      default:
+      case 'newproxy':
         form.signServerType = 2;
+        form.signServerUrl = '';
+        break;
+      default:
+        form.signServerType = 3;
         form.signServerUrl = '';
         break;
     }
@@ -2217,7 +2221,7 @@ const doSetSignServer = async () => {
       break;
     case 2:
       form.signServerUrl = 'newProxy';
-      break
+      break;
   }
   const ret = await postSetSignServer(
     form.endpoint.id,
