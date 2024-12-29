@@ -2070,7 +2070,7 @@ const goStepThree = async () => {
         form.signServerUrl = 'lagrange';
         break;
       case 2:
-        form.signServerUrl = 'newProxy'
+        form.signServerUrl = 'newProxy';
         break;
     }
   }
@@ -2196,8 +2196,8 @@ const showSetSignServerDialog = async (i: DiceConnection) => {
         form.signServerUrl = '';
         break;
       case 'newProxy':
-      form.signServerType = 2;
-      form.signServerUrl = '';
+        form.signServerType = 2;
+        form.signServerUrl = '';
       default:
         form.signServerType = 3;
         break;
