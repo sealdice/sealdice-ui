@@ -294,6 +294,7 @@ export const useStore = defineStore('main', {
       } = form;
 
       let info = null;
+      console.log(accountType,form)
       switch (accountType) {
         //QQ
         case 0:
@@ -358,7 +359,7 @@ export const useStore = defineStore('main', {
         case 15:
           {
             let version = '';
-            if (signServerUrl === 'sealdice' || signServerUrl === 'lagrange') {
+            if (signServerUrl === 'sealdice' || signServerUrl === 'lagrange' || signServerUrl === 'newProxy') {
               version = signServerVersion;
             }
             info = await postAddLagrange(account, signServerUrl, version, false);
@@ -367,7 +368,7 @@ export const useStore = defineStore('main', {
         case 16:
           {
             let version = '';
-            if (signServerUrl === 'sealdice' || signServerUrl === 'lagrange') {
+            if (signServerUrl === 'sealdice' || signServerUrl === 'lagrange' || signServerUrl === 'newProxy') {
               version = signServerVersion;
             }
             info = await postAddLagrange(account, signServerUrl, version, true);

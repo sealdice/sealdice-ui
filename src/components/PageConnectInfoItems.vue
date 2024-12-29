@@ -1794,7 +1794,7 @@
               (form.accountType === 11 && (form.account === '' || form.reverseAddr === '')) ||
               (form.accountType === 13 && (form.token === '' || form.url === '')) ||
               ((form.accountType === 15 || form.accountType === 16) &&
-                (form.account === '' || (form.signServerType === 2 && form.signServerUrl === '')))
+                (form.account === '' || (form.signServerType === 3 && form.signServerUrl === '')))
             "
             @click="goStepTwo">
             下一步</el-button
@@ -2069,7 +2069,7 @@ const goStepTwo = async () => {
       case 1:
         form.signServerUrl = 'lagrange';
         break;
-      case 3:
+      case 2:
         form.signServerUrl = 'newProxy'
         break;
     }
