@@ -2074,7 +2074,6 @@ const goStepThree = async () => {
         break;
     }
   }
-};
 
   store
     .addImConnection(form as any)
