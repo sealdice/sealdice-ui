@@ -358,7 +358,7 @@ export const useStore = defineStore('main', {
         case 15:
           {
             let version = '';
-            if (['sealdice','lagrange','newProxy'].includes(signServerUrl)) {
+            if (['sealdice', 'lagrange', 'newProxy'].includes(signServerUrl)) {
               version = signServerVersion;
             }
             info = await postAddLagrange(account, signServerUrl, version, false);
@@ -367,7 +367,7 @@ export const useStore = defineStore('main', {
         case 16:
           {
             let version = '';
-            if (['sealdice','lagrange','newProxy'].includes(signServerUrl)) {
+            if (['sealdice', 'lagrange', 'newProxy'].includes(signServerUrl)) {
               version = signServerVersion;
             }
             info = await postAddLagrange(account, signServerUrl, version, true);
