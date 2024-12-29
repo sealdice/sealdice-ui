@@ -1796,7 +1796,7 @@
               ((form.accountType === 15 || form.accountType === 16) &&
                 (form.account === '' || (form.signServerType === 3 && form.signServerUrl === '')))
             "
-            @click="goStepTwo">
+            @click="goStepThree">
             下一步</el-button
           >
         </template>
@@ -2055,8 +2055,8 @@ const openSocks = async () => {
   }
 };
 
-const goStepTwo = async () => {
-  form.step = 2;
+const goStepThree = async () => {
+  form.step = 3;
   curConnId.value = '';
   setRecentLogin();
   duringRelogin.value = false;
@@ -2068,11 +2068,13 @@ const goStepTwo = async () => {
         break;
       case 1:
         form.signServerUrl = 'lagrange';
+        break;
       case 2:
         form.signServerUrl = 'newProxy'
         break;
     }
   }
+};
 
   store
     .addImConnection(form as any)
@@ -2215,6 +2217,7 @@ const doSetSignServer = async () => {
       break;
     case 1:
       form.signServerUrl = 'lagrange';
+      break;
     case 2:
       form.signServerUrl = 'newProxy';
       break;
