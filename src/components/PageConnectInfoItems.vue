@@ -2221,7 +2221,7 @@ const doSetSignServer = async () => {
   }
   const ret = await postSetSignServer(
     form.endpoint.id,
-    trim(form.),
+    trim(form.signServerUrl),
     true,
     form.signServerVersion,
   );
