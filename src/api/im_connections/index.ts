@@ -20,6 +20,13 @@ export function postGoCqHttpRelogin(id: string) {
   });
 }
 
+export function getLagrangeSignInfo() {
+  return request<{ result: true; data: SignInfo[] } | { result: false; err: string }>(
+    'get',
+    'get_lgr_signinfo',
+  );
+}
+
 export function postAddGocq(
   account: string,
   password: string,
@@ -370,3 +377,15 @@ type ServerConfig = {
   key: string;
   authorization: string;
 };
+interface SignServer {
+  name: string;
+  url: string;
+  latency: number;
+  selected: boolean;
+}
+export interface SignInfo {
+  version: string;
+  appinfo: [];
+  servers: SignServer[];
+  selected: boolean;
+}
