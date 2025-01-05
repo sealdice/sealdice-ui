@@ -177,14 +177,14 @@ export function postAddSatori(platform: string, host: string, port: string, toke
 
 export function postAddLagrange(
   account: string,
-  signServerUrl: string,
+  signServerName: string,
   signServerVersion: string,
   isGocq: boolean,
 ) {
   return request<DiceConnection>(
     'post',
     'addLagrange',
-    { account, signServerUrl, signServerVersion, isGocq },
+    { account, signServerName, signServerVersion, isGocq },
     'json',
     {
       timeout: 65000,
@@ -238,18 +238,6 @@ export function postConnectSetData(
   });
 }
 
-export function postSetSignServer(
-  id: string,
-  signServerUrl: string | 'sealdice' | 'lagrange',
-  w: boolean,
-  signServerVersion: string,
-) {
-  return request<
-    | { result: false; err: string }
-    | { result: true; signServerUrl: string; signServerVersion: string }
-  >('post', 'set_sign_server', { id, signServerUrl, w, signServerVersion });
-}
-
 export interface DiceConnection {
   id: string;
   state: number;
@@ -291,6 +279,8 @@ interface AdapterQQ {
   isReverse: boolean;
   reverseAddr: string;
   builtinMode: 'gocq' | 'lagrange' | 'lagrange-gocq';
+  signServerVer: string;
+  signServerName: string;
 }
 enum goCqHttpStateCode {
   Init = 0,

@@ -232,8 +232,11 @@
             <el-form-item label="接入方式">
               <div>内置客户端</div>
             </el-form-item>
-            <el-form-item label="签名地址">
-              <!-- 这里稍后写签名服务名 -->
+            <el-form-item label="签名版本">
+              <div>{{ i.adapter.signServerVer }}</div>
+            </el-form-item>
+            <el-form-item label="签名服务">
+              <div>{{ i.adapter.signServerName }}</div>
             </el-form-item>
           </template>
 
@@ -246,8 +249,11 @@
             <el-form-item label="接入方式">
               <div>内置 gocq</div>
             </el-form-item>
-            <el-form-item label="签名地址">
-              <!-- 这里稍后写签名服务名 -->
+            <el-form-item label="签名版本">
+              <div>{{ i.adapter.signServerVer }}</div>
+            </el-form-item>
+            <el-form-item label="签名服务">
+              <div>{{ i.adapter.signServerName }}</div>
             </el-form-item>
           </template>
 
@@ -830,16 +836,7 @@
           <el-input v-model="form.account" type="number" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item
-          v-if="
-            (form.accountType === 15 || form.accountType === 16) && form.signServerUrl === 'custom'
-          "
-          label="自定义签名地址"
-          :label-width="formLabelWidth"
-          required>
-          <el-input v-model="form.signServerUrl" type="text" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item
-          v-else-if="form.accountType === 15 || form.accountType === 16"
+          v-if="form.accountType === 15 || form.accountType === 16"
           label="签名版本"
           :label-width="formLabelWidth"
           required>
@@ -879,7 +876,7 @@
           </template>
           <el-select
             v-if="form.signServerVersion !== 'custom'"
-            v-model="form.signServerUrl"
+            v-model="form.signServerName"
             :disabled="!signInfoLoaded"
             placeholder="请选择签名服务">
             <template v-for="info in signInfos">
@@ -888,13 +885,13 @@
                   v-for="server in info.servers"
                   :key="server.name"
                   :label="server.name"
-                  :value="server.url"></el-option>
+                  :value="server.name"></el-option>
               </template>
             </template>
           </el-select>
           <el-input
             v-else
-            v-model="form.signServerUrl"
+            v-model="form.signServerName"
             autocomplete="off"
             placeholder="请输入自定义签名地址"></el-input>
         </el-form-item>
@@ -1761,7 +1758,9 @@
               (form.accountType === 11 && (form.account === '' || form.reverseAddr === '')) ||
               (form.accountType === 13 && (form.token === '' || form.url === '')) ||
               ((form.accountType === 15 || form.accountType === 16) &&
-                (form.account === '' || form.signServerVersion === '' || form.signServerUrl === ''))
+                (form.account === '' ||
+                  form.signServerVersion === '' ||
+                  form.signServerName === ''))
             "
             @click="goStepTwo">
             下一步</el-button
@@ -2047,7 +2046,7 @@ const goStepTwo = async () => {
   if (form.accountType > 0) {
     dialogFormVisible.value = false;
     form.step = 1;
-    form.signServerUrl = '';
+    form.signServerName = '';
     return;
   }
   activities.value = [];
@@ -2248,10 +2247,13 @@ const signConfigTypeChange = (value: any) => {
 const signServerVersionChange = () => {
   switch (form.signServerVersion) {
     case 'custom':
-      form.signServerUrl = '';
+      form.signServerName = '';
       break;
     case '':
       signInfos.value.forEach(info => {
+        if (signInfos.value.length > 0) {
+          form.signServerVersion = signInfos.value[0].version;
+        }
         if (info.selected) {
           form.signServerVersion = info.version;
           signServerVersionChange();
@@ -2261,12 +2263,33 @@ const signServerVersionChange = () => {
     default:
       signInfos.value.forEach(info => {
         if (form.signServerVersion === info.version) {
+          if (info.servers.length > 0) {
+            form.signServerName = info.servers[0].name;
+          }
           info.servers.forEach(server => {
-            form.signServerUrl = server.url;
+            if (server.selected) {
+              form.signServerName = server.name;
+            }
           });
         }
       });
       break;
+  }
+};
+
+const getSignInfo = async () => {
+  form.signServerVersion = '';
+  form.signServerName = '';
+  try {
+    const res = await getLagrangeSignInfo();
+    signInfoLoaded.value = res.result;
+    // 理论上不会有false出现所以前端不进行通知，若出现则为后端代码问题
+    if (res.result !== false) {
+      signInfos.value = res.data;
+      signServerVersionChange();
+    }
+  } catch {
+    signInfoLoaded.value = false;
   }
 };
 
@@ -2339,7 +2362,7 @@ const form = reactive({
     autoRefreshToken: false,
     refreshInterval: 40,
   },
-  signServerUrl: '',
+  signServerName: '',
   signServerKey: '',
   signServerVersion: '',
 
@@ -2356,20 +2379,7 @@ const addOne = () => {
   form.implementation = 'gocq';
 
   // 从后端读取signInfo，动态填充到页面
-  (async () => {
-    form.signServerVersion = '';
-    form.signServerUrl = '';
-    try {
-      const res = await getLagrangeSignInfo();
-      signInfoLoaded.value = res.result;
-      if (res.result !== false) {
-        signInfos.value = res.data;
-        signServerVersionChange();
-      }
-    } catch {
-      signInfoLoaded.value = false;
-    }
-  })();
+  getSignInfo();
 };
 
 let timerId: number;
