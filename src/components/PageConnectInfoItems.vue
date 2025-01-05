@@ -883,27 +883,32 @@
             v-if="form.signServerVersion !== '自定义'"
             v-model="form.signServerName"
             :disabled="!signInfoLoaded"
+            @change="signServerServerChange"
             placeholder="请选择签名服务">
             <template v-for="info in signInfos">
               <template v-if="info.version === form.signServerVersion && !info.ignored">
-                <el-option
-                  v-for="server in info.servers"
-                  :key="server.name"
-                  :label="server.name"
-                  :value="server.name">
-                  <div style="display: flex; align-items: center">
-                    <span style="float: left; margin-right: 0.5rem">{{ server.name }}</span>
-                    <el-tag v-if="server.latency < 120" type="success"
-                      >{{ server.latency }}ms</el-tag
-                    >
-                    <el-tag v-else-if="server.latency >= 120 && server.latency < 360" type="warning"
-                      >{{ server.latency }}ms</el-tag
-                    >
-                    <el-tag v-else-if="server.latency >= 360" type="danger"
-                      >{{ server.latency }}ms</el-tag
-                    >
-                  </div>
-                </el-option>
+                <template v-for="server in info.servers">
+                  <el-option
+                    v-if="!server.ignored"
+                    :key="server.name"
+                    :label="server.name"
+                    :value="server.name">
+                    <div style="display: flex; align-items: center">
+                      <span style="float: left; margin-right: 0.5rem">{{ server.name }}</span>
+                      <el-tag v-if="server.latency < 120" type="success"
+                        >{{ server.latency }}ms</el-tag
+                      >
+                      <el-tag
+                        v-else-if="server.latency >= 120 && server.latency < 360"
+                        type="warning"
+                        >{{ server.latency }}ms</el-tag
+                      >
+                      <el-tag v-else-if="server.latency >= 360" type="danger"
+                        >{{ server.latency }}ms</el-tag
+                      >
+                    </div>
+                  </el-option>
+                </template>
               </template>
             </template>
           </el-select>
@@ -2300,6 +2305,10 @@ const signServerVersionChange = () => {
       });
       break;
   }
+  signServerServerChange();
+};
+
+const signServerServerChange = () => {
   signInfos.value.forEach(info => {
     if (info.version === form.signServerVersion) {
       signVerWarningText.value = info.note;
