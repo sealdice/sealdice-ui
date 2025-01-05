@@ -2322,6 +2322,7 @@ const signServerServerChange = () => {
 };
 
 const getSignInfo = async () => {
+  form.account = '';
   form.signServerVersion = '';
   form.signServerName = '';
   try {
