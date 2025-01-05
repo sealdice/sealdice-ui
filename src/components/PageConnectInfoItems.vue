@@ -2045,8 +2045,8 @@ const goStepTwo = async () => {
     });
   if (form.accountType > 0) {
     dialogFormVisible.value = false;
+    form.account = '';
     form.step = 1;
-    form.signServerName = '';
     return;
   }
   activities.value = [];
