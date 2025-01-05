@@ -853,13 +853,18 @@
             :disabled="!signInfoLoaded"
             @change="signServerVersionChange"
             placeholder="请选择签名版本">
-            <el-option
-              v-for="info in signInfos"
-              :key="info.version"
-              :label="info.version"
-              :value="info.version"></el-option>
+            <template v-for="info in signInfos">
+              <el-option
+                v-if="!info.ignored"
+                :key="info.version"
+                :label="info.version"
+                :value="info.version"></el-option
+            ></template>
             <el-option key="custom" label="自定义" value="自定义"></el-option>
           </el-select>
+          <el-text v-if="signVerWarningText !== ''" type="warning" size="small">{{
+            signVerWarningText
+          }}</el-text>
         </el-form-item>
         <el-form-item
           v-if="form.accountType === 15 || form.accountType === 16"
@@ -880,12 +885,25 @@
             :disabled="!signInfoLoaded"
             placeholder="请选择签名服务">
             <template v-for="info in signInfos">
-              <template v-if="info.version === form.signServerVersion">
+              <template v-if="info.version === form.signServerVersion && !info.ignored">
                 <el-option
                   v-for="server in info.servers"
                   :key="server.name"
                   :label="server.name"
-                  :value="server.name"></el-option>
+                  :value="server.name">
+                  <div style="display: flex; align-items: center">
+                    <span style="float: left; margin-right: 0.5rem">{{ server.name }}</span>
+                    <el-tag v-if="server.latency < 120" type="success"
+                      >{{ server.latency }}ms</el-tag
+                    >
+                    <el-tag v-else-if="server.latency >= 120 && server.latency < 360" type="warning"
+                      >{{ server.latency }}ms</el-tag
+                    >
+                    <el-tag v-else-if="server.latency >= 360" type="danger"
+                      >{{ server.latency }}ms</el-tag
+                    >
+                  </div>
+                </el-option>
               </template>
             </template>
           </el-select>
@@ -894,6 +912,9 @@
             v-model="form.signServerName"
             autocomplete="off"
             placeholder="请输入自定义签名地址"></el-input>
+          <el-text v-if="signServerWarningText !== ''" type="warning" size="small">{{
+            signServerWarningText
+          }}</el-text>
         </el-form-item>
         <el-form-item
           v-if="form.accountType === 0"
@@ -1899,6 +1920,8 @@ const smsCode = ref('');
 
 const signInfoLoaded = ref(false);
 const signInfos = ref({} as SignInfo[]);
+const signVerWarningText = ref('');
+const signServerWarningText = ref('');
 
 let captchaTimer = null as any;
 const captchaUrlSet = (i: DiceConnection, url: string) => {
@@ -2248,6 +2271,8 @@ const signServerVersionChange = () => {
   switch (form.signServerVersion) {
     case '自定义':
       form.signServerName = '';
+      signVerWarningText.value = '';
+      signServerWarningText.value = '';
       break;
     case '':
       signInfos.value.forEach(info => {
@@ -2275,6 +2300,16 @@ const signServerVersionChange = () => {
       });
       break;
   }
+  signInfos.value.forEach(info => {
+    if (info.version === form.signServerVersion) {
+      signVerWarningText.value = info.note;
+    }
+    info.servers.forEach(server => {
+      if (server.name === form.signServerName) {
+        signServerWarningText.value = server.note;
+      }
+    });
+  });
 };
 
 const getSignInfo = async () => {

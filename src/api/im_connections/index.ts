@@ -372,10 +372,14 @@ interface SignServer {
   url: string;
   latency: number;
   selected: boolean;
+  ignored: boolean;
+  note: string;
 }
 export interface SignInfo {
   version: string;
   appinfo: [];
   servers: SignServer[];
   selected: boolean;
+  ignored: boolean;
+  note: string;
 }
