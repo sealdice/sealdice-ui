@@ -858,7 +858,7 @@
               :key="info.version"
               :label="info.version"
               :value="info.version"></el-option>
-            <el-option key="custom" label="自定义" value="custom"></el-option>
+            <el-option key="custom" label="自定义" value="自定义"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item
@@ -875,7 +875,7 @@
             </span>
           </template>
           <el-select
-            v-if="form.signServerVersion !== 'custom'"
+            v-if="form.signServerVersion !== '自定义'"
             v-model="form.signServerName"
             :disabled="!signInfoLoaded"
             placeholder="请选择签名服务">
@@ -2246,7 +2246,7 @@ const signConfigTypeChange = (value: any) => {
 
 const signServerVersionChange = () => {
   switch (form.signServerVersion) {
-    case 'custom':
+    case '自定义':
       form.signServerName = '';
       break;
     case '':
