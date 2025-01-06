@@ -858,9 +858,27 @@
                 v-if="!info.ignored"
                 :key="info.version"
                 :label="info.version"
-                :value="info.version"></el-option
-            ></template>
+                :value="info.version">
+                <div style="display: flex; align-items: center">
+                  <span style="float: left; margin-right: 0.5rem">{{ info.version }}</span>
+                  <el-tag v-if="info.selected" type="success">最新</el-tag>
+                </div></el-option
+              ></template
+            >
             <el-option key="custom" label="自定义" value="自定义"></el-option>
+            <template #label>
+              <template v-for="info in signInfos">
+                <div
+                  :key="info.version"
+                  v-if="info.version === form.signServerVersion && info.selected"
+                  style="display: flex; align-items: center">
+                  <span style="float: left; margin-right: 0.5rem">{{
+                    form.signServerVersion
+                  }}</span>
+                  <el-tag type="success">最新</el-tag>
+                </div>
+              </template>
+            </template>
           </el-select>
           <el-text v-if="signVerWarningText !== ''" type="warning" size="small">{{
             signVerWarningText
@@ -908,6 +926,31 @@
                       >
                     </div>
                   </el-option>
+                </template>
+              </template>
+            </template>
+            <template #label>
+              <template v-for="info in signInfos">
+                <template v-if="info.version === form.signServerVersion && !info.ignored">
+                  <template v-for="server in info.servers">
+                    <div
+                      :key="server.name"
+                      v-if="server.name === form.signServerName"
+                      style="display: flex; align-items: center">
+                      <span style="float: left; margin-right: 0.5rem">{{ server.name }}</span>
+                      <el-tag v-if="server.latency < 120" type="success"
+                        >{{ server.latency }}ms</el-tag
+                      >
+                      <el-tag
+                        v-else-if="server.latency >= 120 && server.latency < 360"
+                        type="warning"
+                        >{{ server.latency }}ms</el-tag
+                      >
+                      <el-tag v-else-if="server.latency >= 360" type="danger"
+                        >{{ server.latency }}ms</el-tag
+                      >
+                    </div>
+                  </template>
                 </template>
               </template>
             </template>
