@@ -260,9 +260,9 @@ onBeforeMount(async () => {
 }
 .elinput {
   height: 100%;
-}
-.elinput ::v-deep .el-textarea__inner {
-  height: 100%;
+  :deep(.el-textarea__inner) {
+    height: 100%;
+  }
 }
 .disabledOverlay {
   filter: grayscale(1);
