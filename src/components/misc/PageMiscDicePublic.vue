@@ -44,7 +44,13 @@
                   ><template #label
                     ><div>
                       <span>公骰 UID</span>
-                      <el-tooltip content="公骰UID" placement="left">
+                      <el-tooltip placement="left">
+                        <template #content>
+                          <div style="width: 10rem">
+                            公骰UID是上报公骰所使用的密钥， 通常情况下留空让系统自动生成，
+                            请勿随意将公骰的UID展示给他人
+                          </div>
+                        </template>
                         <el-icon><question-filled /></el-icon>
                       </el-tooltip></div
                   ></template>
@@ -59,7 +65,10 @@
                   ><template #label
                     ><div>
                       <span>公骰昵称</span>
-                      <el-tooltip content="公骰昵称" placement="left">
+                      <el-tooltip placement="left">
+                        <template #content>
+                          <div style="width: 10rem">公骰昵称是展示在公骰列表的昵称</div>
+                        </template>
                         <el-icon><question-filled /></el-icon>
                       </el-tooltip></div
                   ></template>
@@ -75,7 +84,10 @@
                   ><template #label
                     ><div>
                       <span>公骰头像</span>
-                      <el-tooltip content="公骰头像" placement="left">
+                      <el-tooltip placement="left">
+                        <template #content>
+                          <div style="width: 10rem">公骰头像是展示在公骰列表的头像</div>
+                        </template>
                         <el-icon><question-filled /></el-icon>
                       </el-tooltip></div
                   ></template>
@@ -89,7 +101,10 @@
                   ><template #label
                     ><div>
                       <span>骰主留言</span>
-                      <el-tooltip content="骰主留言" placement="left">
+                      <el-tooltip placement="left">
+                        <template #content>
+                          <div style="width: 10rem">骰主留言是展示在公骰列表的留言</div>
+                        </template>
                         <el-icon><question-filled /></el-icon>
                       </el-tooltip></div
                   ></template>
@@ -106,6 +121,9 @@
                     ><div>
                       <span>公骰简介</span>
                       <el-tooltip content="公骰简介" placement="left">
+                        <template #content>
+                          <div style="width: 10rem">公骰简介是展示在公骰列表的简介</div>
+                        </template>
                         <el-icon><question-filled /></el-icon>
                       </el-tooltip></div
                   ></template>
@@ -134,10 +152,10 @@
           }"
           @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="100%" />
-          <el-table-column property="userId" label="UserId" />
-          <el-table-column property="platform" label="Platform" />
-          <el-table-column property="adapter" label="Adapter" />
-          <el-table-column property="state" label="State" />
+          <el-table-column property="userId" label="账号" />
+          <el-table-column property="platform" label="平台" />
+          <el-table-column property="adapter" label="协议" />
+          <el-table-column property="state" label="状态" />
         </el-table>
       </template>
     </el-card>
@@ -152,7 +170,6 @@ const config = ref<any>({});
 const multipleTableRef = ref<TableInstance>();
 // let selectedRows: any[] = [];
 const handleSelectionChange = (selection: any[]) => {
-  console.log(selection);
   selected = selection;
 };
 const tableData = ref<any>([]);
@@ -172,20 +189,53 @@ const refreshInfo = async () => {
   tableData.value = [];
   const infos = await getDicePublicInfo();
   config.value = infos.config;
-  infos.endpoints.forEach(dc => {
-    tableData.value.push({
-      userId: dc.userId,
-      platform: dc.platform,
-      adapter: '-',
-      state: dc.state,
-      isPublic: dc.isPublic,
-      id: dc.id,
+  if (infos.endpoints !== null) {
+    infos.endpoints.forEach(dc => {
+      const state = () => {
+        switch (dc.state) {
+          case 0:
+            return '断开';
+          case 1:
+            return '已连接';
+          case 2:
+            return '连接中';
+          case 3:
+            return '连接失败';
+          default:
+            return '未知';
+        }
+      };
+      const adapter = () => {
+        if (
+          dc.platform === 'QQ' &&
+          dc.protocolType === 'onebot' &&
+          dc.adapter.builtinMode !== null
+        ) {
+          switch (dc.adapter.builtinMode) {
+            case 'lagrange':
+              return '内置客户端';
+            case 'lagrange-gocq':
+              return '内置gocq';
+            case 'gocq':
+              return '分离部署';
+          }
+        }
+        return '-';
+      };
+      tableData.value.push({
+        userId: dc.userId,
+        platform: dc.platform,
+        adapter: adapter(),
+        state: state(),
+        isPublic: dc.isPublic,
+        id: dc.id,
+      });
     });
-  });
-  tableData.value.forEach((row: any) => {
-    console.log('row  ', row.isPublic);
-    multipleTableRef.value!.toggleRowSelection(row, row.isPublic);
-  });
+
+    tableData.value.forEach((row: any) => {
+      multipleTableRef.value!.toggleRowSelection(row, row.isPublic);
+    });
+  }
 };
 
 onBeforeMount(async () => {
