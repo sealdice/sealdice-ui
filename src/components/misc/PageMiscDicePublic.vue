@@ -152,10 +152,10 @@
           }"
           @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="100%" />
-          <el-table-column property="userId" label="账号" />
-          <el-table-column property="platform" label="平台" />
-          <el-table-column property="adapter" label="协议" />
-          <el-table-column property="state" label="状态" />
+          <el-table-column property="userId" sortable label="账号" />
+          <el-table-column property="platform" sortable label="平台" />
+          <el-table-column property="adapter" sortable label="协议" />
+          <el-table-column property="state" sortable label="状态" />
         </el-table>
       </template>
     </el-card>
