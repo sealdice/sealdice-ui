@@ -23,11 +23,13 @@
       </template>
       <el-container>
         <el-aside width="20%" style="align-content: center; border: 2px solid">
-          <el-avatar
-            shape="square"
-            style="width: auto; height: auto; vertical-align: top"
-            fit="contain"
-            :src="imgSeal"></el-avatar>
+          <div :class="{ disabledOverlay: !config.publicDiceEnable }">
+            <el-avatar
+              shape="square"
+              style="width: auto; height: auto; vertical-align: top"
+              fit="contain"
+              :src="imgSeal"></el-avatar>
+          </div>
         </el-aside>
         <el-main>
           <el-form
@@ -140,23 +142,21 @@
         </el-main>
       </el-container>
       <template #footer
-        ><span style="font-size: 1.2rem; font-weight: bold">选择要上报的终端</span>
-        <el-table
-          ref="multipleTableRef"
-          :data="tableData"
-          row-key="id"
-          :style="{
-            width: '100%',
-            marginTop: '1rem',
-            pointerEvents: config.publicDiceEnable ? 'auto' : 'none',
-          }"
-          @selection-change="handleSelectionChange">
-          <el-table-column type="selection" width="100%" />
-          <el-table-column property="userId" sortable label="账号" />
-          <el-table-column property="platform" sortable label="平台" />
-          <el-table-column property="adapter" sortable label="协议" />
-          <el-table-column property="state" sortable label="状态" />
-        </el-table>
+        ><div :class="{ disabledOverlay: !config.publicDiceEnable }">
+          <span style="font-size: 1.2rem; font-weight: bold">选择要上报的终端</span>
+          <el-table
+            ref="multipleTableRef"
+            :data="tableData"
+            row-key="id"
+            style="width: 100%; margin-top: 1rem"
+            @selection-change="handleSelectionChange">
+            <el-table-column type="selection" width="100%" />
+            <el-table-column property="userId" sortable label="账号" />
+            <el-table-column property="platform" sortable label="平台" />
+            <el-table-column property="adapter" sortable label="协议" />
+            <el-table-column property="state" sortable label="状态" />
+          </el-table>
+        </div>
       </template>
     </el-card>
   </div>
@@ -263,5 +263,10 @@ onBeforeMount(async () => {
 }
 .elinput ::v-deep .el-textarea__inner {
   height: 100%;
+}
+.disabledOverlay {
+  filter: grayscale(1);
+  opacity: 0.6;
+  pointer-events: none;
 }
 </style>
