@@ -22,7 +22,19 @@
         </div>
       </template>
       <el-container>
-        <el-aside width="20%" style="align-content: center; border: 2px solid">
+        <el-header
+          v-if="isSmallWindow"
+          height="auto"
+          style="align-content: center; border: 2px solid">
+          <div :class="{ disabledOverlay: !config.publicDiceEnable }">
+            <el-avatar
+              shape="square"
+              style="width: auto; height: auto; vertical-align: top"
+              fit="contain"
+              :src="imgSeal"></el-avatar>
+          </div>
+        </el-header>
+        <el-aside v-else width="20%" style="align-content: center; border: 2px solid">
           <div :class="{ disabledOverlay: !config.publicDiceEnable }">
             <el-avatar
               shape="square"
@@ -173,6 +185,10 @@ const handleSelectionChange = (selection: any[]) => {
   selected = selection;
 };
 const tableData = ref<any>([]);
+const isSmallWindow = ref(false);
+const checkScreenSize = () => {
+  isSmallWindow.value = window.innerWidth < 992;
+};
 let selected: any[] = [];
 const enableChange = async (value: string | number | boolean) => {
   config.value.publicDiceEnable = value;
@@ -239,6 +255,7 @@ const refreshInfo = async () => {
 };
 
 onBeforeMount(async () => {
+  window.addEventListener('resize', checkScreenSize);
   await refreshInfo();
 });
 </script>
