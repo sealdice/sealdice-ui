@@ -115,11 +115,13 @@
           :size="50"
           :src="urlBase + '/sd-api/utils/ga/LoranaAurelia'" />雪桃 - 提供新的魔法阵代理</el-link
       >
-      <el-link :underline="false"
-      href="https://dice.weizaima.com/public-dice"
-      target="_blank" style="color: var(--el-link-text-color); transition: color 3s;"
-      onmouseover="this.style.color='red'"
-      onmouseout="this.style.color='var(--el-link-text-color)'"
+      <el-link
+        :underline="false"
+        href="https://dice.weizaima.com/public-dice"
+        target="_blank"
+        style="color: var(--el-link-text-color); transition: color 3s"
+        onmouseover="this.style.color='red'"
+        onmouseout="this.style.color='var(--el-link-text-color)'"
         ><el-avatar
           shape="circle"
           :size="50"
@@ -134,17 +136,16 @@
       >
 
       <el-link :underline="false" href="https://github.com/baiyu-yu" target="_blank"
-        ><el-avatar
-          shape="circle"
-          :size="50"
-          :src="urlBase + '/sd-api/utils/ga/baiyu-yu'" />白鱼 - 协助测试</el-link
+        ><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/baiyu-yu'" />白鱼 -
+        协助测试</el-link
       >
 
       <el-link :underline="false" href="#/about" target="_blank"
         ><el-avatar
           shape="circle"
           :size="50"
-          src="https://firehomework.top/img/6819CBB71F64D7BBFC90DCF4432B76BC.jpg" />[骰]Gaza(3658887052) - 协助测试</el-link
+          src="https://firehomework.top/img/6819CBB71F64D7BBFC90DCF4432B76BC.jpg" />[骰]Gaza(3658887052)
+        - 协助测试</el-link
       >
     </div>
 
