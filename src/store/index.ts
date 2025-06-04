@@ -14,7 +14,8 @@ import {
   postAddGocq,
   postAddGocqSeparate,
   postAddKook,
-  postAddLagrange, postAddMilky,
+  postAddLagrange,
+  postAddMilky,
   postAddMinecraft,
   postAddOfficialQQ,
   postAddOnebot11ReverseWs,
@@ -23,7 +24,7 @@ import {
   postaddSealChat,
   postAddSlack,
   postAddTelegram,
-  postAddWalleQ
+  postAddWalleQ,
 } from '~/api/im_connections';
 import { getBaseInfo, getHello, getLogFetchAndClear, getPreInfo } from '~/api/others';
 import { getSalt, signin } from '~/api/signin';
