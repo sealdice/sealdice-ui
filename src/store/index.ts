@@ -14,7 +14,7 @@ import {
   postAddGocq,
   postAddGocqSeparate,
   postAddKook,
-  postAddLagrange,
+  postAddLagrange, postAddMilky,
   postAddMinecraft,
   postAddOfficialQQ,
   postAddOnebot11ReverseWs,
@@ -23,7 +23,7 @@ import {
   postaddSealChat,
   postAddSlack,
   postAddTelegram,
-  postAddWalleQ,
+  postAddWalleQ
 } from '~/api/im_connections';
 import { getBaseInfo, getHello, getLogFetchAndClear, getPreInfo } from '~/api/others';
 import { getSalt, signin } from '~/api/signin';
@@ -293,6 +293,8 @@ export const useStore = defineStore('main', {
         reverseAddr,
         onlyQQGuild,
         platform,
+        wsGateway,
+        restGateway,
       } = form;
 
       let info = null;
@@ -365,6 +367,11 @@ export const useStore = defineStore('main', {
         case 16:
           {
             info = await postAddLagrange(account, signServerName, signServerVersion, true);
+          }
+          break;
+        case 17:
+          {
+            info = await postAddMilky(token, wsGateway, restGateway);
           }
           break;
       }
