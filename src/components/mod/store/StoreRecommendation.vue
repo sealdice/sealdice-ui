@@ -1,32 +1,32 @@
 <script setup lang="ts">
-import type {StoreElem} from "~/type";
-import {Download} from "@element-plus/icons-vue";
-import {useStore} from "~/store";
+import type { StoreElem } from '~/type';
+import { Download } from '@element-plus/icons-vue';
+import { useStore } from '~/store';
 
 const props = defineProps<StoreElem>();
 const emits = defineEmits(['downloaded']);
 
-const store = useStore()
+const store = useStore();
 
 const getAuthor = (authors: string[]) => {
   if (authors.length <= 2) {
-    return authors.join('、')
+    return authors.join('、');
   }
-  return authors.slice(0, 2).join('、') + '等'
-}
+  return authors.slice(0, 2).join('、') + '等';
+};
 
-const downloading = ref(false)
+const downloading = ref(false);
 const download = async () => {
-  downloading.value = true
-  const response = await store.storeDownload(props)
+  downloading.value = true;
+  const response = await store.storeDownload(props);
   if (response.result) {
-    emits('downloaded', props.id)
-    ElMessage.success("下载成功，已自动重载！")
+    emits('downloaded', props.id);
+    ElMessage.success('下载成功，已自动重载！');
   } else {
-    ElMessage.error(`下载失败！${response.err ?? ''}`)
+    ElMessage.error(`下载失败！${response.err ?? ''}`);
   }
-  downloading.value = false
-}
+  downloading.value = false;
+};
 </script>
 
 <template>
@@ -38,8 +38,13 @@ const download = async () => {
       </div>
 
       <aside class="flex flex-wrap gap-x-2 gap-y-0.5">
-        <el-tag size="small" type="primary" disable-transitions
-                v-for="tag in props?.tags?.slice(0, 3) ?? []" :key="tag">{{ tag }}
+        <el-tag
+          size="small"
+          type="primary"
+          disable-transitions
+          v-for="tag in props?.tags?.slice(0, 3) ?? []"
+          :key="tag"
+          >{{ tag }}
         </el-tag>
       </aside>
 
@@ -56,13 +61,21 @@ const download = async () => {
 
     <footer class="flex justify-between items-center">
       <span v-if="props.downloadNum" class="flex items-center text-xs text-blue-500">
-        <el-icon><Download/></el-icon>{{
+        <el-icon><Download /></el-icon
+        >{{
           props.downloadNum > 1000 ? (props.downloadNum / 1000).toFixed(1) + 'k' : props.downloadNum
         }}
       </span>
-      <span v-else/>
-      <el-button v-if="!props.installed" :icon="Download" type="success" size="small" plain
-                 @click="download" :loading="downloading">下载
+      <span v-else />
+      <el-button
+        v-if="!props.installed"
+        :icon="Download"
+        type="success"
+        size="small"
+        plain
+        @click="download"
+        :loading="downloading"
+        >下载
       </el-button>
       <el-button v-else disabled :icon="Download" type="info" size="small" plain>
         已下载
@@ -71,6 +84,4 @@ const download = async () => {
   </div>
 </template>
 
-<style scoped lang="scss">
-
-</style>
+<style scoped lang="scss"></style>
