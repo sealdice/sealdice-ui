@@ -37,6 +37,7 @@ import type {
   HelpTextItem,
   HelpTextItemQuery,
   JsScriptInfo,
+  StoreBackend,
   StoreElem,
   StoreElemType,
 } from '~/type';
@@ -461,6 +462,16 @@ export const useStore = defineStore('main', {
             result: true;
             data: StoreElem[];
           } = await backend.get(urlPrefix + '/store/recommend', { params });
+      return info;
+    },
+
+    async storeBackendList() {
+      const info:
+        | { result: false; err?: string }
+        | {
+            result: true;
+            data: StoreBackend[];
+          } = await backend.get(urlPrefix + '/store/backend/list');
       return info;
     },
 

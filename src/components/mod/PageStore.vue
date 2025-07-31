@@ -86,12 +86,20 @@
         </el-skeleton>
       </main>
     </el-tab-pane>
+
+    <el-tab-pane label="仓库列表" name="backend">
+      <main>
+        <div :key="b.id" v-for="b in backends">
+          <store-backend v-bind="b"></store-backend>
+        </div>
+      </main>
+    </el-tab-pane>
   </el-tabs>
 </template>
 
 <script lang="ts" setup>
 import { useStore } from '~/store';
-import type { StoreElem, StoreElemType } from '~/type';
+import type { StoreBackend, StoreElem, StoreElemType } from '~/type';
 import { ArrowDown, ArrowUp } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { debounce } from 'lodash-es';
@@ -106,6 +114,7 @@ const store = useStore();
 
 const recommendations = ref<StoreElem[]>([]);
 const data = ref<StoreElem[]>([]);
+const backends = ref<StoreBackend[]>([]);
 
 const query = ref<{
   pageNum: number;
@@ -125,9 +134,10 @@ const query = ref<{
   next: true,
 });
 
-const tab = ref<StoreElemType>('deck');
+const tab = ref<StoreElemType | 'backend'>('deck');
 const recommendLoading = ref(true);
 const dataLoading = ref(true);
+const backendLoading = ref(true);
 
 const refreshRecommend = async () => {
   recommendations.value = [];
@@ -183,6 +193,17 @@ const installed = async (id: string) => {
   }
 };
 
+const refreshBackends = async () => {
+  const resp = await store.storeBackendList();
+  backendLoading.value = true;
+  if (resp?.result) {
+    backends.value = resp.data;
+  }
+  // setTimeout(() => {
+  //   backendLoading.value = false;
+  // }, 500);
+};
+
 watch(tab, async () => {
   query.value = {
     pageNum: 1,
@@ -194,8 +215,12 @@ watch(tab, async () => {
     next: true,
   };
   data.value = [];
-  await resetElemData();
-  await refreshRecommend();
+  if (tab.value !== 'backend') {
+    await resetElemData();
+    await refreshRecommend();
+  } else {
+    await refreshBackends();
+  }
 });
 
 onBeforeMount(async () => {

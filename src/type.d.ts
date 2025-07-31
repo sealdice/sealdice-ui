@@ -129,3 +129,12 @@ export interface StoreElem {
   sealVersion: string;
   dependencies: Map<string, string>;
 }
+
+export interface StoreBackend {
+  id: string;
+  name: string;
+  url: string;
+  type: 'official' | 'trusted' | 'extra';
+  health: boolean;
+  announcement: string;
+}
