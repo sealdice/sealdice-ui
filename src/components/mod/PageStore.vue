@@ -1,4 +1,10 @@
 <template>
+  <header class="page-header">
+    <el-button type="primary" :icon="Setting" @click="showSettingDrawer = true">
+      配置扩展仓库
+    </el-button>
+  </header>
+
   <el-tabs v-model="tab" stretch>
     <el-tab-pane
       v-for="{ name, label } in tabs"
@@ -86,23 +92,17 @@
         </el-skeleton>
       </main>
     </el-tab-pane>
-
-    <el-tab-pane label="仓库列表" name="backend">
-      <main>
-        <div :key="b.id" v-for="b in backends">
-          <store-backend v-bind="b"></store-backend>
-        </div>
-      </main>
-    </el-tab-pane>
   </el-tabs>
+
+  <store-backend-setting v-model="showSettingDrawer" />
 </template>
 
 <script lang="ts" setup>
-import { useStore } from '~/store';
-import type { StoreBackend, StoreElem, StoreElemType } from '~/type';
-import { ArrowDown, ArrowUp } from '@element-plus/icons-vue';
+import type { StoreElem, StoreElemType } from '~/type';
+import { ArrowDown, ArrowUp, Setting } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { debounce } from 'lodash-es';
+import { storePage, storeRecommend } from '~/api/store';
 
 const tabs = [
   { name: 'deck', label: '牌堆' },
@@ -110,11 +110,9 @@ const tabs = [
   // {name: 'reply', label: '自定义回复'},
 ];
 
-const store = useStore();
-
 const recommendations = ref<StoreElem[]>([]);
 const data = ref<StoreElem[]>([]);
-const backends = ref<StoreBackend[]>([]);
+const showSettingDrawer = ref(false);
 
 const query = ref<{
   pageNum: number;
@@ -134,14 +132,13 @@ const query = ref<{
   next: true,
 });
 
-const tab = ref<StoreElemType | 'backend'>('deck');
+const tab = ref<StoreElemType>('deck');
 const recommendLoading = ref(true);
 const dataLoading = ref(true);
-const backendLoading = ref(true);
 
 const refreshRecommend = async () => {
   recommendations.value = [];
-  const resp = await store.storeRecommend({ type: tab.value });
+  const resp = await storeRecommend({ type: tab.value });
   if (resp?.result) {
     recommendLoading.value = true;
     recommendations.value = resp.data;
@@ -163,7 +160,7 @@ const resetElemData = async () => {
 const loadElems = debounce(async () => {
   if (!query.value.next) return;
   dataLoading.value = true;
-  const resp = await store.storePage({
+  const resp = await storePage({
     type: tab.value,
     ...query.value,
     pageNum: query.value.pageNum,
@@ -193,17 +190,6 @@ const installed = async (id: string) => {
   }
 };
 
-const refreshBackends = async () => {
-  const resp = await store.storeBackendList();
-  backendLoading.value = true;
-  if (resp?.result) {
-    backends.value = resp.data;
-  }
-  // setTimeout(() => {
-  //   backendLoading.value = false;
-  // }, 500);
-};
-
 watch(tab, async () => {
   query.value = {
     pageNum: 1,
@@ -215,11 +201,14 @@ watch(tab, async () => {
     next: true,
   };
   data.value = [];
-  if (tab.value !== 'backend') {
+  await resetElemData();
+  await refreshRecommend();
+});
+
+watch(showSettingDrawer, async val => {
+  if (!val) {
     await resetElemData();
     await refreshRecommend();
-  } else {
-    await refreshBackends();
   }
 });
 

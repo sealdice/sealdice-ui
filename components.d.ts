@@ -115,6 +115,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     StoreBackend: typeof import('./src/components/mod/store/StoreBackend.vue')['default']
+    StoreBackendSetting: typeof import('./src/components/mod/store/StoreBackendSetting.vue')['default']
     StoreElem: typeof import('./src/components/mod/store/StoreElem.vue')['default']
     StoreRecommendation: typeof import('./src/components/mod/store/StoreRecommendation.vue')['default']
     StoryBackup: typeof import('./src/components/mod/story/StoryBackup.vue')['default']

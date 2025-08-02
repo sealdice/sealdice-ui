@@ -3,6 +3,7 @@ import type { StoreElem } from '~/type';
 import { Download } from '@element-plus/icons-vue';
 import * as dayjs from 'dayjs';
 import { useStore } from '~/store';
+import { storeDownload, storeRating } from '~/api/store';
 
 interface StoreElemProps extends StoreElem {
   index: number;
@@ -23,7 +24,7 @@ const getAuthor = (authors: string[]) => {
 const downloading = ref(false);
 const download = async () => {
   downloading.value = true;
-  const response = await store.storeDownload(props);
+  const response = await storeDownload(store.token, props);
   if (response.result) {
     emits('downloaded', props.id);
     ElMessage.success('下载成功，已自动重载！');
@@ -35,7 +36,7 @@ const download = async () => {
 
 const rate = ref<number>(props.rate ?? 0);
 const rating = async () => {
-  const response = await store.storeRating({ id: props.id, rate: rate.value });
+  const response = await storeRating(store.token, { id: props.id, rate: rate.value });
   if (response.result) {
     ElMessage.success('评分成功！');
   } else {
