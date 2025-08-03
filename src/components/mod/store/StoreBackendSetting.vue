@@ -77,7 +77,7 @@ watch(model, val => {
         </template>
         <template #default>
           <div :key="b.id" v-for="b in backends">
-            <store-backend v-bind="b" @remove="removeBackend"></store-backend>
+            <store-backend v-bind="b" :simple="false" @remove="removeBackend"></store-backend>
           </div>
         </template>
       </el-skeleton>

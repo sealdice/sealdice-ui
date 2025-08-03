@@ -176,7 +176,6 @@ import {
   Delete,
   MostlyCloudy,
   DocumentChecked,
-  Warning,
 } from '@element-plus/icons-vue';
 import { getBackupConfig } from '~/api/backup';
 import {

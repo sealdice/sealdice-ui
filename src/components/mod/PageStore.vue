@@ -240,6 +240,7 @@ watch(currBackend, async () => {
 
 watch(showSettingDrawer, async val => {
   if (!val) {
+    await refreshBackends();
     await resetElemData();
     await refreshRecommend();
   }

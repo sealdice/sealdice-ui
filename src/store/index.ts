@@ -1,4 +1,3 @@
-import { backend } from '~/backend';
 import { getCustomText, saveCustomText } from '~/api/configs';
 import {
   getAdvancedConfig,
@@ -31,16 +30,7 @@ import { getBaseInfo, getHello, getLogFetchAndClear, getPreInfo } from '~/api/ot
 import { getSalt, signin } from '~/api/signin';
 
 import type { addImConnectionForm } from '~/components/PageConnectInfoItems.vue';
-import type {
-  AdvancedConfig,
-  HelpDoc,
-  HelpTextItem,
-  HelpTextItemQuery,
-  JsScriptInfo,
-  StoreBackend,
-  StoreElem,
-  StoreElemType,
-} from '~/type';
+import type { AdvancedConfig } from '~/type';
 export enum goCqHttpStateCode {
   Init = 0,
   InLogin = 1,
