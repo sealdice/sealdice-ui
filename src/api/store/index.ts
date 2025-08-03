@@ -45,6 +45,7 @@ export function storeRecommend(params: { type: StoreElemType }) {
 }
 
 export function storePage(params: {
+  backendID: string;
   type: StoreElemType;
   pageNum: number;
   pageSize: number;

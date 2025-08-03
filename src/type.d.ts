@@ -119,22 +119,24 @@ export interface StoreElem {
   license: string;
   releaseTime: number;
   updateTime: number;
-  tags: string[];
-  rate: number;
-  extra: Map<string, string>;
-  downloadNum: number;
-  downloadUrl: string;
-  hash: Map<string, string>;
-  homePage: string;
-  sealVersion: string;
-  dependencies: Map<string, string>;
+  tags?: string[];
+  rate?: number;
+  extra?: Map<string, string>;
+  downloadNum?: number;
+  downloadUrl?: string;
+  hash?: Map<string, string>;
+  homePage?: string;
+  sealVersion?: string;
+  dependencies?: Map<string, string>;
 }
+
+export type StoreBackendType = 'official' | 'trusted' | 'extra';
 
 export interface StoreBackend {
   id: string;
   name: string;
   url: string;
-  type: 'official' | 'trusted' | 'extra';
+  type: StoreBackendType;
   health: boolean;
   announcement: string;
 }

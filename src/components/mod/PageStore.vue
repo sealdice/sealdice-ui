@@ -1,5 +1,16 @@
 <template>
-  <header class="page-header">
+  <header class="page-header gap-y-2">
+    <div class="flex items-center">
+      <el-text class="flex-none">当前仓库：</el-text>
+      <el-select v-model="currBackend" value-key="id" placeholder="选择仓库" style="width: 20rem">
+        <template #label="{ value }">
+          <store-backend v-bind="value" simple />
+        </template>
+        <el-option v-for="b in backends" :key="b.id" :label="b.name" :value="b">
+          <store-backend v-bind="b" simple />
+        </el-option>
+      </el-select>
+    </div>
     <el-button type="primary" :icon="Setting" @click="showSettingDrawer = true">
       配置扩展仓库
     </el-button>
@@ -8,6 +19,7 @@
   <el-tabs v-model="tab" stretch>
     <el-tab-pane
       v-for="{ name, label } in tabs"
+      v-bind:key="name"
       :label="label"
       :name="name"
       v-infinite-scroll="loadElems"
@@ -98,11 +110,11 @@
 </template>
 
 <script lang="ts" setup>
-import type { StoreElem, StoreElemType } from '~/type';
+import type { StoreBackend, StoreElem, StoreElemType } from '~/type';
 import { ArrowDown, ArrowUp, Setting } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { debounce } from 'lodash-es';
-import { storePage, storeRecommend } from '~/api/store';
+import { storeBackendList, storePage, storeRecommend } from '~/api/store';
 
 const tabs = [
   { name: 'deck', label: '牌堆' },
@@ -111,10 +123,13 @@ const tabs = [
 ];
 
 const recommendations = ref<StoreElem[]>([]);
+const backends = ref<StoreBackend[]>([]);
+const currBackend = ref<StoreBackend>();
 const data = ref<StoreElem[]>([]);
 const showSettingDrawer = ref(false);
 
 const query = ref<{
+  backendID: string;
   pageNum: number;
   pageSize: number;
   author: string;
@@ -123,6 +138,7 @@ const query = ref<{
   order: 'asc' | 'desc';
   next: boolean;
 }>({
+  backendID: 'official',
   pageNum: 1,
   pageSize: 5,
   author: '',
@@ -141,15 +157,24 @@ const refreshRecommend = async () => {
   const resp = await storeRecommend({ type: tab.value });
   if (resp?.result) {
     recommendLoading.value = true;
-    recommendations.value = resp.data;
+    recommendations.value = resp.data ?? [];
     setTimeout(() => {
       recommendLoading.value = false;
     }, 500);
   }
 };
 
+const refreshBackends = async () => {
+  const resp = await storeBackendList();
+  if (resp?.result) {
+    backends.value = resp.data;
+    if (!currBackend.value) {
+      currBackend.value = backends.value?.find(b => 'official' === b.type);
+    }
+  }
+};
+
 const resetElemData = async () => {
-  console.log('resetElemData');
   query.value.pageNum = 1;
   query.value.pageSize = 5;
   query.value.next = true;
@@ -166,7 +191,7 @@ const loadElems = debounce(async () => {
     pageNum: query.value.pageNum,
   });
   if (resp?.result) {
-    data.value = data.value.concat(resp.data);
+    data.value = data.value?.concat(resp.data) ?? [];
     query.value.pageNum++;
     query.value.next = resp.next;
   } else {
@@ -192,6 +217,7 @@ const installed = async (id: string) => {
 
 watch(tab, async () => {
   query.value = {
+    backendID: currBackend.value?.id ?? 'official',
     pageNum: 1,
     pageSize: 5,
     author: '',
@@ -201,6 +227,13 @@ watch(tab, async () => {
     next: true,
   };
   data.value = [];
+  await refreshBackends();
+  await resetElemData();
+  await refreshRecommend();
+});
+
+watch(currBackend, async () => {
+  query.value.backendID = currBackend.value?.id ?? 'official';
   await resetElemData();
   await refreshRecommend();
 });
@@ -216,6 +249,7 @@ onBeforeMount(async () => {
   query.value.pageNum = 1;
   query.value.pageSize = 5;
   data.value = [];
+  await refreshBackends();
   await resetElemData();
   await refreshRecommend();
 });
