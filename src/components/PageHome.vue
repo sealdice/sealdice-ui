@@ -42,38 +42,36 @@
       <el-tooltip raw-content content="点击重新进行检测">
         <span>网络质量：</span>
       </el-tooltip>
-
+    
       <el-text type="primary" v-if="networkHealth.timestamp === 0">检测中…… 🤔</el-text>
-      <el-text
-        type="success"
-        v-else-if="networkHealth.total !== 0 && networkHealth.total === networkHealth.ok?.length"
-        >优 😄</el-text
-      >
-      <el-text
-        type="primary"
-        v-else-if="networkHealth.ok?.includes('sign') && networkHealth.ok?.includes('seal')"
-        >一般 😐️</el-text
-      >
-      <el-text
-        type="danger"
-        v-else-if="networkHealth.total !== 0 && (networkHealth.ok ?? []).length === 0"
-        >网络中断 😱</el-text
-      >
-      <template v-else>
-        <el-text type="warning" class="mr-4">差 ☹️</el-text>
-        <el-text type="warning" size="small"
-          >这意味着你可能无法正常使用内置客户端/Lagrange 连接 QQ
-          平台，有时会出现消息无法正常发送的现象。</el-text
-        >
+    
+      <template v-else-if="isExcellent">
+        <el-text type="success">优 🟢</el-text>
+        <el-text type="info" size="small">你的网络可以正常访问海豹所需的所有服务。如果遇到问题，请查看日志分析。</el-text>
       </template>
-
-      <el-tooltip v-if="networkHealth.timestamp !== 0">
+    
+      <template v-else-if="isGood">
+        <el-text type="primary">良 🟡</el-text>
+        <el-text type="info" size="small">你的网络可能无法访问国外服务，Discord/Telegram 可能无法对接使用。如果遇到问题，请查看日志分析。</el-text>
+      </template>
+    
+      <template v-else-if="isOffline">
+        <el-text type="danger">离线 ❌</el-text>
+        <el-text type="danger" size="small">你似乎无法访问到互联网。请检查网络。</el-text>
+      </template>
+    
+      <template v-else>
+        <el-text type="warning" class="mr-4">差 🔴</el-text>
+        <el-text type="warning" size="small">你的网络可能无法访问 SealDice 或 内置客户端 所需的服务，这意味着你可能无法正常使用内置客户端连接 QQ 平台，可能会出现消息无法正常发送的现象。如果遇到问题，请查看日志分析。</el-text>
+      </template>
+    
+      <el-tooltip v-if="hasResult">
         <template #content>
           {{ dayjs.unix(networkHealth.timestamp).format('YYYY-MM-DD HH:mm:ss') }}
         </template>
-        <el-text class="ml-auto" type="info" size="small"
-          >检测于 {{ dayjs.unix(networkHealth.timestamp).from(now) }}</el-text
-        >
+        <el-text class="ml-auto" type="info" size="small">
+          检测于 {{ dayjs.unix(networkHealth.timestamp).from(now) }}
+        </el-text>
       </el-tooltip>
     </div>
 
