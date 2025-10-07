@@ -105,6 +105,66 @@
           :size="50"
           :src="urlBase + '/sd-api/utils/ga/charyflys'" />希望潇洒的风：Ceeling (UI)</el-link
       >
+      <el-link :underline="false" href="https://github.com/Szzrain" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/Szzrain'" />Szzrain</el-link
+      >
+      <el-link :underline="false" href="https://github.com/asterson" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/asterson'" />冬子(UI)</el-link
+      >
+      <el-link :underline="false" href="https://github.com/asterson" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/GUERdugujian'" />咕之勇者独孤剑(dnd5文档)</el-link
+      >
+      <el-link :underline="false" href="https://github.com/GUERdugujian" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/oissevalt'" />檀轶步棋</el-link
+      >
+      <el-link :underline="false" href="https://github.com/kenichiLyon" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          src="https://d1.sealdice.com/images/kenichiLyon.jpg" />山本健一</el-link
+      >
+      <el-link :underline="false" href="https://github.com/error2913" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/error2913'" />error2913</el-link
+      >
+      <el-link :underline="false" href="https://github.com/baiyu-yu" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/baiyu-yu'" />白鱼</el-link
+      >
+      <el-link :underline="false" href="https://github.com/FairyOwO" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/FairyOwO'" />FairyOwO</el-link
+      >
+      <el-link :underline="false" href="https://github.com/conglinyizhi" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/conglinyizhi'" />丛林意志(UI)</el-link
+      >
+      <el-link :underline="false" href="https://github.com/yichere" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/yichere'" />炽热</el-link
+      >
     </div>
     <div style="margin-top: 2rem" class="subtitle">V1.5.0 特别致谢</div>
     <div class="developers">
