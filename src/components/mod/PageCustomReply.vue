@@ -390,7 +390,8 @@ const beforeUpload = async (file: any) => {
     ElMessage.success('上传完成');
     const ret = await getCustomReplyFileList();
     fileItems.value = ret.items;
-    curFilename.value = ret.items[0].filename;
+    curFilename.value = file.name;
+    ElMessage.success(`已切换到新文件: ${file.name}`);
     await refreshCurrent();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
