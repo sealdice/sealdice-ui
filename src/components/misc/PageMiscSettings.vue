@@ -212,9 +212,7 @@
       <template #label>
         <div>
           <span>允许直接退群</span>
-          <el-tooltip
-            raw-content
-            content="默认关闭。开启后用户无需@骰娘即可执行退群指令">
+          <el-tooltip raw-content content="默认关闭。开启后用户无需@骰娘即可执行退群指令">
             <el-icon><question-filled /></el-icon>
           </el-tooltip>
         </div>
