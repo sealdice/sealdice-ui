@@ -117,13 +117,13 @@
           :size="50"
           :src="urlBase + '/sd-api/utils/ga/asterson'" />冬子(UI)</el-link
       >
-      <el-link :underline="false" href="https://github.com/asterson" target="_blank"
+      <el-link :underline="false" href="https://github.com/GUERdugujian" target="_blank"
         ><el-avatar
           shape="circle"
           :size="50"
           :src="urlBase + '/sd-api/utils/ga/GUERdugujian'" />咕之勇者独孤剑(dnd5文档)</el-link
       >
-      <el-link :underline="false" href="https://github.com/GUERdugujian" target="_blank"
+      <el-link :underline="false" href="https://github.com/oissevalt" target="_blank"
         ><el-avatar
           shape="circle"
           :size="50"
