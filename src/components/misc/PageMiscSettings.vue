@@ -208,7 +208,7 @@
       <el-checkbox v-model="config.botExtFreeSwitch" label="开启" />
     </el-form-item>
 
-    <!-- <el-form-item>
+    <el-form-item>
       <template #label>
         <div>
           <span>允许直接退群</span>
@@ -217,8 +217,8 @@
           </el-tooltip>
         </div>
       </template>
-      <el-checkbox v-model="config.botexitwithoutat" label="开启" />
-    </el-form-item> -->
+      <el-checkbox v-model="config.botExitWithoutAt" label="开启" />
+    </el-form-item>
 
     <el-form-item>
       <template #label>
