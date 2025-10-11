@@ -1,5 +1,3 @@
-import type BanConfig from './components/misc/banList/BanConfig.vue';
-
 export interface JsScriptInfo {
   name: string;
   enable: boolean;
@@ -81,6 +79,7 @@ export interface AdvancedConfig {
   storyLogBackendUrl: string;
   storyLogApiVersion: string;
   storyLogBackendToken: string;
+  storeBackendUrl: string;
 }
 
 export interface BanConfig {
@@ -99,4 +98,45 @@ export interface BanConfig {
   scoreReducePerMinute: number;
   jointScorePercentOfGroup: number;
   jointScorePercentOfInviter: number;
+}
+
+export type StoreElemType = 'plugin' | 'deck'; // | 'reply' | 'helpdoc';
+
+export interface StoreElem {
+  namespace: string;
+  id: string;
+  version: string;
+  key: string;
+  installed: boolean;
+
+  source: 'official' | string;
+  type: StoreElemType;
+  ext: '.js' | '.toml' | '.json' | '.jsonc' | '.yaml' | '.xlsx' | string;
+
+  name: string;
+  authors: string[];
+  desc: string;
+  license: string;
+  releaseTime: number;
+  updateTime: number;
+  tags?: string[];
+  rate?: number;
+  extra?: Map<string, string>;
+  downloadNum?: number;
+  downloadUrl?: string;
+  hash?: Map<string, string>;
+  homePage?: string;
+  sealVersion?: string;
+  dependencies?: Map<string, string>;
+}
+
+export type StoreBackendType = 'official' | 'trusted' | 'extra';
+
+export interface StoreBackend {
+  id: string;
+  name: string;
+  url: string;
+  type: StoreBackendType;
+  health: boolean;
+  announcement: string;
 }
