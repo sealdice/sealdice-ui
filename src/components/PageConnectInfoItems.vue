@@ -171,8 +171,10 @@
           <template
             v-if="
               i.platform === 'QQ' &&
-              (i.protocolType === 'onebot' || i.protocolType === 'walle-q') &&
-              i.adapter.builtinMode === 'gocq'
+              (i.protocolType === 'onebot' ||
+                i.protocolType === 'walle-q' ||
+                i.protocolType === 'milky') &&
+              (i.adapter.builtinMode === 'gocq' || !i.adapter.builtinMode)
             ">
             <!-- <el-form-item label="忽略好友请求">
               <div>{{i.adapter?.ignoreFriendRequest ? '是' : '否'}}</div>
@@ -187,12 +189,6 @@
               <div v-if="i.adapter?.inPackGoCqHttpProtocol === 5">iPad</div>
               <div v-if="i.adapter?.inPackGoCqHttpProtocol === 6">AndroidPad</div>
               <!-- <el-button type="primary" class="btn-add" :icon="Plus" circle @click="addOne"></el-button> -->
-              <el-button
-                size="small"
-                type="primary"
-                style="margin-left: 1rem"
-                :icon="Edit"
-                @click="askSetData(i)"></el-button>
             </el-form-item>
             <el-form-item v-if="i.adapter.useInPackGoCqhttp" label="协议版本">
               <div v-if="i.adapter?.inPackGoCqHttpAppVersion === ''">未指定</div>
@@ -216,6 +212,12 @@
             </el-form-item>
             <el-form-item v-else label="特殊">
               <div>分离部署</div>
+              <el-button
+                size="small"
+                type="primary"
+                style="margin-left: 1rem"
+                :icon="Edit"
+                @click="askSetDataGocq(i)"></el-button>
             </el-form-item>
           </template>
 
@@ -350,7 +352,11 @@
         }}</el-checkbox>
       </el-form-item>
 
-      <el-form-item label="协议" :label-width="formLabelWidth" required>
+      <el-form-item
+        label="协议"
+        :label-width="formLabelWidth"
+        required
+        v-if="form.endpoint.adapter?.useInPackGoCqhttp">
         <el-select v-model="form.protocol">
           <!-- <el-option label="iPad 协议" :value="0"></el-option> -->
           <el-option label="Android 协议 - 稳定协议，建议！" :value="1"></el-option>
@@ -2192,7 +2198,7 @@ const setEnable = async (i: DiceConnection, val: boolean) => {
   }
 };
 
-const askSetData = async (i: DiceConnection) => {
+const askSetDataGocq = async (i: DiceConnection) => {
   form.protocol = i.adapter?.inPackGoCqHttpProtocol;
   form.appVersion = i.adapter?.inPackGoCqHttpAppVersion;
   form.ignoreFriendRequest = i.adapter?.ignoreFriendRequest;
