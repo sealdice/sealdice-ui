@@ -1685,7 +1685,7 @@
           v-model="form.restGateway"
           type="string"
           autocomplete="off"
-          placeholder="http://127.0.0.1:3000 (注意，不要加上/api的后缀)"></el-input>
+          placeholder="http://127.0.0.1:3000/api"></el-input>
       </el-form-item>
     </template>
     <template v-else-if="form.step === 2">
