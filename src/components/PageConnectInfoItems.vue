@@ -172,8 +172,8 @@
             v-if="
               i.platform === 'QQ' &&
               (i.protocolType === 'onebot' ||
-               i.protocolType === 'walle-q' ||
-               i.protocolType === 'milky') &&
+                i.protocolType === 'walle-q' ||
+                i.protocolType === 'milky') &&
               (i.adapter.builtinMode === 'gocq' || !i.adapter.builtinMode)
             ">
             <!-- <el-form-item label="忽略好友请求">
@@ -355,7 +355,8 @@
       <el-form-item
         label="协议"
         :label-width="formLabelWidth"
-        required v-if="form.endpoint.adapter?.useInPackGoCqhttp">
+        required
+        v-if="form.endpoint.adapter?.useInPackGoCqhttp">
         <el-select v-model="form.protocol">
           <!-- <el-option label="iPad 协议" :value="0"></el-option> -->
           <el-option label="Android 协议 - 稳定协议，建议！" :value="1"></el-option>
