@@ -211,18 +211,6 @@
     <el-form-item>
       <template #label>
         <div>
-          <span>允许直接退群</span>
-          <el-tooltip raw-content content="默认关闭。开启后用户无需@骰娘即可执行退群指令">
-            <el-icon><question-filled /></el-icon>
-          </el-tooltip>
-        </div>
-      </template>
-      <el-checkbox v-model="config.botExitWithoutAt" label="开启" />
-    </el-form-item>
-
-    <el-form-item>
-      <template #label>
-        <div>
           <span>启用戳一戳</span>
           <el-tooltip raw-content content="默认开启。仅QQ平台，关闭后不回应戳一戳。">
             <el-icon><question-filled /></el-icon>
@@ -262,6 +250,18 @@
         </div>
       </template>
       <el-checkbox v-model="config.ignoreUnaddressedBotCmd" label="开启" />
+    </el-form-item>
+
+    <el-form-item v-if="!config.ignoreUnaddressedBotCmd">
+      <template #label>
+        <div>
+          <span>允许直接退群</span>
+          <el-tooltip raw-content content="默认关闭。开启后用户无需@骰娘即可执行退群指令">
+            <el-icon><question-filled /></el-icon>
+          </el-tooltip>
+        </div>
+      </template>
+      <el-checkbox v-model="config.botExitWithoutAt" label="开启" />
     </el-form-item>
 
     <el-form-item>
@@ -792,6 +792,10 @@ const submit = async () => {
 
   if (mod.logSizeNoticeCount) {
     mod.logSizeNoticeCount = toNumber(mod.logSizeNoticeCount);
+  }
+
+  if (mod.ignoreUnaddressedBotCmd) {
+    mod.botExitWithoutAt = false;
   }
 
   await store.diceConfigSet(mod);
