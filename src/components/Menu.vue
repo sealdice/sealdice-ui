@@ -67,6 +67,10 @@
       <el-menu-item index="/mod/censor">
         <span>拦截管理</span>
       </el-menu-item>
+
+      <el-menu-item index="/mod/store">
+        <span>扩展商店</span>
+      </el-menu-item>
     </el-sub-menu>
 
     <el-sub-menu index="/misc">
