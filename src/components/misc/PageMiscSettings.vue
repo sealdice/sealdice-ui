@@ -487,6 +487,18 @@
     <el-form-item>
       <template #label>
         <div>
+          <span>制卡使用合并转发</span>
+          <el-tooltip raw-content content="开启后，.coc 的结果会尝试以“合并转发”格式发送">
+            <el-icon><question-filled /></el-icon>
+          </el-tooltip>
+        </div>
+      </template>
+      <el-checkbox v-model="config.cocCardMergeForward" label="开启" />
+    </el-form-item>
+
+    <el-form-item>
+      <template #label>
+        <div>
           <span>骰点轮数上限</span>
           <el-tooltip raw-content content=".r n#中n的最大值，1-25之间，默认12">
             <el-icon><question-filled /></el-icon>

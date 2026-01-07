@@ -71,6 +71,7 @@ export type DiceConfig = {
   defaultCocRuleIndex: string; // 默认的COC规则索引
   maxExecuteTime: string; // 最大执行时间
   maxCocCardGen: string; // 最大COC卡片生成数量
+  cocCardMergeForward: boolean; // COC制卡是否使用合并转发
   extDefaultSettings: ExtensionSettings[]; // 扩展插件的默认设置
   botExtFreeSwitch: boolean; // 机器人扩展是否自由开关
   botExitWithoutAt: boolean; // 是否在未被@时退出
