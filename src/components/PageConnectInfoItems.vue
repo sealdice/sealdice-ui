@@ -1305,7 +1305,7 @@
         <el-form-item v-if="form.accountType === 6" label="访问令牌" :label-width="formLabelWidth">
           <el-input
             v-model="form.accessToken"
-            placeholder="gocqhttp配置的access token，没有不用填写"
+            placeholder="NapCat中配置的access token，没有不用填写"
             type="text"
             autocomplete="off"></el-input>
         </el-form-item>
