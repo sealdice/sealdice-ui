@@ -1063,11 +1063,10 @@ onMounted(async () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {}
 
-  await refreshList();
+  await refreshJsData();
   if (jsList.value.length > 0) {
     mode.value = 'list';
   }
-  await refreshConfig();
 
   timerId = setInterval(async () => {
     console.log('refresh');
@@ -1121,13 +1120,23 @@ const refreshConfig = async () => {
   jsConfig.value = await getJsConfigs();
 };
 
+const refreshJsData = async () => {
+  await refreshList();
+  try {
+    await refreshConfig();
+  } catch (err) {
+    console.error('refresh js config failed:', err);
+    ElMessage.warning('插件配置刷新失败，请手动刷新界面');
+  }
+};
+
 const jsReload = async () => {
   const ret = await reloadJS();
   if (ret && ret.testMode) {
     ElMessage.success('展示模式无法重载脚本');
   } else {
     ElMessage.success('已重载');
-    await refreshList();
+    await refreshJsData();
     needReload.value = false;
   }
   jsEnable.value = await jsStatus();
