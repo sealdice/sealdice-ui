@@ -984,9 +984,6 @@ const getDeprecatedKeys = (config: JsPluginConfig): string[] => {
   return result;
 };
 
-const CONFIG_GROUP_UNGROUPED_KEY = '__ungrouped__';
-const CONFIG_GROUP_UNGROUPED_LABEL = '未分组';
-
 interface JsConfigGroup {
   key: string;
   label: string;
@@ -1000,12 +997,12 @@ const getConfigGroups = (config: JsPluginConfig): JsConfigGroup[] => {
   const groupMap = new Map<string, JsConfigGroup>();
   for (const item of config.configs || []) {
     const groupName = normalizeGroupName(item.group);
-    const key = groupName === '' ? CONFIG_GROUP_UNGROUPED_KEY : groupName;
+    const key = groupName === '' ? '__ungrouped__' : groupName;
     let group = groupMap.get(key);
     if (!group) {
       group = {
         key,
-        label: groupName === '' ? CONFIG_GROUP_UNGROUPED_LABEL : groupName,
+        label: groupName === '' ? '未分组' : groupName,
         items: [],
       };
       groupMap.set(key, group);
