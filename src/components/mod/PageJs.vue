@@ -272,18 +272,16 @@
                 </template>
                 <el-card shadow="never" style="border: 0">
                   <el-tabs
-                    v-if="hasSecondLevelGroup(config as unknown as JsPluginConfig)"
-                    v-model="jsConfigGroupActive[(config as unknown as JsPluginConfig)['pluginName']]"
+                    v-if="hasSecondLevelGroupByAny(config)"
+                    v-model="jsConfigGroupActive[getPluginNameByAny(config)]"
                     style="margin-bottom: 0.75rem">
                     <el-tab-pane
-                      v-for="group in getConfigGroups(config as unknown as JsPluginConfig)"
+                      v-for="group in getConfigGroupsByAny(config)"
                       :key="group.key"
                       :label="group.label"
                       :name="group.key" />
                   </el-tabs>
-                  <el-form
-                    v-for="(c, index) in getDisplayConfigs(config as unknown as JsPluginConfig)"
-                    :key="index">
+                  <el-form v-for="c in getDisplayConfigsByAny(config)" :key="c.key">
                     <template #header>
                       <div class="js-item-header">
                         <el-space>
@@ -992,12 +990,12 @@ interface JsConfigGroup {
 
 const normalizeGroupName = (group?: string): string => (group || '').trim();
 
-const getConfigGroups = (config: JsPluginConfig): JsConfigGroup[] => {
+const buildConfigGroups = (config: JsPluginConfig): JsConfigGroup[] => {
   const groups: JsConfigGroup[] = [];
   const groupMap = new Map<string, JsConfigGroup>();
   for (const item of config.configs || []) {
     const groupName = normalizeGroupName(item.group);
-    const key = groupName === '' ? '__ungrouped__' : groupName;
+    const key = groupName;
     let group = groupMap.get(key);
     if (!group) {
       group = {
@@ -1013,8 +1011,11 @@ const getConfigGroups = (config: JsPluginConfig): JsConfigGroup[] => {
   return groups;
 };
 
+const getConfigGroups = (config: JsPluginConfig): JsConfigGroup[] =>
+  configGroupsByPlugin.value[config.pluginName] || [];
+
 const hasSecondLevelGroup = (config: JsPluginConfig): boolean =>
-  (config.configs || []).some(item => normalizeGroupName(item.group) !== '');
+  getConfigGroups(config).some(group => group.key !== '');
 
 const getDisplayConfigs = (config: JsPluginConfig): JsPluginConfigItem[] => {
   const configs = config.configs || [];
@@ -1029,6 +1030,15 @@ const getDisplayConfigs = (config: JsPluginConfig): JsPluginConfigItem[] => {
   const match = groups.find(group => group.key === activeGroup) || groups[0];
   return match.items;
 };
+
+const getConfigByAny = (config: unknown): JsPluginConfig => config as JsPluginConfig;
+const getPluginNameByAny = (config: unknown): string => getConfigByAny(config).pluginName;
+const hasSecondLevelGroupByAny = (config: unknown): boolean =>
+  hasSecondLevelGroup(getConfigByAny(config));
+const getConfigGroupsByAny = (config: unknown): JsConfigGroup[] =>
+  getConfigGroups(getConfigByAny(config));
+const getDisplayConfigsByAny = (config: unknown): JsPluginConfigItem[] =>
+  getDisplayConfigs(getConfigByAny(config));
 
 const doDeleteUnusedConfigs = (pluginName: string, keys: string[]) => {
   ElMessageBox.confirm(
@@ -1156,6 +1166,13 @@ const filteredJsList = computed(() =>
 );
 const jsConfig = ref<{ [key: string]: JsPluginConfig }>({});
 const jsConfigGroupActive = ref<{ [pluginName: string]: string }>({});
+const configGroupsByPlugin = computed<Record<string, JsConfigGroup[]>>(() => {
+  const next: Record<string, JsConfigGroup[]> = {};
+  for (const config of Object.values(jsConfig.value)) {
+    next[config.pluginName] = buildConfigGroups(config);
+  }
+  return next;
+});
 const uploadFileList = ref<any[]>([]);
 
 // const jsVisitDir = async () => {
