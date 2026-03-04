@@ -1000,7 +1000,7 @@ const buildConfigGroups = (config: JsPluginConfig): JsConfigGroup[] => {
     if (!group) {
       group = {
         key,
-        label: groupName === '' ? '未分组' : groupName,
+        label: groupName === '' ? '默认分组' : groupName,
         items: [],
       };
       groupMap.set(key, group);
