@@ -271,9 +271,17 @@
                   </div>
                 </template>
                 <el-card shadow="never" style="border: 0">
-                  <el-form
-                    v-for="(c, index) in (config as unknown as JsPluginConfig)['configs']"
-                    :key="index">
+                  <el-tabs
+                    v-if="hasSecondLevelGroupByAny(config)"
+                    v-model="jsConfigGroupActive[getPluginNameByAny(config)]"
+                    style="margin-bottom: 0.75rem">
+                    <el-tab-pane
+                      v-for="group in getConfigGroupsByAny(config)"
+                      :key="group.key"
+                      :label="group.label"
+                      :name="group.key" />
+                  </el-tabs>
+                  <el-form v-for="c in getDisplayConfigsByAny(config)" :key="c.key">
                     <template #header>
                       <div class="js-item-header">
                         <el-space>
@@ -974,6 +982,64 @@ const getDeprecatedKeys = (config: JsPluginConfig): string[] => {
   return result;
 };
 
+interface JsConfigGroup {
+  key: string;
+  label: string;
+  items: JsPluginConfigItem[];
+}
+
+const normalizeGroupName = (group?: string): string => (group || '').trim();
+
+const buildConfigGroups = (config: JsPluginConfig): JsConfigGroup[] => {
+  const groups: JsConfigGroup[] = [];
+  const groupMap = new Map<string, JsConfigGroup>();
+  for (const item of config.configs || []) {
+    const groupName = normalizeGroupName(item.group);
+    const key = groupName;
+    let group = groupMap.get(key);
+    if (!group) {
+      group = {
+        key,
+        label: groupName === '' ? '默认分组' : groupName,
+        items: [],
+      };
+      groupMap.set(key, group);
+      groups.push(group);
+    }
+    group.items.push(item);
+  }
+  return groups;
+};
+
+const getConfigGroups = (config: JsPluginConfig): JsConfigGroup[] =>
+  configGroupsByPlugin.value[config.pluginName] || [];
+
+const hasSecondLevelGroup = (config: JsPluginConfig): boolean =>
+  getConfigGroups(config).some(group => group.key !== '');
+
+const getDisplayConfigs = (config: JsPluginConfig): JsPluginConfigItem[] => {
+  const configs = config.configs || [];
+  if (!hasSecondLevelGroup(config)) {
+    return configs;
+  }
+  const groups = getConfigGroups(config);
+  if (groups.length === 0) {
+    return [];
+  }
+  const activeGroup = jsConfigGroupActive.value[config.pluginName];
+  const match = groups.find(group => group.key === activeGroup) || groups[0];
+  return match.items;
+};
+
+const getConfigByAny = (config: unknown): JsPluginConfig => config as JsPluginConfig;
+const getPluginNameByAny = (config: unknown): string => getConfigByAny(config).pluginName;
+const hasSecondLevelGroupByAny = (config: unknown): boolean =>
+  hasSecondLevelGroup(getConfigByAny(config));
+const getConfigGroupsByAny = (config: unknown): JsConfigGroup[] =>
+  getConfigGroups(getConfigByAny(config));
+const getDisplayConfigsByAny = (config: unknown): JsPluginConfigItem[] =>
+  getDisplayConfigs(getConfigByAny(config));
+
 const doDeleteUnusedConfigs = (pluginName: string, keys: string[]) => {
   ElMessageBox.confirm(
     `删除插件 ${pluginName} 的共 ${keys.length} 个暂未使用的配置项/定时任务，确定吗？`,
@@ -1099,6 +1165,14 @@ const filteredJsList = computed(() =>
   }),
 );
 const jsConfig = ref<{ [key: string]: JsPluginConfig }>({});
+const jsConfigGroupActive = ref<{ [pluginName: string]: string }>({});
+const configGroupsByPlugin = computed<Record<string, JsConfigGroup[]>>(() => {
+  const next: Record<string, JsConfigGroup[]> = {};
+  for (const config of Object.values(jsConfig.value)) {
+    next[config.pluginName] = buildConfigGroups(config);
+  }
+  return next;
+});
 const uploadFileList = ref<any[]>([]);
 
 // const jsVisitDir = async () => {
@@ -1116,8 +1190,26 @@ const refreshList = async () => {
   jsList.value = lst;
 };
 
+const initConfigGroupActive = () => {
+  const next: { [pluginName: string]: string } = {};
+  for (const config of Object.values(jsConfig.value)) {
+    if (!hasSecondLevelGroup(config)) {
+      continue;
+    }
+    const groups = getConfigGroups(config);
+    if (groups.length === 0) {
+      continue;
+    }
+    const old = jsConfigGroupActive.value[config.pluginName];
+    const exists = groups.some(group => group.key === old);
+    next[config.pluginName] = exists ? old : groups[0].key;
+  }
+  jsConfigGroupActive.value = next;
+};
+
 const refreshConfig = async () => {
   jsConfig.value = await getJsConfigs();
+  initConfigGroupActive();
 };
 
 const refreshJsData = async () => {

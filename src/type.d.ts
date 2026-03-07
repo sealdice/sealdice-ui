@@ -22,6 +22,7 @@ export interface JsScriptInfo {
 export interface JsPluginConfigItem {
   key: string;
   type: string;
+  group?: string;
   defaultValue: any;
   value: any;
   option: any[];
