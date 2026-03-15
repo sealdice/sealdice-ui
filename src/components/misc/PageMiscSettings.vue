@@ -564,6 +564,20 @@
         :placeholder="'不活跃N天后自动退出'" />
     </el-form-item>
 
+    <el-form-item>
+      <template #label>
+        <div>
+          <span>自动退群简报</span>
+          <el-tooltip
+            raw-content
+            content="此开关打开时，仅有自动退群任务开始执行与执行全部结束会发送自动退群通知">
+            <el-icon><question-filled /></el-icon>
+          </el-tooltip>
+        </div>
+      </template>
+      <el-checkbox v-model="config.quitInactiveNoticeSummaryMode" label="开启" />
+    </el-form-item>
+
     <el-form-item label="退群批次大小">
       <el-input-number v-model="config.quitInactiveBatchSize" type="number" style="width: auto" />
     </el-form-item>

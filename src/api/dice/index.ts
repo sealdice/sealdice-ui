@@ -66,6 +66,7 @@ export type DiceConfig = {
   QQChannelLogMessage: boolean; // QQ频道是否记录消息
   refuseGroupInvite: boolean; // 是否拒绝群组邀请
   quitInactiveThreshold: number; // 退出不活跃状态的阈值
+  quitInactiveNoticeSummaryMode: boolean; // 自动退群通知摘要模式
   quitInactiveBatchSize: number; // 每次退出不活跃的批量大小
   quitInactiveBatchWait: number; // 批量退出时的等待时间
   defaultCocRuleIndex: string; // 默认的COC规则索引
