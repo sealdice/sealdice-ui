@@ -30,7 +30,7 @@ import { getBaseInfo, getHello, getLogFetchAndClear, getPreInfo } from '~/api/ot
 import { getSalt, signin } from '~/api/signin';
 
 import type { addImConnectionForm } from '~/components/PageConnectInfoItems.vue';
-import type { AdvancedConfig } from '~/type.d.ts';
+import type { AdvancedConfig } from '~/type';
 export enum goCqHttpStateCode {
   Init = 0,
   InLogin = 1,

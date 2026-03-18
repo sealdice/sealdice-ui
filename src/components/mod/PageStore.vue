@@ -1,0 +1,273 @@
+<template>
+  <header class="page-header gap-y-2">
+    <div class="flex items-center">
+      <el-text class="flex-none">当前仓库：</el-text>
+      <el-select v-model="currBackend" value-key="id" placeholder="选择仓库" style="width: 20rem">
+        <template #label="{ value }">
+          <store-backend v-bind="value" simple />
+        </template>
+        <el-option v-for="b in backends" :key="b.id" :label="b.name" :value="b">
+          <store-backend v-bind="b" simple />
+        </el-option>
+      </el-select>
+    </div>
+    <el-button type="primary" :icon="Setting" @click="showSettingDrawer = true">
+      配置扩展仓库
+    </el-button>
+  </header>
+
+  <el-tabs v-model="tab" stretch>
+    <el-tab-pane
+      v-for="{ name, label } in tabs"
+      v-bind:key="name"
+      :label="label"
+      :name="name"
+      v-infinite-scroll="loadElems"
+      :infinite-scroll-delay="500"
+      :infinite-scroll-disabled="!query.next">
+      <template v-if="recommendations.length > 0">
+        <h4>推荐{{ label }}</h4>
+
+        <el-skeleton class="w-full" :loading="recommendLoading" animated :count="5">
+          <template #template>
+            <el-skeleton-item variant="text" class="w-full" />
+          </template>
+
+          <el-scrollbar noresize>
+            <div class="flex flex-row overflow-x-auto gap-x-4">
+              <store-recommendation
+                class="flex-shrink-0 my-4 w-48 border-l pl-4 first:border-0 first:pl-0"
+                v-for="r in recommendations"
+                v-bind="r"
+                :key="r.id"
+                @downloaded="(id: string) => installed(id)" />
+            </div>
+          </el-scrollbar>
+        </el-skeleton>
+
+        <el-divider />
+      </template>
+
+      <h4>全部{{ label }}</h4>
+      <header class="flex justify-between items-center">
+        <el-form class="items-center" :inline="true">
+          <el-form-item :label="label + '名'">
+            <el-input v-model="query.name" clearable @change="resetElemData" />
+          </el-form-item>
+          <el-form-item label="排序">
+            <el-radio-group size="small" v-model="query.sortBy" @change="resetElemData">
+              <el-radio-button value="downloadNum">按下载数</el-radio-button>
+              <el-radio-button value="updateTime">按更新时间</el-radio-button>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item>
+            <el-radio-group size="small" v-model="query.order" @change="resetElemData">
+              <el-radio-button value="asc">
+                <el-icon>
+                  <ArrowUp />
+                </el-icon>
+              </el-radio-button>
+              <el-radio-button value="desc">
+                <el-icon>
+                  <ArrowDown />
+                </el-icon>
+              </el-radio-button>
+            </el-radio-group>
+          </el-form-item>
+        </el-form>
+      </header>
+      <main class="list-main">
+        <div class="mb-6 w-full lg:max-w-[50%] lg:pr-2" :key="i" v-for="(d, i) in data">
+          <store-elem v-bind="{ ...d, index: i }" @downloaded="(id: string) => installed(id)" />
+        </div>
+        <el-skeleton :loading="dataLoading" animated :rows="3" :count="5">
+          <template #template>
+            <div class="flex flex-col bg-white border rounded-md mb-8 px-3 pt-3 pb-1.5 gap-y-1">
+              <div class="flex flex-row justify-between">
+                <el-skeleton-item variant="p" class="w-1/3" />
+                <el-skeleton-item variant="p" class="w-1/5" />
+              </div>
+              <div class="mt-2">
+                <el-skeleton-item variant="text" />
+                <el-skeleton-item variant="text" />
+              </div>
+              <div class="mt-1.5 pt-1 border-t">
+                <el-skeleton-item variant="text" />
+              </div>
+            </div>
+          </template>
+          <template #default>
+            <el-divider class="bottom-line">
+              <el-text>没有了捏~</el-text>
+            </el-divider>
+          </template>
+        </el-skeleton>
+      </main>
+    </el-tab-pane>
+  </el-tabs>
+
+  <store-backend-setting v-model="showSettingDrawer" />
+</template>
+
+<script lang="ts" setup>
+import type { StoreBackend, StoreElem, StoreElemType } from '~/type';
+import { ArrowDown, ArrowUp, Setting } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
+import { debounce } from 'lodash-es';
+import { storeBackendList, storePage, storeRecommend } from '~/api/store';
+
+const tabs = [
+  { name: 'deck', label: '牌堆' },
+  { name: 'plugin', label: '插件' },
+  // {name: 'reply', label: '自定义回复'},
+];
+
+const recommendations = ref<StoreElem[]>([]);
+const backends = ref<StoreBackend[]>([]);
+const currBackend = ref<StoreBackend>();
+const data = ref<StoreElem[]>([]);
+const showSettingDrawer = ref(false);
+
+const query = ref<{
+  backendID: string;
+  pageNum: number;
+  pageSize: number;
+  author: string;
+  name: string;
+  sortBy: 'downloadNum' | 'updateTime';
+  order: 'asc' | 'desc';
+  next: boolean;
+}>({
+  backendID: 'official',
+  pageNum: 1,
+  pageSize: 5,
+  author: '',
+  name: '',
+  sortBy: 'downloadNum',
+  order: 'desc',
+  next: true,
+});
+
+const tab = ref<StoreElemType>('deck');
+const recommendLoading = ref(true);
+const dataLoading = ref(true);
+
+const refreshRecommend = async () => {
+  recommendations.value = [];
+  const resp = await storeRecommend({ type: tab.value });
+  if (resp?.result) {
+    recommendLoading.value = true;
+    recommendations.value = resp.data ?? [];
+    setTimeout(() => {
+      recommendLoading.value = false;
+    }, 500);
+  }
+};
+
+const refreshBackends = async () => {
+  const resp = await storeBackendList();
+  if (resp?.result) {
+    backends.value = resp.data;
+    if (!currBackend.value) {
+      currBackend.value = backends.value?.find(b => 'official' === b.type);
+    }
+  }
+};
+
+const resetElemData = async () => {
+  query.value.pageNum = 1;
+  query.value.pageSize = 5;
+  query.value.next = true;
+  data.value = [];
+  await loadElems();
+};
+
+const loadElems = debounce(async () => {
+  if (!query.value.next) return;
+  dataLoading.value = true;
+  const resp = await storePage({
+    type: tab.value,
+    ...query.value,
+    pageNum: query.value.pageNum,
+  });
+  if (resp?.result) {
+    data.value = data.value?.concat(resp.data) ?? [];
+    query.value.pageNum++;
+    query.value.next = resp.next;
+  } else {
+    ElMessage.error('无法获取插件商店列表');
+  }
+  setTimeout(() => {
+    dataLoading.value = false;
+  }, 500);
+}, 300);
+
+const installed = async (id: string) => {
+  for (const elem of data.value) {
+    if (elem.id === id) {
+      elem.installed = true;
+    }
+  }
+  for (const recommendation of recommendations.value) {
+    if (recommendation.id === id) {
+      recommendation.installed = true;
+    }
+  }
+};
+
+watch(tab, async () => {
+  query.value = {
+    backendID: currBackend.value?.id ?? 'official',
+    pageNum: 1,
+    pageSize: 5,
+    author: '',
+    name: '',
+    sortBy: 'downloadNum',
+    order: 'desc',
+    next: true,
+  };
+  data.value = [];
+  await refreshBackends();
+  await resetElemData();
+  await refreshRecommend();
+});
+
+watch(currBackend, async () => {
+  query.value.backendID = currBackend.value?.id ?? 'official';
+  await resetElemData();
+  await refreshRecommend();
+});
+
+watch(showSettingDrawer, async val => {
+  if (!val) {
+    await refreshBackends();
+    await resetElemData();
+    await refreshRecommend();
+  }
+});
+
+onBeforeMount(async () => {
+  query.value.pageNum = 1;
+  query.value.pageSize = 5;
+  data.value = [];
+  await refreshBackends();
+  await resetElemData();
+  await refreshRecommend();
+});
+</script>
+
+<style lang="scss">
+.list-main {
+  margin: 1rem 0 2rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.bottom-line {
+  .el-divider__text {
+    background-color: #f3f5f7;
+  }
+}
+</style>
