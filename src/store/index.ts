@@ -15,7 +15,8 @@ import {
   postAddGocqSeparate,
   postAddKook,
   postAddLagrange,
-  postAddMilky, postAddMilkyInternal,
+  postAddMilky,
+  postAddMilkyInternal,
   postAddMinecraft,
   postAddOfficialQQ,
   postAddOnebot11ReverseWs,
@@ -24,7 +25,6 @@ import {
   postaddSealChat,
   postAddSlack,
   postAddTelegram,
-  postAddWalleQ
 } from '~/api/im_connections';
 import { getBaseInfo, getHello, getLogFetchAndClear, getPreInfo } from '~/api/others';
 import { getSalt, signin } from '~/api/signin';
@@ -380,7 +380,7 @@ export const useStore = defineStore('main', {
           break;
         case 18:
           {
-            info = await postAddMilkyInternal(toNumber(account), "lagrangeV2");
+            info = await postAddMilkyInternal(toNumber(account), 'lagrangeV2');
           }
           break;
       }
