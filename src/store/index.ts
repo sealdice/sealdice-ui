@@ -15,7 +15,7 @@ import {
   postAddGocqSeparate,
   postAddKook,
   postAddLagrange,
-  postAddMilky,
+  postAddMilky, postAddMilkyInternal,
   postAddMinecraft,
   postAddOfficialQQ,
   postAddOnebot11ReverseWs,
@@ -24,13 +24,14 @@ import {
   postaddSealChat,
   postAddSlack,
   postAddTelegram,
-  postAddWalleQ,
+  postAddWalleQ
 } from '~/api/im_connections';
 import { getBaseInfo, getHello, getLogFetchAndClear, getPreInfo } from '~/api/others';
 import { getSalt, signin } from '~/api/signin';
 
 import type { addImConnectionForm } from '~/components/PageConnectInfoItems.vue';
 import type { AdvancedConfig } from '~/type.d.ts';
+import { toNumber } from 'lodash-es';
 export enum goCqHttpStateCode {
   Init = 0,
   InLogin = 1,
@@ -311,9 +312,11 @@ export const useStore = defineStore('main', {
               useSignServer,
               signServerConfig,
             );
-          } else if (implementation === 'walle-q') {
-            info = await postAddWalleQ(account, password, protocol);
           }
+          // deprecated
+          // else if (implementation === 'walle-q') {
+          //   info = await postAddWalleQ(account, password, protocol);
+          // }
           break;
         case 1:
           info = await postAddDiscord(token.trim(), proxyURL, reverseProxyUrl, reverseProxyCDNUrl);
@@ -373,6 +376,11 @@ export const useStore = defineStore('main', {
         case 17:
           {
             info = await postAddMilky(token, wsGateway, restGateway);
+          }
+          break;
+        case 18:
+          {
+            info = await postAddMilkyInternal(toNumber(account), "lagrangeV2");
           }
           break;
       }

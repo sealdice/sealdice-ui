@@ -198,6 +198,12 @@ export function postAddMilky(token: string, wsGateway: string, restGateway: stri
   });
 }
 
+export function postAddMilkyInternal(uin: number, clientMode: string) {
+  return request<DiceConnection>('post', 'addMilkyInternal', { uin, clientMode }, 'json', {
+    timeout: 65000,
+  });
+}
+
 export function postConnectionDel(id: string) {
   return request<DiceConnection>('post', 'del', { id });
 }
