@@ -990,6 +990,13 @@
           </small>
         </el-form-item>
 
+        <el-form-item v-if="form.accountType === 18" label="" :label-width="formLabelWidth">
+          <small>
+            <div style="color: #aa4422">输入的 QQ 账号务必是你即将扫码登录的账号</div>
+            <div style="color: #aa4422">否则登录会失败</div>
+          </small>
+        </el-form-item>
+
         <!-- <el-form-item label="附加参数" :label-width="formLabelWidth">
           <template #label>
             <div style="display: flex; align-items: center;">
