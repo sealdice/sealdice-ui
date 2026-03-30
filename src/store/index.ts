@@ -68,6 +68,7 @@ export interface AdapterQQ {
   isReverse: boolean;
   reverseAddr: string;
   builtinMode: 'gocq' | 'lagrange' | 'lagrange-gocq';
+  built_in_mode: string; // Milky 的字段，跟 ob 不太一样
   signServerVer: string;
   signServerName: string;
 }

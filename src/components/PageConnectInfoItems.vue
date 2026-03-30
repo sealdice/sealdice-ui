@@ -199,6 +199,11 @@
                 {{ i.adapter.inPackGoCqHttpAppVersion }}
               </div>
             </el-form-item>
+            <el-form-item v-if="i.protocolType" label="协议类型">
+              <div>
+                {{ i.protocolType }}
+              </div>
+            </el-form-item>
             <el-form-item v-if="i.adapter.useInPackGoCqhttp" label="协议实现">
               <!-- <el-input v-model="i.connectUrl"></el-input> -->
               <div v-if="i.adapter?.implementation === 'gocq' || i.adapter?.implementation === ''">
@@ -209,6 +214,15 @@
             </el-form-item>
             <el-form-item v-else-if="i.adapter?.isReverse" label="特殊">
               <div>反向 WS</div>
+            </el-form-item>
+            <el-form-item v-else-if="i.adapter?.built_in_mode" label="特殊">
+              <div>{{ i.adapter?.built_in_mode }}</div>
+              <el-button
+                size="small"
+                type="primary"
+                style="margin-left: 1rem"
+                :icon="Edit"
+                @click="askSetDataGocq(i)"></el-button>
             </el-form-item>
             <el-form-item v-else label="特殊">
               <div>分离部署</div>
