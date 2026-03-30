@@ -291,6 +291,7 @@ interface AdapterQQ {
   isReverse: boolean;
   reverseAddr: string;
   builtinMode: 'gocq' | 'lagrange' | 'lagrange-gocq';
+  built_in_mode: string; // Milky
   signServerVer: string;
   signServerName: string;
 }
