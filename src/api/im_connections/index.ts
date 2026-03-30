@@ -300,6 +300,8 @@ enum goCqHttpStateCode {
   InLogin = 1,
   InLoginQrCode = 2,
   InLoginBar = 3,
+  MilkyLoginConnected = 4,
+  MilkyLoginFailed = 5,
   InLoginVerifyCode = 6,
   InLoginDeviceLock = 7,
   LoginSuccessed = 10,
