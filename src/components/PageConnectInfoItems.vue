@@ -201,7 +201,7 @@
             </el-form-item>
             <el-form-item v-if="i.protocolType" label="协议类型">
               <div>
-                {{i.protocolType}}
+                {{ i.protocolType }}
               </div>
             </el-form-item>
             <el-form-item v-if="i.adapter.useInPackGoCqhttp" label="协议实现">
@@ -216,7 +216,7 @@
               <div>反向 WS</div>
             </el-form-item>
             <el-form-item v-else-if="i.adapter?.built_in_mode" label="特殊">
-              <div>{{i.adapter?.built_in_mode}}</div>
+              <div>{{ i.adapter?.built_in_mode }}</div>
               <el-button
                 size="small"
                 type="primary"
