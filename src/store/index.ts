@@ -46,6 +46,26 @@ export enum goCqHttpStateCode {
   Closed = 20,
 }
 
+export const ImConnectionTypeGocqLegacy = 0;
+export const ImConnectionTypeDiscord = 1;
+export const ImConnectionTypeKook = 2;
+export const ImConnectionTypeTelegram = 3;
+export const ImConnectionTypeMinecraft = 4;
+export const ImConnectionTypeDodo = 5;
+export const ImConnectionTypeOnebotSeparate = 6;
+export const ImConnectionTypeRed = 7;
+export const ImConnectionTypeDingTalk = 8;
+export const ImConnectionTypeSlack = 9;
+export const ImConnectionTypeOfficialQQ = 10;
+export const ImConnectionTypeOnebotReverse = 11;
+// no 12 type here
+export const ImConnectionTypeSealChat = 13;
+export const ImConnectionTypeSatori = 14;
+export const ImConnectionTypeLagrangeOnebot = 15;
+// 16 is langrange gocq, deprecated
+export const ImConnectionTypeMilkySeparate = 17;
+export const ImConnectionTypeMilkyInternal = 18;
+
 export interface AdapterQQ {
   DiceServing: boolean;
   connectUrl: string;
@@ -305,7 +325,7 @@ export const useStore = defineStore('main', {
       let info = null;
       switch (accountType) {
         //QQ
-        case 0:
+        case ImConnectionTypeGocqLegacy:
           if (implementation === 'gocq') {
             info = await postAddGocq(
               account,
@@ -321,22 +341,22 @@ export const useStore = defineStore('main', {
           //   info = await postAddWalleQ(account, password, protocol);
           // }
           break;
-        case 1:
+        case ImConnectionTypeDiscord:
           info = await postAddDiscord(token.trim(), proxyURL, reverseProxyUrl, reverseProxyCDNUrl);
           break;
-        case 2:
+        case ImConnectionTypeKook:
           info = await postAddKook(token.trim());
           break;
-        case 3:
+        case ImConnectionTypeTelegram:
           info = await postAddTelegram(token.trim(), proxyURL);
           break;
-        case 4:
+        case ImConnectionTypeMinecraft:
           info = await postAddMinecraft(url);
           break;
-        case 5:
+        case ImConnectionTypeDodo:
           info = await postAddDodo(clientID.trim(), token.trim());
           break;
-        case 6: {
+        case ImConnectionTypeOnebotSeparate: {
           // onebot11 正向
           let realUrl: string = connectUrl.trim();
           if (!realUrl.startsWith('ws://') && !realUrl.startsWith('wss://')) {
@@ -345,43 +365,44 @@ export const useStore = defineStore('main', {
           info = await postAddGocqSeparate(relWorkDir, realUrl, accessToken, account);
           break;
         }
-        case 7:
+        case ImConnectionTypeRed:
           info = await postAddRed(host, port, token);
           break;
-        case 8:
+        case ImConnectionTypeDingTalk:
           info = await postAddDingtalk(clientID, token, nickname, robotCode);
           break;
-        case 9:
+        case ImConnectionTypeSlack:
           info = await postAddSlack(botToken, appToken);
           break;
-        case 10:
+        case ImConnectionTypeOfficialQQ:
           info = await postAddOfficialQQ(Number(appID), appSecret, token, onlyQQGuild);
           break;
-        case 11:
+        case ImConnectionTypeOnebotReverse:
           info = await postAddOnebot11ReverseWs(account, reverseAddr?.trim());
           break;
-        case 13:
+        case ImConnectionTypeSealChat:
           info = await postaddSealChat(url.trim(), token.trim());
           break;
-        case 14:
+        case ImConnectionTypeSatori:
           info = await postAddSatori(platform, host, port, token);
           break;
-        case 15:
+        case ImConnectionTypeLagrangeOnebot:
           {
-            info = await postAddLagrange(account, signServerName, signServerVersion, false);
+            info = await postAddLagrange(account, signServerName, signServerVersion);
           }
           break;
-        case 16:
-          {
-            info = await postAddLagrange(account, signServerName, signServerVersion, true);
-          }
-          break;
-        case 17:
+        // lagrange gocq deprecated
+        // case 16:
+        //   {
+        //     info = await postAddLagrange(account, signServerName, signServerVersion, true);
+        //   }
+        //   break;
+        case ImConnectionTypeMilkySeparate:
           {
             info = await postAddMilky(token, wsGateway, restGateway);
           }
           break;
-        case 18:
+        case ImConnectionTypeMilkyInternal:
           {
             info = await postAddMilkyInternal(toNumber(account), 'lagrangeV2');
           }
