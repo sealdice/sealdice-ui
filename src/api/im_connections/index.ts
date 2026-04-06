@@ -179,12 +179,11 @@ export function postAddLagrange(
   account: string,
   signServerName: string,
   signServerVersion: string,
-  isGocq: boolean,
 ) {
   return request<DiceConnection>(
     'post',
     'addLagrange',
-    { account, signServerName, signServerVersion, isGocq },
+    { account, signServerName, signServerVersion },
     'json',
     {
       timeout: 65000,

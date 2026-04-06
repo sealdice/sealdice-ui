@@ -368,14 +368,15 @@ export const useStore = defineStore('main', {
           break;
         case 15:
           {
-            info = await postAddLagrange(account, signServerName, signServerVersion, false);
+            info = await postAddLagrange(account, signServerName, signServerVersion);
           }
           break;
-        case 16:
-          {
-            info = await postAddLagrange(account, signServerName, signServerVersion, true);
-          }
-          break;
+        // lagrange gocq deprecated
+        // case 16:
+        //   {
+        //     info = await postAddLagrange(account, signServerName, signServerVersion, true);
+        //   }
+        //   break;
         case 17:
           {
             info = await postAddMilky(token, wsGateway, restGateway);

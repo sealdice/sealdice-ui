@@ -754,17 +754,6 @@
         class="mb-6">
         当前为容器模式，内置客户端被禁用。
       </el-alert>
-      <el-alert
-        v-if="
-          store.diceServers.length > 0 &&
-          store.diceServers[0].baseInfo.containerMode &&
-          (form.accountType === 16 || form.accountType === 0)
-        "
-        type="warning"
-        :closable="false"
-        class="mb-6">
-        当前为容器模式，内置 gocq 被禁用。
-      </el-alert>
 
       <el-form :model="form">
         <el-form-item label="账号类型" :label-width="formLabelWidth">
@@ -775,12 +764,13 @@
               :disabled="
                 store.diceServers.length > 0 && store.diceServers[0].baseInfo.containerMode
               "></el-option>
-            <el-option
-              label="QQ(内置gocq)"
-              :value="16"
-              :disabled="
-                store.diceServers.length > 0 && store.diceServers[0].baseInfo.containerMode
-              "></el-option>
+            <!--        lagrange gocq已废弃-->
+            <!--            <el-option-->
+            <!--              label="QQ(内置gocq)"-->
+            <!--              :value="16"-->
+            <!--              :disabled="-->
+            <!--                store.diceServers.length > 0 && store.diceServers[0].baseInfo.containerMode-->
+            <!--              "></el-option>-->
             <el-option label="QQ(Milky)" :value="17"></el-option>
             <el-option label="QQ(内置Milky)" :value="18"></el-option>
             <el-option label="QQ(onebot11正向WS)" :value="6"></el-option>
@@ -847,14 +837,14 @@
         </el-form-item> -->
 
         <el-form-item
-          v-if="form.accountType === 15 || form.accountType === 16"
+          v-if="form.accountType === 15"
           label="账号"
           :label-width="formLabelWidth"
           required>
           <el-input v-model="form.account" type="number" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item
-          v-if="form.accountType === 15 || form.accountType === 16"
+          v-if="form.accountType === 15"
           label="签名版本"
           :label-width="formLabelWidth"
           required>
@@ -903,7 +893,7 @@
           }}</el-text>
         </el-form-item>
         <el-form-item
-          v-if="form.accountType === 15 || form.accountType === 16"
+          v-if="form.accountType === 15"
           label="签名服务"
           :label-width="formLabelWidth"
           required>
@@ -1877,7 +1867,7 @@
               (form.accountType === 9 && (form.botToken === '' || form.appToken === '')) ||
               (form.accountType === 11 && (form.account === '' || form.reverseAddr === '')) ||
               (form.accountType === 13 && (form.token === '' || form.url === '')) ||
-              ((form.accountType === 15 || form.accountType === 16) &&
+              (form.accountType === 15 &&
                 (form.account === '' ||
                   form.signServerVersion === '' ||
                   form.signServerName === '')) ||
