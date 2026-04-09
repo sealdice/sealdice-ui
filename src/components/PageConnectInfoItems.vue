@@ -1606,14 +1606,20 @@
             <ul style="margin: 0.25rem 0 0 1.2rem; padding: 0">
               <li>
                 前往
-                <a href="https://github.com/sealdice/sealdice-minecraft/releases/latest" target="_blank"
+                <a
+                  href="https://github.com/sealdice/sealdice-minecraft/releases/latest"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   >GitHub Releases</a
                 >
                 下载最新 mc 插件，并安装到 mc 服务器中。
               </li>
               <li>
                 详细使用说明：
-                <a href="https://github.com/sealdice/sealdice-minecraft#readme" target="_blank"
+                <a
+                  href="https://github.com/sealdice/sealdice-minecraft#readme"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   >ReadMe</a
                 >
               </li>
@@ -1622,16 +1628,27 @@
             <ul style="margin: 0.25rem 0 0 1.2rem; padding: 0">
               <li>
                 从
-                <a href="https://www.curseforge.com/minecraft/mc-mods/sealdice2mc" target="_blank"
+                <a
+                  href="https://www.curseforge.com/minecraft/mc-mods/sealdice2mc"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   >CurseForge</a
                 >
                 或
-                <a href="https://modrinth.com/mod/sealdice2mc" target="_blank">Modrinth</a>
+                <a
+                  href="https://modrinth.com/mod/sealdice2mc"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Modrinth</a
+                >
                 下载 SealDice2MC 模组，安装在服务端（或局域网联机的主机端）。
               </li>
               <li>
                 详细使用说明：
-                <a href="https://github.com/Dontplay0112/Sealdice2MC#readme" target="_blank"
+                <a
+                  href="https://github.com/Dontplay0112/Sealdice2MC#readme"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   >ReadMe</a
                 >
               </li>
