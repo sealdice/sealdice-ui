@@ -779,7 +779,7 @@
             <el-option label="KOOK(开黑啦)" :value="ImConnectionTypeKook"></el-option>
             <el-option label="Telegram" :value="ImConnectionTypeTelegram"></el-option>
             <el-option
-              label="Minecraft服务器(Paper)"
+              label="Minecraft服务器"
               :value="ImConnectionTypeMinecraft"></el-option>
             <el-option label="Dodo语音" :value="ImConnectionTypeDodo"></el-option>
             <el-option label="钉钉" :value="ImConnectionTypeDingTalk"></el-option>
@@ -1598,12 +1598,44 @@
           required>
           <el-input v-model="form.url" type="string" autocomplete="off"></el-input>
           <small>
-            <div>提示：前往 https://github.com/sealdice/sealdice-minecraft/releases/latest</div>
-            <div>下载最新的 mc 插件然后安装在 mc 服务器中</div>
-            <div>按照 ip:端口 的格式写在框里，默认端口 8887</div>
-            <div>
-              详细的使用说明请阅读 Readme (https://github.com/sealdice/sealdice-minecraft#readme)
-            </div>
+            <div><strong>提示</strong></div>
+            <ul style="margin: 0.25rem 0 0 1.2rem; padding: 0">
+              <li>地址请按 ip:端口 格式填写，默认端口 8887。</li>
+            </ul>
+            <div style="margin-top: 0.35rem"><strong>Paper端 配置方法</strong></div>
+            <ul style="margin: 0.25rem 0 0 1.2rem; padding: 0">
+              <li>
+                前往
+                <a href="https://github.com/sealdice/sealdice-minecraft/releases/latest" target="_blank"
+                  >GitHub Releases</a
+                >
+                下载最新 mc 插件，并安装到 mc 服务器中。
+              </li>
+              <li>
+                详细使用说明：
+                <a href="https://github.com/sealdice/sealdice-minecraft#readme" target="_blank"
+                  >ReadMe</a
+                >
+              </li>
+            </ul>
+            <div style="margin-top: 0.35rem"><strong>fabric/(neo)forge端 配置方法</strong></div>
+            <ul style="margin: 0.25rem 0 0 1.2rem; padding: 0">
+              <li>
+                从
+                <a href="https://www.curseforge.com/minecraft/mc-mods/sealdice2mc" target="_blank"
+                  >CurseForge</a
+                >
+                或
+                <a href="https://modrinth.com/mod/sealdice2mc" target="_blank">Modrinth</a>
+                下载 SealDice2MC 模组，安装在服务端（或局域网联机的主机端）。
+              </li>
+              <li>
+                详细使用说明：
+                <a href="https://github.com/Dontplay0112/Sealdice2MC#readme" target="_blank"
+                  >ReadMe</a
+                >
+              </li>
+            </ul>
           </small>
         </el-form-item>
 
