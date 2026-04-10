@@ -778,9 +778,7 @@
             <el-option label="Discord" :value="ImConnectionTypeDiscord"></el-option>
             <el-option label="KOOK(开黑啦)" :value="ImConnectionTypeKook"></el-option>
             <el-option label="Telegram" :value="ImConnectionTypeTelegram"></el-option>
-            <el-option
-              label="Minecraft服务器"
-              :value="ImConnectionTypeMinecraft"></el-option>
+            <el-option label="Minecraft服务器" :value="ImConnectionTypeMinecraft"></el-option>
             <el-option label="Dodo语音" :value="ImConnectionTypeDodo"></el-option>
             <el-option label="钉钉" :value="ImConnectionTypeDingTalk"></el-option>
             <el-option label="Slack" :value="ImConnectionTypeSlack"></el-option>
