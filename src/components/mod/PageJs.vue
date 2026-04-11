@@ -64,7 +64,7 @@
               <el-upload
                 action=""
                 multiple
-                accept="application/javascript,application/typescript,.js,.ts"
+                accept="*"
                 class="upload"
                 :before-upload="beforeUpload"
                 :file-list="uploadFileList">
@@ -1247,7 +1247,11 @@ const jsShutdown = async () => {
 };
 
 const beforeUpload = async (file: UploadRawFile) => {
-  // UploadRawFile
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  if (ext !== 'js' && ext !== 'ts') {
+    ElMessage.error('仅支持上传 .js 或 .ts 格式的插件文件');
+    return false;
+  }
   const fd = new FormData();
   fd.append('file', file);
   await uploadJs(file);
