@@ -320,6 +320,7 @@ export const useStore = defineStore('main', {
         platform,
         wsGateway,
         restGateway,
+        builtInMode,
       } = form;
 
       let info = null;
@@ -404,7 +405,7 @@ export const useStore = defineStore('main', {
           break;
         case ImConnectionTypeMilkyInternal:
           {
-            info = await postAddMilkyInternal(toNumber(account), 'lagrangeV2');
+            info = await postAddMilkyInternal(toNumber(account), builtInMode);
           }
           break;
       }

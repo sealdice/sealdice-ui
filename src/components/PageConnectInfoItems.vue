@@ -1002,8 +1002,13 @@
 
         <el-form-item
           v-if="form.accountType === ImConnectionTypeMilkyInternal"
-          label=""
+          label="协议端"
+          required
           :label-width="formLabelWidth">
+          <el-select v-model="form.builtInMode" placeholder="建议选择 Yogurt">
+            <el-option label="Yogurt" :value="'yogurt'"></el-option>
+            <el-option label="LagrangeV2" :value="'lagrangeV2'"></el-option>
+          </el-select>
           <small>
             <div style="color: #aa4422">输入的 QQ 账号务必是你即将扫码登录的账号</div>
             <div style="color: #aa4422">否则登录会失败</div>
@@ -1955,7 +1960,8 @@
                   form.signServerName === '')) ||
               (form.accountType === ImConnectionTypeMilkySeparate &&
                 (form.wsGateway === '' || form.restGateway === '')) ||
-              (form.accountType === ImConnectionTypeMilkyInternal && form.account === '')
+              (form.accountType === ImConnectionTypeMilkyInternal &&
+                (form.account === '' || form.builtInMode === ''))
             "
             @click="goStepTwo">
             下一步</el-button
@@ -2605,6 +2611,8 @@ const form = reactive({
   // milky
   wsGateway: '',
   restGateway: '',
+  // milky builtin
+  builtInMode: '',
 });
 
 export type addImConnectionForm = typeof form;
