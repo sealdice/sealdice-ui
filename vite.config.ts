@@ -61,6 +61,11 @@ export default defineConfig(({ mode }) => ({
       targets: ['defaults'],
     }),
   ],
+  esbuild: {
+    supported: {
+      destructuring: true,
+    },
+  },
   build: {
     sourcemap: false,
     chunkSizeWarningLimit: 1024,
