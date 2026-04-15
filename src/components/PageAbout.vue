@@ -180,8 +180,8 @@
         href="https://dice.weizaima.com/public-dice"
         target="_blank"
         style="color: var(--el-link-text-color); transition: color 3s"
-        onmouseover="this.style.color='red'"
-        onmouseout="this.style.color='var(--el-link-text-color)'"
+        onmouseover="this.style.color = 'red'"
+        onmouseout="this.style.color = 'var(--el-link-text-color)'"
         ><el-avatar
           shape="circle"
           :size="50"
