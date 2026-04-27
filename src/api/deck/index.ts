@@ -46,7 +46,7 @@ export function updateDeck(filename: string, tempFileName: string) {
   >('post', 'update', { filename, tempFileName });
 }
 
-type DeckConfig = {
+export type DeckConfig = {
   enable: boolean; // 是否启用该牌堆
   errText: string; // 错误信息，如果为空则没有错误
   filename: string; // 牌堆文件路径
@@ -64,4 +64,5 @@ type DeckConfig = {
   updateUrls: string[] | null; // 更新URL（可能为空）
   etag: string; // 文件标签（可能为空）
   cloud: boolean; // 是否为云端存储
+  packageId?: string; // 来源扩展包 ID，空表示独立牌堆
 };

@@ -95,7 +95,7 @@
               :err-title="i.filename"
               :err-text="i.errText">
               <template #title>
-                <el-space class="js-item-header">
+                <el-space class="js-item-header" wrap>
                   <el-switch
                     v-model="i.enable"
                     :disabled="i.errText !== ''"
@@ -116,6 +116,9 @@
                       >TS</el-tag
                     >
                   </el-tooltip>
+                  <el-tag v-if="i.packageID" size="small" type="warning" effect="plain">
+                    来源包 {{ i.packageID }}
+                  </el-tag>
                 </el-space>
               </template>
 
@@ -1160,7 +1163,8 @@ const filteredJsList = computed(() =>
     return (
       js.name?.toLowerCase()?.includes(val) ||
       js.desc?.toLowerCase()?.includes(val) ||
-      js.author?.toLowerCase()?.includes(val)
+      js.author?.toLowerCase()?.includes(val) ||
+      js.packageID?.toLowerCase()?.includes(val)
     );
   }),
 );
@@ -1432,3 +1436,4 @@ const jsUpdate = async () => {
   min-width: 100%;
 }
 </style>
+

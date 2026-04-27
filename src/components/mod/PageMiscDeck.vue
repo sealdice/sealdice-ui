@@ -53,7 +53,7 @@
           :err-title="i.filename"
           :err-text="i.errText">
           <template #title>
-            <el-space size="small" alignment="center">
+            <el-space size="small" alignment="center" wrap>
               <el-text size="large" tag="b">{{ i.name }}</el-text>
               <el-text>{{ i.version }}</el-text>
               <el-tag
@@ -62,6 +62,14 @@
                 disable-transitions
                 >{{ i.fileFormat }}</el-tag
               >
+              <el-tag
+                v-if="i.packageId"
+                size="small"
+                type="warning"
+                effect="plain"
+                disable-transitions>
+                来源包 {{ i.packageId }}
+              </el-tag>
             </el-space>
           </template>
 
@@ -186,6 +194,7 @@ import { getBackupConfig } from '~/api/backup';
 import {
   checkDeckUpdate,
   deleteDeck,
+  type DeckConfig,
   getDeckList,
   reloadDeck,
   updateDeck,
@@ -197,7 +206,7 @@ const mode = ref<string>('list');
 
 const filter = ref<string>('');
 const filterCount = computed(() => data.value.length - filtered.value.length);
-const data = ref<any[]>([]);
+const data = ref<DeckConfig[]>([]);
 const filtered = computed(() =>
   data.value.filter(deck => {
     if (filter.value === '') {
@@ -208,6 +217,7 @@ const filtered = computed(() =>
       deck.name?.toLowerCase()?.includes(val) ||
       deck.desc?.toLowerCase()?.includes(val) ||
       deck.author?.toLowerCase()?.includes(val) ||
+      deck.packageId?.toLowerCase()?.includes(val) ||
       Object.keys(deck.command)
         .map(tag => tag?.toLowerCase()?.includes(val))
         .includes(true)
@@ -420,3 +430,4 @@ const deckUpdate = async () => {
   text-decoration: none;
 }
 </style>
+

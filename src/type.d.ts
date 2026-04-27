@@ -17,6 +17,7 @@ export interface JsScriptInfo {
   official: boolean;
   builtin: boolean;
   builtinUpdated: boolean;
+  packageID?: string;
 }
 
 export interface JsPluginConfigItem {

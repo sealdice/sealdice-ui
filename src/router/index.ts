@@ -9,6 +9,7 @@ import PageMiscDeck from '~/components/mod/PageMiscDeck.vue';
 import PageHelpDoc from '~/components/mod/PageHelpDoc.vue';
 import PageStory from '~/components/mod/PageStory.vue';
 import PageCensor from '~/components/mod/PageCensor.vue';
+import PagePackage from '~/components/mod/PagePackage.vue';
 import PageTest from '~/components/tool/PageTest.vue';
 import PageResource from '~/components/tool/PageResource.vue';
 import PageMiscSettings from '~/components/misc/PageMiscSettings.vue';
@@ -33,6 +34,7 @@ const router = createRouter({
         { path: 'helpdoc', component: PageHelpDoc },
         { path: 'story', component: PageStory },
         { path: 'censor', component: PageCensor },
+        { path: 'package', component: PagePackage },
       ],
     },
     {
