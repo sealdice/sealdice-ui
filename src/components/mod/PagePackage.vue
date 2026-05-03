@@ -901,6 +901,16 @@ const getResponseError = (
   return response?.err || response?.message || fallback;
 };
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  if (typeof error === 'string' && error) {
+    return error;
+  }
+  return fallback;
+};
+
 const normalizeReloadHint = (value: string) =>
   value
     .trim()
@@ -1817,16 +1827,23 @@ const getUploadPreviewMessage = (preview: PackageUploadPreview, file: UploadRawF
 
 const previewInstallUpload = async (file: UploadRawFile) => {
   installUploadProgressText.value = '正在上传并解析扩展包预览...';
-  const response = await previewPackageUpload(file, event => {
-    updateInstallUploadProgress('正在上传并解析扩展包预览...', event.loaded, event.total);
-  });
-  if (!response.result || !response.data) {
-    throw new Error(getResponseError(response, '扩展包预览失败'));
+  try {
+    const response = await previewPackageUpload(file, event => {
+      updateInstallUploadProgress('正在上传并解析扩展包预览...', event.loaded, event.total);
+    });
+    if (!response.result || !response.data) {
+      throw new Error(getResponseError(response, '扩展包预览失败'));
+    }
+    installUploadProgress.value = 100;
+    installUploadProgressStatus.value = 'success';
+    installUploadProgressText.value = '预览解析完成';
+    return response.data;
+  } catch (error) {
+    installUploadProgress.value = Math.max(installUploadProgress.value, 1);
+    installUploadProgressStatus.value = 'exception';
+    installUploadProgressText.value = '扩展包预览失败';
+    throw error;
   }
-  installUploadProgress.value = 100;
-  installUploadProgressStatus.value = 'success';
-  installUploadProgressText.value = '预览解析完成';
-  return response.data;
 };
 
 const confirmInstallUploadPreview = async (preview: PackageUploadPreview, file: UploadRawFile) => {
@@ -1897,7 +1914,9 @@ const handleInstallByUpload = async () => {
       updateInstallUploadProgress('正在上传并安装扩展包...', event.loaded, event.total);
     });
     if (!response.result) {
+      installUploadProgress.value = Math.max(installUploadProgress.value, 1);
       installUploadProgressStatus.value = 'exception';
+      installUploadProgressText.value = '上传安装失败';
       ElMessage.error(getResponseError(response, '上传安装失败'));
       return;
     }
@@ -1907,6 +1926,13 @@ const handleInstallByUpload = async () => {
     installUploadRawFile.value = null;
     installUploadFileList.value = [];
     await handlePostInstallSuccess(beforeInstallPackages, installUploadAutoEnable.value);
+  } catch (error) {
+    if (installUploadProgressStatus.value !== 'exception') {
+      installUploadProgress.value = Math.max(installUploadProgress.value, 1);
+      installUploadProgressStatus.value = 'exception';
+      installUploadProgressText.value = '上传安装失败';
+    }
+    ElMessage.error(getErrorMessage(error, '上传安装失败'));
   } finally {
     installByUploadLoading.value = false;
   }
