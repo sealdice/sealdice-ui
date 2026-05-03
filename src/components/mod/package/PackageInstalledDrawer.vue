@@ -39,6 +39,12 @@
             <el-descriptions-item label="来源路径">
               <span class="break-text">{{ data.sourcePath || '-' }}</span>
             </el-descriptions-item>
+            <el-descriptions-item label="来源状态">
+              <el-space wrap>
+                <el-tag :type="sourceStatusTagType">{{ sourceStatusLabel }}</el-tag>
+                <span v-if="sourceWarning" class="source-warning">{{ sourceWarning }}</span>
+              </el-space>
+            </el-descriptions-item>
             <el-descriptions-item label="用户数据目录">
               <span class="break-text">{{ data.userDataPath || '-' }}</span>
             </el-descriptions-item>
@@ -210,6 +216,29 @@ const stateTagType = computed(() => {
   }
 });
 
+const sourceStatusLabel = computed(() => {
+  switch (props.data?.sourceStatus) {
+    case 'cache_only':
+      return '仅缓存安装';
+    case 'present':
+    case undefined:
+      return '源文件存在';
+    default:
+      return props.data?.sourceStatus;
+  }
+});
+
+const sourceStatusTagType = computed(() =>
+  props.data?.sourceStatus === 'cache_only' ? 'warning' : 'success',
+);
+
+const sourceWarning = computed(() =>
+  props.data?.sourceStatus === 'cache_only'
+    ? props.data.sourceWarning ||
+      '源 .sealpkg 文件缺失，当前仅保留缓存安装。请将 sealpkg 放回 data/packages 后刷新。'
+    : '',
+);
+
 const dependencyEntries = computed(() =>
   Object.entries(props.data?.manifest.dependencies ?? {}).map(([key, value]) => ({ key, value })),
 );
@@ -288,6 +317,12 @@ const handleSaveConfig = () => {
 .break-text {
   white-space: pre-wrap;
   word-break: break-all;
+}
+
+.source-warning {
+  color: #c2410c;
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 
 .json-block {

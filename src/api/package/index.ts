@@ -1,3 +1,4 @@
+import type { AxiosProgressEvent } from 'axios';
 import { createRequest } from '..';
 
 const baseUrl = '/package/';
@@ -51,6 +52,7 @@ export interface PackageManifest {
 }
 
 export type PackageState = 'installed' | 'enabled' | 'disabled' | 'error';
+export type PackageSourceStatus = 'present' | 'cache_only';
 
 export interface PackageInstance {
   manifest: PackageManifest;
@@ -61,7 +63,26 @@ export interface PackageInstance {
   userDataPath?: string;
   config?: Record<string, any>;
   errText?: string;
+  sourceStatus?: PackageSourceStatus;
+  sourceWarning?: string;
   pendingReload?: string[];
+}
+
+export interface PackageRefreshResult {
+  packages: PackageInstance[];
+  added?: string[];
+  updated?: string[];
+  cacheOnly?: string[];
+  removed?: string[];
+}
+
+export interface PackageUploadPreview {
+  manifest: PackageManifest;
+  files: string[];
+  fileCount: number;
+  contentCounts?: Partial<Record<ContentKind | 'assets', number>>;
+  existingVersion?: string;
+  installAction: 'install' | 'upgrade';
 }
 
 export interface PackageInstallPathPayload {
@@ -81,6 +102,10 @@ export function getPackageList() {
   return request<ApiResponse<PackageInstance[]>>('get', 'list');
 }
 
+export function refreshPackageInstallations() {
+  return request<ApiResponse<PackageRefreshResult>>('post', 'refresh');
+}
+
 export function getPackageDetail(id: string) {
   // ID 可能包含 /，接口通过固定路径 + query 传参。
   return request<ApiResponse<PackageInstance>>('get', '_', { id });
@@ -92,6 +117,44 @@ export function installPackageByPath(payload: PackageInstallPathPayload) {
 
 export function installPackageByUrl(payload: PackageInstallUrlPayload) {
   return request<ApiResponse>('post', 'install-url', payload);
+}
+
+const packageUploadRequestConfig = (
+  file: Blob & { name?: string },
+  onUploadProgress?: (progressEvent: AxiosProgressEvent) => void,
+) => ({
+  headers: {
+    'Content-Type': 'application/octet-stream',
+    'X-Filename': encodeURIComponent(file.name ?? 'package.sealpkg'),
+  },
+  timeout: 120000,
+  onUploadProgress,
+});
+
+export function previewPackageUpload(
+  file: Blob & { name?: string },
+  onUploadProgress?: (progressEvent: AxiosProgressEvent) => void,
+) {
+  return request<ApiResponse<PackageUploadPreview>>(
+    'post',
+    'preview-upload',
+    file,
+    undefined,
+    packageUploadRequestConfig(file, onUploadProgress),
+  );
+}
+
+export function installPackageByUpload(
+  file: Blob & { name?: string },
+  onUploadProgress?: (progressEvent: AxiosProgressEvent) => void,
+) {
+  return request<ApiResponse>(
+    'post',
+    'install-upload',
+    file,
+    undefined,
+    packageUploadRequestConfig(file, onUploadProgress),
+  );
 }
 
 export function enablePackage(id: string) {

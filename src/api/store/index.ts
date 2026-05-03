@@ -55,6 +55,8 @@ export interface StoreBackendRecord {
   builtin?: boolean;
   official?: boolean;
   health?: boolean;
+  enabled?: boolean;
+  disabled?: boolean;
   [key: string]: any;
 }
 
@@ -89,6 +91,10 @@ export function addStoreBackend(url: string) {
 
 export function removeStoreBackend(payload: Partial<StoreBackendRecord>) {
   return request<ApiResponse>('delete', 'backend/remove', payload);
+}
+
+export function setStoreBackendEnabled(payload: Partial<StoreBackendRecord>, enabled: boolean) {
+  return request<ApiResponse>('post', enabled ? 'backend/enable' : 'backend/disable', payload);
 }
 
 export function getStoreRecommend(params?: StoreRecommendQuery) {
