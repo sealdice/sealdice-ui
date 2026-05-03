@@ -15,6 +15,7 @@ export interface ApiResponse<T = unknown> {
 export type ContentKind = 'scripts' | 'decks' | 'reply' | 'helpdoc' | 'templates';
 
 export interface PackageManifest {
+  formatVersion?: number;
   package: {
     id: string;
     name: string;
