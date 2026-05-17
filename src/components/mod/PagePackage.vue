@@ -464,15 +464,15 @@
                 <span>上传安装</span>
               </template>
               <el-form label-position="top">
-                <el-form-item label=".sealpkg 文件">
+                <el-form-item label=".sealpack 文件">
                   <el-upload
                     action=""
-                    accept=".sealpkg"
+                    accept=".sealpack"
                     :auto-upload="false"
                     :file-list="installUploadFileList"
                     :on-change="handleInstallUploadFileChange"
                     :on-remove="handleInstallUploadFileRemove">
-                    <el-button plain :icon="Upload">选择 sealpkg 文件</el-button>
+                    <el-button plain :icon="Upload">选择 sealpack 文件</el-button>
                     <template #tip>
                       <div class="install-upload-tip">文件将以流式请求上传到后端安装。</div>
                     </template>
@@ -503,11 +503,11 @@
                 <span>URL 安装</span>
               </template>
               <el-form label-position="top">
-                <el-form-item label="sealpkg 下载 URL">
+                <el-form-item label="sealpack 下载 URL">
                   <el-input
                     v-model="installUrlInput"
                     clearable
-                    placeholder="https://example.com/demo.sealpkg"
+                    placeholder="https://example.com/demo.sealpack"
                     @keyup.enter="handleInstallByUrl" />
                 </el-form-item>
                 <el-form-item>
@@ -863,7 +863,7 @@ const isCacheOnlyPackage = (pkg: PackageInstance) => pkg.sourceStatus === 'cache
 
 const getPackageSourceWarning = (pkg: PackageInstance) =>
   pkg.sourceWarning ||
-  '源 .sealpkg 文件缺失，当前仅保留缓存安装。请将 sealpkg 放回 data/packages 后刷新。';
+  '源 .sealpack 文件缺失，当前仅保留缓存安装。请将 sealpack 放回 data/packages 后刷新。';
 
 const joinList = (value?: string[]) => {
   if (!value || value.length === 0) {
@@ -1861,7 +1861,7 @@ const confirmInstallUploadPreview = async (preview: PackageUploadPreview, file: 
 };
 
 const isSealPackageUploadFile = (file: UploadRawFile) =>
-  file.name.toLowerCase().endsWith('.sealpkg');
+  file.name.toLowerCase().endsWith('.sealpack');
 
 const handleInstallUploadFileChange = (uploadFile: UploadFile) => {
   const rawFile = uploadFile.raw;
@@ -1871,7 +1871,7 @@ const handleInstallUploadFileChange = (uploadFile: UploadFile) => {
     return;
   }
   if (!isSealPackageUploadFile(rawFile)) {
-    ElMessage.warning('请选择 .sealpkg 文件');
+    ElMessage.warning('请选择 .sealpack 文件');
     installUploadRawFile.value = null;
     installUploadFileList.value = [];
     return;
@@ -1888,11 +1888,11 @@ const handleInstallUploadFileRemove = (_uploadFile: UploadFile, uploadFiles: Upl
 const handleInstallByUpload = async () => {
   const file = installUploadRawFile.value;
   if (!file) {
-    ElMessage.warning('请选择要上传的 .sealpkg 文件');
+    ElMessage.warning('请选择要上传的 .sealpack 文件');
     return;
   }
   if (!isSealPackageUploadFile(file)) {
-    ElMessage.warning('请选择 .sealpkg 文件');
+    ElMessage.warning('请选择 .sealpack 文件');
     return;
   }
 

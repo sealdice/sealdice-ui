@@ -235,7 +235,7 @@ const sourceStatusTagType = computed(() =>
 const sourceWarning = computed(() =>
   props.data?.sourceStatus === 'cache_only'
     ? props.data.sourceWarning ||
-      '源 .sealpkg 文件缺失，当前仅保留缓存安装。请将 sealpkg 放回 data/packages 后刷新。'
+      '源 .sealpack 文件缺失，当前仅保留缓存安装。请将 sealpack 放回 data/packages 后刷新。'
     : '',
 );
 

@@ -126,7 +126,7 @@ const packageUploadRequestConfig = (
 ) => ({
   headers: {
     'Content-Type': 'application/octet-stream',
-    'X-Filename': encodeURIComponent(file.name ?? 'package.sealpkg'),
+    'X-Filename': encodeURIComponent(file.name ?? 'package.sealpack'),
   },
   timeout: 120000,
   onUploadProgress,
