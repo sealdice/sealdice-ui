@@ -85,7 +85,7 @@ type CustomTexts = {
   };
 };
 
-type CustomReply = {
+export type CustomReply = {
   author: [];
   conditions: ReplyCondition[];
   createTimestamp: number;
@@ -95,6 +95,7 @@ type CustomReply = {
   interval: number;
   items: CustomReplyItem[];
   name: string;
+  packageId?: string;
   updateTimestamp: number;
   version: string;
 };
@@ -116,7 +117,8 @@ type ReplyResult = {
   message: [string, number][];
 };
 
-type ReplyFileInfo = {
+export type ReplyFileInfo = {
   enable: boolean;
   filename: string;
+  packageId?: string;
 };

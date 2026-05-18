@@ -5,7 +5,7 @@ on:
     paths:
       - '**.{js,mjs,cjs,jsx,ts,mts,cts,tsx,vue}'
       - 'package.json'
-      - 'pnpm-lock.json'
+      - 'pnpm-lock.yaml'
       - '.github/workflows/reviewdog.yml'
 
 jobs:
@@ -18,20 +18,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.head_ref }}
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: latest
           run_install: false
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: 'pnpm'
+      - name: Install Dependencies
+        run: pnpm install
       - name: Install Reviewdog
         uses: reviewdog/action-setup@v1
         with:
