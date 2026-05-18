@@ -2172,10 +2172,13 @@ onBeforeMount(async () => {
 }
 
 .package-list-surface {
+  --package-list-padding-x: 0.95rem;
+  --package-list-padding-bottom: 0.9rem;
+
   border: 1px solid var(--package-border);
   border-radius: 0.55rem;
   background: #fff;
-  padding: 0 0.95rem 0.9rem;
+  padding: 0 var(--package-list-padding-x) var(--package-list-padding-bottom);
   box-shadow: 0 12px 28px -26px rgba(15, 23, 42, 0.3);
 }
 
@@ -2186,14 +2189,31 @@ onBeforeMount(async () => {
 
 .package-card {
   min-width: 0;
+  position: relative;
   display: grid;
   grid-template-columns: 62px minmax(0, 1fr);
   gap: 1.25rem;
   padding: 1.22rem 0;
 }
 
-.package-card.source-cache-only {
+.package-card.source-cache-only::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: calc(var(--package-list-padding-x) * -1);
+  right: calc(var(--package-list-padding-x) * -1);
   background: linear-gradient(90deg, rgba(245, 158, 11, 0.08), rgba(255, 255, 255, 0) 34%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.package-card.source-cache-only:last-child::before {
+  bottom: calc(var(--package-list-padding-bottom) * -1);
+}
+
+.package-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .package-card + .package-card {
@@ -2647,6 +2667,10 @@ onBeforeMount(async () => {
   .package-list-surface,
   .section-card :deep(.el-card__body) {
     padding-inline: 0.85rem;
+  }
+
+  .package-list-surface {
+    --package-list-padding-x: 0.85rem;
   }
 
   .backend-add-row,
