@@ -86,10 +86,6 @@ export interface PackageUploadPreview {
   installAction: 'install' | 'upgrade';
 }
 
-export interface PackageInstallPathPayload {
-  path: string;
-}
-
 export interface PackageInstallUrlPayload {
   url: string;
 }
@@ -110,10 +106,6 @@ export function refreshPackageInstallations() {
 export function getPackageDetail(id: string) {
   // ID 可能包含 /，接口通过固定路径 + query 传参。
   return request<ApiResponse<PackageInstance>>('get', '_', { id });
-}
-
-export function installPackageByPath(payload: PackageInstallPathPayload) {
-  return request<ApiResponse>('post', 'install', payload);
 }
 
 export function installPackageByUrl(payload: PackageInstallUrlPayload) {

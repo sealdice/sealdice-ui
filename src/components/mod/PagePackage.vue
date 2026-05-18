@@ -3,7 +3,7 @@
     <header class="package-page-header">
       <div class="package-header-main">
         <h2 class="package-page-title">扩展包</h2>
-        <p class="package-page-description">统一管理已安装包、商店推荐以及本地 URL 安装。</p>
+        <p class="package-page-description">统一管理已安装包、商店推荐以及上传 / URL 安装。</p>
       </div>
 
       <button
@@ -437,30 +437,6 @@
           <div class="install-grid">
             <el-card shadow="never" class="section-card">
               <template #header>
-                <span>本地路径安装</span>
-              </template>
-              <el-form label-position="top">
-                <el-form-item label=".sealpkg 绝对路径">
-                  <el-input
-                    v-model="installPathInput"
-                    clearable
-                    placeholder="例如 D:\packages\demo.sealpkg"
-                    @keyup.enter="handleInstallByPath" />
-                </el-form-item>
-                <el-form-item>
-                  <el-checkbox v-model="installPathAutoEnable">安装后自动启用</el-checkbox>
-                </el-form-item>
-              </el-form>
-              <el-button
-                type="primary"
-                :loading="installByPathLoading"
-                @click="handleInstallByPath">
-                安装本地 sealpkg
-              </el-button>
-            </el-card>
-
-            <el-card shadow="never" class="section-card">
-              <template #header>
                 <span>上传安装</span>
               </template>
               <el-form label-position="top">
@@ -573,7 +549,6 @@ import {
   getPackageConfigSchema,
   getPackageDetail,
   getPackageList,
-  installPackageByPath,
   installPackageByUpload,
   installPackageByUrl,
   previewPackageUpload,
@@ -691,12 +666,9 @@ const storeQuery = reactive<
   pageSize: 20,
 });
 
-const installPathInput = ref('');
 const installUrlInput = ref('');
-const installPathAutoEnable = ref(true);
 const installUploadAutoEnable = ref(true);
 const installUrlAutoEnable = ref(true);
-const installByPathLoading = ref(false);
 const installByUploadLoading = ref(false);
 const installByUrlLoading = ref(false);
 const installUploadFileList = ref<UploadFile[]>([]);
@@ -1750,27 +1722,6 @@ const handlePostInstallSuccess = async (
     getPostInstallNotice(autoEnableResult),
     getPostInstallNoticeType(autoEnableResult),
   );
-};
-
-const handleInstallByPath = async () => {
-  const path = installPathInput.value.trim();
-  if (!path) {
-    ElMessage.warning('请输入本地 .sealpkg 的绝对路径');
-    return;
-  }
-  const beforeInstallPackages = captureInstalledPackageSnapshot();
-  installByPathLoading.value = true;
-  try {
-    const response = await installPackageByPath({ path });
-    if (!response.result) {
-      ElMessage.error(getResponseError(response, '本地安装失败'));
-      return;
-    }
-    installPathInput.value = '';
-    await handlePostInstallSuccess(beforeInstallPackages, installPathAutoEnable.value);
-  } finally {
-    installByPathLoading.value = false;
-  }
 };
 
 const resetInstallUploadProgress = () => {
