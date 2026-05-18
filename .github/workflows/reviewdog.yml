@@ -5,7 +5,7 @@ on:
     paths:
       - '**.{js,mjs,cjs,jsx,ts,mts,cts,tsx,vue}'
       - 'package.json'
-      - 'pnpm-lock.json'
+      - 'pnpm-lock.yaml'
       - '.github/workflows/reviewdog.yml'
 
 jobs:
@@ -32,6 +32,8 @@ jobs:
         with:
           node-version: 22
           cache: 'pnpm'
+      - name: Install Dependencies
+        run: pnpm install
       - name: Install Reviewdog
         uses: reviewdog/action-setup@v1
         with:
