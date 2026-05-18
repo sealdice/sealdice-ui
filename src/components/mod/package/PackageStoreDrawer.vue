@@ -73,8 +73,8 @@
 </template>
 
 <script setup lang="ts">
-import dayjs from 'dayjs';
 import type { StorePackage } from '~/api/store';
+import { formatTime } from './time';
 
 const props = withDefaults(
   defineProps<{
@@ -118,21 +118,6 @@ const joinList = (value?: string[]) => {
     return '-';
   }
   return value.join('、');
-};
-
-const normalizeTimestamp = (value?: number) => {
-  if (!value) {
-    return null;
-  }
-  return value > 9999999999 ? value : value * 1000;
-};
-
-const formatTime = (value?: number) => {
-  const normalized = normalizeTimestamp(value);
-  if (!normalized) {
-    return '-';
-  }
-  return dayjs(normalized).format('YYYY-MM-DD HH:mm:ss');
 };
 
 const prettyJson = (value: unknown) => {

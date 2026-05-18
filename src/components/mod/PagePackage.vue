@@ -592,7 +592,9 @@
               storeDownloadLoading[getStorePackageKey(storeInstallPreviewTarget)],
           )
         "
-        :disabled="!storeInstallPreviewTarget || !storeInstallPreviewData || storeInstallPreviewLoading"
+        :disabled="
+          !storeInstallPreviewTarget || !storeInstallPreviewData || storeInstallPreviewLoading
+        "
         @click="handleConfirmStoreInstallPreview">
         {{ storeInstallPreviewTarget ? getStoreActionText(storeInstallPreviewTarget) : '安装' }}
       </el-button>
@@ -628,7 +630,6 @@
 import type { UploadFile, UploadFiles, UploadRawFile } from 'element-plus';
 import { Clock, Document, Plus, Refresh, Search, Upload, User } from '@element-plus/icons-vue';
 import zhCn from 'element-plus/es/locale/lang/zh-cn';
-import dayjs from 'dayjs';
 import {
   disablePackage,
   enablePackage,
@@ -665,6 +666,7 @@ import {
 } from '~/api/store';
 import PackageInstalledDrawer from '~/components/mod/package/PackageInstalledDrawer.vue';
 import PackageStoreDrawer from '~/components/mod/package/PackageStoreDrawer.vue';
+import { formatTime, getTimeTimestamp } from '~/components/mod/package/time';
 
 const activeTab = ref<'installed' | 'store' | 'install'>('installed');
 
@@ -935,28 +937,6 @@ const joinList = (value?: string[]) => {
     return '-';
   }
   return value.join('、');
-};
-
-const normalizeTimeValue = (value?: string | number) => {
-  if (!value) {
-    return null;
-  }
-  if (typeof value === 'string') {
-    return value;
-  }
-  return value > 9999999999 ? value : value * 1000;
-};
-
-const formatTime = (value?: string | number) => {
-  const normalized = normalizeTimeValue(value);
-  if (!normalized) {
-    return '-';
-  }
-  const parsed = dayjs(normalized);
-  if (!parsed.isValid()) {
-    return String(value);
-  }
-  return parsed.format('YYYY-MM-DD HH:mm:ss');
 };
 
 const getResponseError = (
@@ -1713,12 +1693,7 @@ type InstallAutoEnableResult =
     };
 
 const getPackageInstallTimestamp = (pkg: PackageInstance) => {
-  const normalized = normalizeTimeValue(pkg.installTime);
-  if (!normalized) {
-    return 0;
-  }
-  const parsed = dayjs(normalized);
-  return parsed.isValid() ? parsed.valueOf() : 0;
+  return getTimeTimestamp(pkg.installTime);
 };
 
 const captureInstalledPackageSnapshot = (): InstalledPackageSnapshot[] =>

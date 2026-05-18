@@ -31,7 +31,7 @@
               <span class="break-text">{{ packageMeta.description || '-' }}</span>
             </el-descriptions-item>
             <el-descriptions-item label="安装时间">{{
-              data.installTime || '-'
+              formatTime(data.installTime)
             }}</el-descriptions-item>
             <el-descriptions-item label="安装路径">
               <span class="break-text">{{ data.installPath || '-' }}</span>
@@ -119,6 +119,7 @@
 
 <script setup lang="ts">
 import type { PackageInstance } from '~/api/package';
+import { formatTime } from './time';
 
 const props = withDefaults(
   defineProps<{
