@@ -1,5 +1,5 @@
 import { createRequest } from '..';
-import type { ContentKind } from '~/api/package';
+import type { ContentKind, PackageUploadPreview } from '~/api/package';
 
 const baseUrl = '/store/';
 const request = createRequest(baseUrl);
@@ -103,6 +103,10 @@ export function getStoreRecommend(params?: StoreRecommendQuery) {
 
 export function getStorePage(params: StorePageQuery) {
   return request<ApiResponse<StorePackage[]>>('get', 'page', params);
+}
+
+export function previewStorePackageDownload(payload: DownloadStorePackagePayload) {
+  return request<ApiResponse<PackageUploadPreview>>('post', 'preview-download', payload);
 }
 
 export function downloadStorePackage(payload: DownloadStorePackagePayload) {

@@ -406,12 +406,20 @@
                         >查看详情</el-button
                       >
                       <el-button
+                        v-if="findInstalledPackageByStore(scope.row)"
+                        link
+                        size="small"
+                        type="danger"
+                        @click="handleStoreUninstall(scope.row)">
+                        卸载
+                      </el-button>
+                      <el-button
                         link
                         size="small"
                         type="primary"
                         :loading="Boolean(storeDownloadLoading[getStorePackageKey(scope.row)])"
-                        @click="handleDownloadStorePackage(scope.row)">
-                        {{ isStoreInstalled(scope.row) ? '安装/升级' : '安装' }}
+                        @click="handleOpenStoreInstallPreview(scope.row)">
+                        {{ getStoreActionText(scope.row) }}
                       </el-button>
                     </el-space>
                   </template>
@@ -512,6 +520,85 @@
 
   <PackageStoreDrawer v-model="storeDetailVisible" :size="drawerSize" :data="currentStorePackage" />
 
+  <el-dialog
+    v-model="storeInstallPreviewVisible"
+    title="安装扩展包"
+    width="720px"
+    class="store-install-preview-dialog">
+    <template v-if="storeInstallPreviewTarget">
+      <div v-loading="storeInstallPreviewLoading" class="store-install-preview">
+        <template v-if="storeInstallPreviewData">
+          <el-descriptions :column="2" border class="store-install-preview-summary">
+            <el-descriptions-item label="名称">{{
+              storeInstallPreviewData.manifest.package.name ||
+              storeInstallPreviewData.manifest.package.id ||
+              '-'
+            }}</el-descriptions-item>
+            <el-descriptions-item label="ID">{{
+              storeInstallPreviewData.manifest.package.id || '-'
+            }}</el-descriptions-item>
+            <el-descriptions-item label="目标版本">{{
+              storeInstallPreviewData.manifest.package.version || '-'
+            }}</el-descriptions-item>
+            <el-descriptions-item label="当前版本">{{
+              getInstalledVersionByStore(storeInstallPreviewTarget) || '-'
+            }}</el-descriptions-item>
+            <el-descriptions-item label="作者">{{
+              joinList(storeInstallPreviewData.manifest.package.authors)
+            }}</el-descriptions-item>
+            <el-descriptions-item label="动作">{{
+              getStoreActionText(storeInstallPreviewTarget)
+            }}</el-descriptions-item>
+            <el-descriptions-item :span="2" label="描述">
+              <span class="break-text">{{
+                storeInstallPreviewData.manifest.package.description || '暂无描述'
+              }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item :span="2" label="内容统计">
+              {{ getUploadPreviewContentsText(storeInstallPreviewData) }}
+            </el-descriptions-item>
+            <el-descriptions-item :span="2" label="文件数量">
+              {{ storeInstallPreviewData.fileCount }}
+            </el-descriptions-item>
+          </el-descriptions>
+
+          <el-form label-position="top" class="store-install-preview-options">
+            <el-form-item>
+              <el-checkbox v-model="storeInstallPreviewAutoEnable">安装后启用</el-checkbox>
+            </el-form-item>
+          </el-form>
+
+          <section class="store-install-preview-files">
+            <header class="store-install-preview-files-title">文件清单</header>
+            <pre class="store-install-preview-files-content">{{
+              storeInstallPreviewData.files.join('\n')
+            }}</pre>
+          </section>
+        </template>
+
+        <el-empty
+          v-else-if="!storeInstallPreviewLoading"
+          description="未能获取扩展包预览"
+          :image-size="88" />
+      </div>
+    </template>
+    <template #footer>
+      <el-button @click="storeInstallPreviewVisible = false">取消</el-button>
+      <el-button
+        type="primary"
+        :loading="
+          Boolean(
+            storeInstallPreviewTarget &&
+              storeDownloadLoading[getStorePackageKey(storeInstallPreviewTarget)],
+          )
+        "
+        :disabled="!storeInstallPreviewTarget || !storeInstallPreviewData || storeInstallPreviewLoading"
+        @click="handleConfirmStoreInstallPreview">
+        {{ storeInstallPreviewTarget ? getStoreActionText(storeInstallPreviewTarget) : '安装' }}
+      </el-button>
+    </template>
+  </el-dialog>
+
   <el-dialog v-model="uninstallDialogVisible" title="卸载扩展包" width="420px">
     <el-form label-position="top">
       <el-form-item label="目标包">
@@ -569,6 +656,7 @@ import {
   getStoreBackendList,
   getStorePage,
   getStoreRecommend,
+  previewStorePackageDownload,
   removeStoreBackend,
   setStoreBackendEnabled,
   type StoreBackendRecord,
@@ -644,6 +732,11 @@ const storeTotal = ref(0);
 const storeViewMode = ref<StoreViewMode>('recommend');
 const storeDetailVisible = ref(false);
 const currentStorePackage = ref<StorePackage | null>(null);
+const storeInstallPreviewVisible = ref(false);
+const storeInstallPreviewLoading = ref(false);
+const storeInstallPreviewTarget = ref<StorePackage | null>(null);
+const storeInstallPreviewData = ref<PackageUploadPreview | null>(null);
+const storeInstallPreviewAutoEnable = ref(true);
 const storeQuery = reactive<
   Required<Pick<StorePageQuery, 'pageNum' | 'pageSize'>> & {
     backend: string;
@@ -1540,23 +1633,56 @@ const getStorePackageKey = (pkg: StorePackage) => `${pkg.id}@${pkg.version}`;
 const isStoreInstalled = (pkg: StorePackage) =>
   Boolean(pkg.installed || installedPackageIdSet.value.has(pkg.id));
 
-const handleDownloadStorePackage = async (pkg: StorePackage) => {
-  const actionText = isStoreInstalled(pkg) ? '安装/升级' : '安装';
-  try {
-    await ElMessageBox.confirm(
-      `确认${actionText}扩展包「${pkg.id} @ ${pkg.version}」吗？`,
-      `${actionText}扩展包`,
-      {
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        type: 'warning',
-      },
-    );
-  } catch {
+const findInstalledPackageByStore = (pkg: StorePackage) =>
+  installedPackages.value.find(installed => getPackageId(installed) === pkg.id) ?? null;
+
+const getInstalledVersionByStore = (pkg: StorePackage) =>
+  findInstalledPackageByStore(pkg)?.manifest.package.version || '';
+
+const getStoreActionText = (pkg: StorePackage) => {
+  if (!isStoreInstalled(pkg)) {
+    return '安装';
+  }
+  return getInstalledVersionByStore(pkg) === pkg.version ? '重装' : '升级';
+};
+
+const handleStoreUninstall = (pkg: StorePackage) => {
+  const installed = findInstalledPackageByStore(pkg);
+  if (!installed) {
+    ElMessage.warning('当前未找到已安装的扩展包记录，请先刷新列表');
     return;
   }
+  openUninstallDialog(installed);
+};
 
+const handleOpenStoreInstallPreview = async (pkg: StorePackage) => {
+  storeInstallPreviewTarget.value = pkg;
+  storeInstallPreviewData.value = null;
+  storeInstallPreviewAutoEnable.value = true;
+  storeInstallPreviewVisible.value = true;
+  storeInstallPreviewLoading.value = true;
+
+  try {
+    const response = await previewStorePackageDownload({ id: pkg.id, version: pkg.version });
+    if (!response.result || !response.data) {
+      ElMessage.error(getResponseError(response, '获取商店扩展包预览失败'));
+      storeInstallPreviewVisible.value = false;
+      return;
+    }
+    storeInstallPreviewData.value = response.data;
+  } finally {
+    storeInstallPreviewLoading.value = false;
+  }
+};
+
+const handleConfirmStoreInstallPreview = async () => {
+  const pkg = storeInstallPreviewTarget.value;
+  if (!pkg) {
+    return;
+  }
   const key = getStorePackageKey(pkg);
+  const actionText = getStoreActionText(pkg);
+  const beforeInstallPackages = captureInstalledPackageSnapshot();
   setLoadingFlag(storeDownloadLoading, key, true);
   try {
     const response = await downloadStorePackage({ id: pkg.id, version: pkg.version });
@@ -1564,9 +1690,8 @@ const handleDownloadStorePackage = async (pkg: StorePackage) => {
       ElMessage.error(getResponseError(response, `${actionText}扩展包失败`));
       return;
     }
-    ElMessage.success(`${actionText}请求已提交`);
-    await refreshInstalledPackages();
-    await refreshCurrentStoreView();
+    storeInstallPreviewVisible.value = false;
+    await handlePostInstallSuccess(beforeInstallPackages, storeInstallPreviewAutoEnable.value);
   } finally {
     setLoadingFlag(storeDownloadLoading, key, false);
   }
@@ -1913,6 +2038,14 @@ const handleInstallByUrl = async () => {
 watch(activeTab, tab => {
   if (tab === 'store') {
     void ensureStoreLoaded();
+  }
+});
+
+watch(storeInstallPreviewVisible, visible => {
+  if (!visible && !storeInstallPreviewLoading.value) {
+    storeInstallPreviewTarget.value = null;
+    storeInstallPreviewData.value = null;
+    storeInstallPreviewAutoEnable.value = true;
   }
 });
 
@@ -2574,6 +2707,45 @@ onBeforeMount(async () => {
   margin-top: 0.35rem;
   color: var(--package-muted);
   font-size: 0.82rem;
+}
+
+.store-install-preview {
+  min-height: 12rem;
+}
+
+.store-install-preview-summary {
+  margin-bottom: 1rem;
+}
+
+.store-install-preview-options {
+  margin-bottom: 0.25rem;
+}
+
+.store-install-preview-files {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.store-install-preview-files-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #263852;
+}
+
+.store-install-preview-files-content {
+  margin: 0;
+  max-height: 20rem;
+  overflow: auto;
+  padding: 0.9rem 1rem;
+  border-radius: 0.55rem;
+  background: #f8fafc;
+  border: 1px solid var(--package-line);
+  color: #334155;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .break-text {
