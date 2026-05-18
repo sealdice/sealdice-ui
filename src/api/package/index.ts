@@ -1,16 +1,9 @@
 import type { AxiosProgressEvent } from 'axios';
 import { createRequest } from '..';
+import type { ApiResponse } from '../types';
 
 const baseUrl = '/package/';
 const request = createRequest(baseUrl);
-
-export interface ApiResponse<T = unknown> {
-  result: boolean;
-  data?: T;
-  err?: string;
-  message?: string;
-  [key: string]: any;
-}
 
 export type ContentKind = 'scripts' | 'decks' | 'reply' | 'helpdoc' | 'templates';
 

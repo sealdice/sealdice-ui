@@ -1,16 +1,9 @@
 import { createRequest } from '..';
 import type { ContentKind, PackageUploadPreview } from '~/api/package';
+import type { ApiResponse } from '../types';
 
 const baseUrl = '/store/';
 const request = createRequest(baseUrl);
-
-export interface ApiResponse<T = unknown> {
-  result: boolean;
-  data?: T;
-  err?: string;
-  message?: string;
-  [key: string]: any;
-}
 
 export interface StorePackage {
   backendID?: string;
