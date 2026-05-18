@@ -304,7 +304,9 @@ const uploadFileList = ref<any[]>([]);
 const cr = ref<any>({ enable: true });
 
 const currentReplyPackageId = computed(
-  () => cr.value.packageId || fileItems.value.find(item => item.filename === curFilename.value)?.packageId,
+  () =>
+    cr.value.packageId ||
+    fileItems.value.find(item => item.filename === curFilename.value)?.packageId,
 );
 
 const switchClick = () => {
@@ -673,4 +675,3 @@ onBeforeUnmount(() => {
   font-weight: bold;
 }
 </style>
-

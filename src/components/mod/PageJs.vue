@@ -1436,4 +1436,3 @@ const jsUpdate = async () => {
   min-width: 100%;
 }
 </style>
-

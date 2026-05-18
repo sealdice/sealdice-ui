@@ -430,4 +430,3 @@ const deckUpdate = async () => {
   text-decoration: none;
 }
 </style>
-
