@@ -1,7 +1,15 @@
 <template>
   <div class="flex flex-col h-full">
-    <div class="mb-3 flex justify-end">
-      <div class="flex justify-center">
+    <div class="mb-3 flex flex-wrap items-center justify-end gap-3">
+      <div class="flex items-center">
+        <el-text class="mr-1.5">分段：</el-text>
+        <el-radio-group v-model="splitKey" size="small">
+          <el-radio-button v-for="option in splitOptions" :key="option.key" :value="option.key">
+            {{ option.label }}
+          </el-radio-button>
+        </el-radio-group>
+      </div>
+      <div class="flex items-center">
         <el-text>测试模式：</el-text>
         <el-radio-group v-model="mode" size="small">
           <el-radio-button value="private">私聊</el-radio-button>
@@ -62,17 +70,45 @@ import { useStore } from '~/store';
 import imgSeal from '~/assets/seal.png';
 import imgMe from '~/assets/me.jpg';
 import { Plus } from '@element-plus/icons-vue';
-import { getRecentMessage, postExec } from '~/api/dice';
+import {
+  getExecSplitOptions,
+  getRecentMessage,
+  postExec,
+  type ExecSplitOption,
+  type ExecSplitOptionKey,
+} from '~/api/dice';
 import { reloadDeck as postReloadDeck } from '~/api/deck';
 import { reloadHelpDoc } from '~/api/helpdoc';
 import { reloadJS } from '~/api/js';
 const store = useStore();
 
 const mode = ref<'private' | 'group'>('private');
+const fallbackSplitOptions: ExecSplitOption[] = [
+  { key: 'short', label: '短分段 300', messageSplitLen: 300 },
+  { key: 'qq', label: 'QQ 分段 2000', messageSplitLen: 2000 },
+  { key: 'unlimited', label: '无限', messageSplitLen: 0 },
+];
+const splitOptions = ref<ExecSplitOption[]>(fallbackSplitOptions);
+const splitKey = ref<ExecSplitOptionKey>('short');
+const selectedSplitLen = computed(
+  () =>
+    splitOptions.value.find(option => option.key === splitKey.value)?.messageSplitLen ??
+    fallbackSplitOptions[0].messageSplitLen,
+);
 
 let timerMsg: number;
 onBeforeMount(async () => {
   restaurants.value = loadAll();
+  try {
+    const data = await getExecSplitOptions();
+    if (data?.options?.length) {
+      splitOptions.value = data.options;
+      if (data.options.some(option => option.key === data.defaultKey)) {
+        splitKey.value = data.defaultKey;
+      }
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (e: any) {}
   timerMsg = setInterval(async () => {
     try {
       const msg = await getRecentMessage();
@@ -134,7 +170,7 @@ const doSend = async () => {
       mode: mode.value,
     });
     try {
-      await postExec(text, mode.value);
+      await postExec(text, mode.value, selectedSplitLen.value);
       // for (let i of ret) {
       //   store.talkLogs.push({
       //     content: i.message,
