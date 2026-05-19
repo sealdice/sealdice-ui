@@ -94,7 +94,8 @@ const splitKey = ref<ExecSplitOptionKey>('qq');
 const selectedSplitLen = computed(
   () =>
     splitOptions.value.find(option => option.key === splitKey.value)?.messageSplitLen ??
-    fallbackSplitOptions[1].messageSplitLen,
+    fallbackSplitOptions.find(option => option.key === 'qq')?.messageSplitLen ??
+    fallbackSplitOptions[0].messageSplitLen,
 );
 
 let timerMsg: number;
