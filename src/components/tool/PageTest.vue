@@ -90,11 +90,11 @@ const fallbackSplitOptions: ExecSplitOption[] = [
 ];
 const splitOptions = ref<ExecSplitOption[]>(fallbackSplitOptions);
 const splitOptionsSupported = ref(true);
-const splitKey = ref<ExecSplitOptionKey>('short');
+const splitKey = ref<ExecSplitOptionKey>('qq');
 const selectedSplitLen = computed(
   () =>
     splitOptions.value.find(option => option.key === splitKey.value)?.messageSplitLen ??
-    fallbackSplitOptions[0].messageSplitLen,
+    fallbackSplitOptions[1].messageSplitLen,
 );
 
 let timerMsg: number;
