@@ -3,7 +3,7 @@
     <div class="mb-3 flex flex-wrap items-center justify-end gap-3">
       <div class="flex items-center">
         <el-text class="mr-1.5">分段：</el-text>
-        <el-radio-group v-model="splitKey" size="small">
+        <el-radio-group v-model="splitKey" size="small" :disabled="!splitOptionsSupported">
           <el-radio-button v-for="option in splitOptions" :key="option.key" :value="option.key">
             {{ option.label }}
           </el-radio-button>
@@ -89,6 +89,7 @@ const fallbackSplitOptions: ExecSplitOption[] = [
   { key: 'unlimited', label: '无限', messageSplitLen: 0 },
 ];
 const splitOptions = ref<ExecSplitOption[]>(fallbackSplitOptions);
+const splitOptionsSupported = ref(true);
 const splitKey = ref<ExecSplitOptionKey>('short');
 const selectedSplitLen = computed(
   () =>
@@ -107,8 +108,11 @@ onBeforeMount(async () => {
         splitKey.value = data.defaultKey;
       }
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (e: any) {}
+    splitOptionsSupported.value = true;
+  } catch {
+    splitOptionsSupported.value = false;
+    ElMessage.warning('当前后端不支持测试分段设置');
+  }
   timerMsg = setInterval(async () => {
     try {
       const msg = await getRecentMessage();
