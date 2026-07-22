@@ -5,7 +5,6 @@ import { Download, View } from '@element-plus/icons-vue';
 
 const store = useStore();
 
-// 各端点的基地址
 const PPROF_BASE = `${urlBase}/sd-api/debug/pprof`;
 
 // 通用：带 token 的下载链接
@@ -22,20 +21,76 @@ const previewContent = ref('');
 const previewLoading = ref(false);
 
 // 防止重复触发：记录正在进行中的请求 key
-// 下载与查看文本共用同一 key，避免同一 profile 并发请求堆积
-const pendingKeys = reactive(new Set<string>());
-const isPending = (key: string) => pendingKeys.has(key);
-const markPending = (key: string) => {
-  pendingKeys.add(key);
-};
-const clearPending = (key: string) => {
-  pendingKeys.delete(key);
+// 状态保存到 sessionStorage 并附带过期时间戳，确保：
+//   1. 跨组件实例保持：用户离开/返回页面后按钮状态仍然正确
+//   2. 服务端采样结束后能自动解锁：到时间后由 markPending 启动的 setTimeout 清掉
+const PENDING_STORAGE_KEY = 'sd-pprof-pending';
+
+// map: key -> 到期时间戳（毫秒）
+const pendingExpiry = ref<Record<string, number>>({});
+
+const isPending = (key: string) => {
+  const exp = pendingExpiry.value[key];
+  if (exp === undefined) return false;
+  if (Date.now() >= exp) {
+    // 已过期，立即清理
+    clearPending(key);
+    return false;
+  }
+  return true;
 };
 
+const persistPending = () => {
+  try {
+    sessionStorage.setItem(PENDING_STORAGE_KEY, JSON.stringify(pendingExpiry.value));
+  } catch {
+    /* 忽略 quota / privacy 模式错误 */
+  }
+};
+
+const markPending = (key: string, durationMs: number) => {
+  pendingExpiry.value = { ...pendingExpiry.value, [key]: Date.now() + durationMs };
+  persistPending();
+  // 到时间自动清理，避免按钮永久锁住（即便用户离开页面 setTimeout 也会触发）
+  window.setTimeout(() => clearPending(key), durationMs);
+};
+
+const clearPending = (key: string) => {
+  if (!(key in pendingExpiry.value)) return;
+  const next = { ...pendingExpiry.value };
+  delete next[key];
+  pendingExpiry.value = next;
+  persistPending();
+};
+
+// 组件挂载时恢复 pending 状态（仅保留尚未过期的项）
+onMounted(() => {
+  try {
+    const raw = sessionStorage.getItem(PENDING_STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as Record<string, number>;
+    const now = Date.now();
+    const valid: Record<string, number> = {};
+    for (const [k, exp] of Object.entries(parsed)) {
+      if (exp > now) {
+        valid[k] = exp;
+        // 对每个仍然 pending 的 key 启动 setTimeout 兜底清理
+        window.setTimeout(() => clearPending(k), exp - now);
+      }
+    }
+    pendingExpiry.value = valid;
+    persistPending();
+  } catch {
+    /* 解析失败时忽略 */
+  }
+});
+
 // 触发下载：通过临时 a 标签，避免在某些浏览器中直接打开二进制
-const triggerDownload = (path: string, filename: string) => {
+// urlPath 必须以 / 开头并已包含 ?query 段（如 '/heap?debug=0'），
+// 后面用 & 拼接 token，保证 URL 分隔符始终正确
+const triggerDownload = (urlPath: string, filename: string) => {
   const a = document.createElement('a');
-  a.href = `${PPROF_BASE}${path}&${authQuery()}`;
+  a.href = `${PPROF_BASE}${urlPath}&${authQuery()}`;
   a.download = filename;
   a.rel = 'noopener';
   document.body.appendChild(a);
@@ -44,14 +99,14 @@ const triggerDownload = (path: string, filename: string) => {
 };
 
 // 获取文本格式的 profile 内容并展示
-const showTextProfile = async (key: string, path: string, title: string) => {
+// pending 状态由调用方（handleView）管理；这里仅在 fetch 完成后立即解锁
+const showTextProfile = async (key: string, urlPath: string, title: string) => {
   previewTitle.value = title;
   previewContent.value = '';
   previewLoading.value = true;
   previewVisible.value = true;
-  markPending(key);
   try {
-    const resp = await fetch(`${PPROF_BASE}${path}&debug=1&${authQuery()}`);
+    const resp = await fetch(`${PPROF_BASE}${urlPath}&${authQuery()}`);
     if (!resp.ok) {
       throw new Error(`HTTP ${resp.status}`);
     }
@@ -155,35 +210,38 @@ const profiles: ProfileEntry[] = [
   },
 ];
 
-// 构造下载 URL：profile/trace 拼接 seconds，其他使用各自的 path
+// 构造 URL path+query 段：以 / 开头并附带 ?query，
+// 末尾通过 & 拼接 token，确保分隔符始终正确
 const buildDownloadPath = (entry: ProfileEntry) => {
-  if (entry.key === 'profile') return `profile?seconds=${profileSeconds.value}`;
-  if (entry.key === 'trace') return `trace?seconds=${traceSeconds.value}`;
-  return entry.binaryPath;
+  if (entry.key === 'profile') return `/profile?seconds=${profileSeconds.value}`;
+  if (entry.key === 'trace') return `/trace?seconds=${traceSeconds.value}`;
+  // 其余 profile 二进制默认即可，显式 debug=0 让 URL 始终带 ?，便于 & 拼接 token
+  return `/${entry.binaryPath}?debug=0`;
 };
 
 const buildTextPath = (entry: ProfileEntry) => {
-  if (entry.textPath) return `${entry.textPath}?debug=1`;
+  if (entry.textPath) return `/${entry.textPath}?debug=1`;
   return '';
 };
 
 const handleDownload = (entry: ProfileEntry) => {
-  // profile/trace 等耗时请求防重入；瞬时下载也加锁避免重复触发
   if (isPending(entry.key)) return;
-  markPending(entry.key);
   try {
     triggerDownload(buildDownloadPath(entry), entry.filename);
-  } finally {
-    // 瞬时下载立即释放；profile/trace 由于浏览器已开始下载，保持 pending
-    // 直到用户切换/刷新页面即可（Set 会在组件卸载时随 reactive 一同回收）
-    if (entry.key !== 'profile' && entry.key !== 'trace') {
-      clearPending(entry.key);
-    }
+  } catch {
+    return;
   }
+  // 防重入：瞬时下载给一个很短的安全窗口，避免狂点；profile/trace 按采样时长锁定
+  let durationMs: number;
+  if (entry.key === 'profile') durationMs = profileSeconds.value * 1000;
+  else if (entry.key === 'trace') durationMs = traceSeconds.value * 1000;
+  else durationMs = 1500; // 瞬时下载给 1.5s 安全窗口
+  markPending(entry.key, durationMs);
 };
 
 const handleView = async (entry: ProfileEntry) => {
   if (isPending(entry.key)) return;
+  markPending(entry.key, 5000); // 文本预览最多几秒，给 5s 安全窗口
   await showTextProfile(entry.key, buildTextPath(entry), entry.title);
 };
 </script>
