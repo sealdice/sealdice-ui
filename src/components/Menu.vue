@@ -113,6 +113,10 @@
       <el-menu-item index="/tool/resource">
         <span>资源管理</span>
       </el-menu-item>
+
+      <el-menu-item index="/tool/profile">
+        <span>性能分析</span>
+      </el-menu-item>
     </el-sub-menu>
 
     <el-menu-item index="/about">

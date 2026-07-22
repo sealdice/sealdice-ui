@@ -11,6 +11,7 @@ import PageStory from '~/components/mod/PageStory.vue';
 import PageCensor from '~/components/mod/PageCensor.vue';
 import PageTest from '~/components/tool/PageTest.vue';
 import PageResource from '~/components/tool/PageResource.vue';
+import PageProfile from '~/components/tool/PageProfile.vue';
 import PageMiscSettings from '~/components/misc/PageMiscSettings.vue';
 import PageMiscBackup from '~/components/misc/PageMiscBackup.vue';
 import PageMiscGroup from '~/components/misc/PageMiscGroup.vue';
@@ -39,6 +40,7 @@ const router = createRouter({
       children: [
         { path: 'test', component: PageTest },
         { path: 'resource', component: PageResource },
+        { path: 'profile', component: PageProfile },
       ],
     },
     {
