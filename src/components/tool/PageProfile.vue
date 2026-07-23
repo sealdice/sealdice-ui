@@ -179,7 +179,7 @@ const profiles: ProfileEntry[] = [
   {
     key: 'block',
     title: '阻塞 (Block)',
-    desc: '同步原语上的阻塞事件采样。采样率使用 -block-profile 启动参数调整。',
+    desc: '同步原语上的阻塞事件采样。采样率使用 --block-profile 启动参数调整。',
     binaryPath: 'block',
     textPath: 'block',
     filename: 'block.pprof',
@@ -187,7 +187,7 @@ const profiles: ProfileEntry[] = [
   {
     key: 'mutex',
     title: '互斥锁 (Mutex)',
-    desc: '互斥锁争用事件采样。采样率使用 -mutex-profile 启动参数调整。',
+    desc: '互斥锁争用事件采样。采样率使用 --mutex-profile 启动参数调整。',
     binaryPath: 'mutex',
     textPath: 'mutex',
     filename: 'mutex.pprof',
