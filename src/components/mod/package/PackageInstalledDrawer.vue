@@ -88,6 +88,11 @@
         </section>
 
         <section class="drawer-section">
+          <header class="section-title">包内容</header>
+          <PackageFileTree :files="data.files" />
+        </section>
+
+        <section class="drawer-section">
           <header class="section-title">当前配置</header>
           <pre class="json-block">{{ prettyJson(configData) }}</pre>
         </section>
@@ -119,6 +124,7 @@
 
 <script setup lang="ts">
 import type { PackageInstance } from '~/api/package';
+import PackageFileTree from './PackageFileTree.vue';
 import { formatTime } from './time';
 
 const props = withDefaults(

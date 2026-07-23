@@ -94,6 +94,8 @@ declare module 'vue' {
     ICarbonContainerSoftware: typeof import('~icons/carbon/container-software')['default']
     Menu: typeof import('./src/components/Menu.vue')['default']
     Nested: typeof import('./src/components/utils/nested.vue')['default']
+    PackageFileTree: typeof import('./src/components/mod/package/PackageFileTree.vue')['default']
+    PackageFileTreeNode: typeof import('./src/components/mod/package/PackageFileTreeNode.vue')['default']
     PackageInstalledDrawer: typeof import('./src/components/mod/package/PackageInstalledDrawer.vue')['default']
     PackageStoreDrawer: typeof import('./src/components/mod/package/PackageStoreDrawer.vue')['default']
     PageAbout: typeof import('./src/components/PageAbout.vue')['default']

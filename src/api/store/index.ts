@@ -35,6 +35,7 @@ export interface StorePackage {
     releaseTime?: number;
     updateTime?: number;
     downloadCount?: number;
+    size?: number;
   };
   installed?: boolean;
 }
