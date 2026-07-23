@@ -76,6 +76,30 @@ export interface DownloadStorePackagePayload {
   version: string;
 }
 
+export interface StoreInstallListItem {
+  id: string;
+  version: string;
+}
+
+export type StoreInstallListItemStatus = 'installed' | 'skipped' | 'failed';
+
+export interface StoreInstallListItemResult extends StoreInstallListItem {
+  status: StoreInstallListItemStatus;
+  message?: string;
+}
+
+export interface StoreInstallListResult {
+  items: StoreInstallListItemResult[];
+  installed: number;
+  skipped: number;
+  failed: number;
+}
+
+export interface StorePackageInfoListItem extends StoreInstallListItem {
+  name?: string;
+  error?: string;
+}
+
 export interface StorePackageFile {
   path: string;
   size: number;
@@ -206,4 +230,24 @@ export function getStorePackageFiles(pkg: StorePackage) {
 
 export function downloadStorePackage(payload: DownloadStorePackagePayload) {
   return request<ApiResponse>('post', 'download', payload);
+}
+
+export function installStorePackageList(packages: StoreInstallListItem[]) {
+  return request<ApiResponse<StoreInstallListResult>>(
+    'post',
+    'install-list',
+    { packages },
+    undefined,
+    { timeout: 30 * 60 * 1000 },
+  );
+}
+
+export function getStorePackageInfoList(packages: StoreInstallListItem[]) {
+  return request<ApiResponse<StorePackageInfoListItem[]>>(
+    'post',
+    'package-info-list',
+    { packages },
+    undefined,
+    { timeout: 2 * 60 * 1000 },
+  );
 }
