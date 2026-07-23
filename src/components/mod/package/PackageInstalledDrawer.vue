@@ -6,6 +6,18 @@
           <el-descriptions :column="1" border>
             <el-descriptions-item label="名称">{{ packageMeta.name || '-' }}</el-descriptions-item>
             <el-descriptions-item label="包 ID">{{ packageMeta.id || '-' }}</el-descriptions-item>
+            <el-descriptions-item v-if="storeDetailUrl" label="商店详情">
+              <el-link
+                class="store-detail-link"
+                type="primary"
+                :underline="false"
+                :href="storeDetailUrl"
+                target="_blank"
+                rel="noopener noreferrer">
+                <span>查看商店详情</span>
+                <el-icon class="store-detail-link-icon"><TopRight /></el-icon>
+              </el-link>
+            </el-descriptions-item>
             <el-descriptions-item label="版本">{{
               packageMeta.version || '-'
             }}</el-descriptions-item>
@@ -123,6 +135,7 @@
 </template>
 
 <script setup lang="ts">
+import { TopRight } from '@element-plus/icons-vue';
 import type { PackageInstance } from '~/api/package';
 import PackageFileTree from './PackageFileTree.vue';
 import { formatTime } from './time';
@@ -136,6 +149,7 @@ const props = withDefaults(
     data: PackageInstance | null;
     configData?: Record<string, any> | null;
     configSchema?: Record<string, any> | null;
+    storeDetailUrl?: string;
   }>(),
   {
     size: '52%',
@@ -143,6 +157,7 @@ const props = withDefaults(
     saving: false,
     configData: null,
     configSchema: null,
+    storeDetailUrl: '',
   },
 );
 
@@ -330,6 +345,25 @@ const handleSaveConfig = () => {
   color: #c2410c;
   font-size: 0.85rem;
   line-height: 1.5;
+}
+
+.store-detail-link {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.store-detail-link :deep(.el-link__inner) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  line-height: 1;
+}
+
+.store-detail-link-icon {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 14px;
 }
 
 .json-block {

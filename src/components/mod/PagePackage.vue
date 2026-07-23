@@ -135,6 +135,17 @@
                       </div>
 
                       <div class="package-card-actions">
+                        <el-button
+                          v-if="getInstalledPackageStoreDetailHref(pkg)"
+                          plain
+                          size="small"
+                          tag="a"
+                          :icon="TopRight"
+                          :href="getInstalledPackageStoreDetailHref(pkg)"
+                          target="_blank"
+                          rel="noopener noreferrer">
+                          商店
+                        </el-button>
                         <el-button plain size="small" @click="openPackageDetail(pkg)"
                           >详情</el-button
                         >
@@ -225,139 +236,25 @@
         <el-tab-pane label="商店" name="store">
           <el-card shadow="never" class="section-card">
             <template #header>
-              <div class="section-card-header">
-                <span>仓库管理</span>
-                <el-button
-                  link
-                  :icon="Refresh"
-                  :loading="backendLoading"
-                  @click="refreshStoreBackends">
-                  刷新仓库列表
-                </el-button>
-              </div>
+              <span>扩展包商店</span>
             </template>
 
-            <div class="backend-add-row">
+            <div class="store-search-bar">
               <el-input
-                v-model="backendInput"
+                v-model="storeQuery.name"
+                class="store-search-input"
                 clearable
-                placeholder="输入仓库 URL"
-                @keyup.enter="handleAddBackend" />
+                :prefix-icon="Search"
+                placeholder="搜索扩展包名称"
+                @clear="handleStoreSearch"
+                @keyup.enter="handleStoreSearch" />
               <el-button
                 type="primary"
-                :icon="Plus"
-                :loading="backendAddLoading"
-                @click="handleAddBackend">
-                添加后端
+                :icon="Search"
+                :loading="storeLoading"
+                @click="handleStoreSearch">
+                搜索
               </el-button>
-            </div>
-
-            <div v-loading="backendLoading" class="backend-list">
-              <div
-                v-for="backend in storeBackends"
-                :key="getBackendKey(backend)"
-                class="backend-item">
-                <div class="backend-item-main">
-                  <el-space wrap>
-                    <el-text tag="strong">{{ getBackendLabel(backend) }}</el-text>
-                    <el-tag v-if="isBuiltinBackend(backend)" size="small" type="info">内置</el-tag>
-                  </el-space>
-                  <el-text type="info" class="break-text">{{ getBackendExtra(backend) }}</el-text>
-                </div>
-                <div class="backend-item-actions">
-                  <el-switch
-                    :model-value="isBackendEnabled(backend)"
-                    active-text="启用"
-                    inactive-text="禁用"
-                    :loading="Boolean(backendToggleLoading[getBackendKey(backend)])"
-                    @change="value => handleToggleBackend(backend, Boolean(value))" />
-                  <el-button
-                    v-if="!isBuiltinBackend(backend)"
-                    type="danger"
-                    link
-                    :loading="Boolean(backendRemoveLoading[getBackendKey(backend)])"
-                    @click="handleRemoveBackend(backend)">
-                    删除
-                  </el-button>
-                </div>
-              </div>
-              <el-empty
-                v-if="!backendLoading && storeBackends.length === 0"
-                description="暂无仓库后端"
-                :image-size="72" />
-            </div>
-          </el-card>
-
-          <el-card shadow="never" class="section-card">
-            <template #header>
-              <div class="section-card-header">
-                <span>商店查询</span>
-                <el-space wrap>
-                  <el-button :loading="storeLoading" @click="loadStoreRecommend">推荐</el-button>
-                  <el-button type="primary" :loading="storeLoading" @click="searchStorePackages"
-                    >搜索</el-button
-                  >
-                </el-space>
-              </div>
-            </template>
-
-            <el-form label-position="top" class="store-query-grid">
-              <el-form-item label="仓库后端">
-                <el-select v-model="storeQuery.backend" clearable placeholder="全部仓库">
-                  <el-option
-                    v-for="backend in enabledStoreBackends"
-                    :key="getBackendKey(backend)"
-                    :label="getBackendLabel(backend)"
-                    :value="getBackendValue(backend)" />
-                </el-select>
-              </el-form-item>
-              <el-form-item label="内容类型">
-                <el-select v-model="storeQuery.content" placeholder="全部类型">
-                  <el-option
-                    v-for="item in contentFilterOptions"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value" />
-                </el-select>
-              </el-form-item>
-              <el-form-item label="作者">
-                <el-input v-model="storeQuery.author" clearable placeholder="按作者筛选" />
-              </el-form-item>
-              <el-form-item label="名称">
-                <el-input v-model="storeQuery.name" clearable placeholder="按名称筛选" />
-              </el-form-item>
-              <el-form-item label="分类">
-                <el-input v-model="storeQuery.category" clearable placeholder="按分类筛选" />
-              </el-form-item>
-              <el-form-item label="排序字段">
-                <el-input v-model="storeQuery.sortBy" clearable placeholder="如 updateTime" />
-              </el-form-item>
-              <el-form-item label="排序方式">
-                <el-select v-model="storeQuery.order" clearable placeholder="默认">
-                  <el-option label="升序" value="asc" />
-                  <el-option label="降序" value="desc" />
-                </el-select>
-              </el-form-item>
-              <el-form-item label="页码">
-                <el-input-number
-                  v-model="storeQuery.pageNum"
-                  :min="1"
-                  :step="1"
-                  controls-position="right" />
-              </el-form-item>
-              <el-form-item label="每页数量">
-                <el-input-number
-                  v-model="storeQuery.pageSize"
-                  :min="1"
-                  :step="10"
-                  controls-position="right" />
-              </el-form-item>
-            </el-form>
-
-            <div class="result-hint">
-              <el-text type="info">
-                当前视图：{{ storeViewMode === 'recommend' ? '推荐列表' : '分页搜索结果' }}
-              </el-text>
             </div>
 
             <div class="table-wrap">
@@ -426,12 +323,19 @@
                     </el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column label="操作" fixed="right" min-width="170">
+                <el-table-column label="操作" fixed="right" width="220">
                   <template #default="scope">
-                    <el-space wrap>
-                      <el-button link size="small" @click="openStoreDetail(scope.row)"
-                        >查看详情</el-button
-                      >
+                    <div class="store-package-actions">
+                      <el-link
+                        class="store-detail-link"
+                        type="primary"
+                        :underline="false"
+                        :href="getStorePackageDetailHref(scope.row)"
+                        target="_blank"
+                        rel="noopener noreferrer">
+                        <el-icon class="store-detail-link-icon"><TopRight /></el-icon>
+                        <span>查看详情</span>
+                      </el-link>
                       <el-button
                         v-if="findInstalledPackageByStore(scope.row)"
                         link
@@ -444,11 +348,11 @@
                         link
                         size="small"
                         type="primary"
-                        :loading="Boolean(storeDownloadLoading[getStorePackageKey(scope.row)])"
+                        :loading="isStorePackageActionLoading(scope.row)"
                         @click="handleOpenStoreInstallPreview(scope.row)">
                         {{ getStoreActionText(scope.row) }}
                       </el-button>
-                    </el-space>
+                    </div>
                   </template>
                 </el-table-column>
               </el-table>
@@ -468,7 +372,72 @@
           </el-card>
         </el-tab-pane>
 
-        <el-tab-pane label="安装" name="install">
+        <el-tab-pane label="其他" name="manage">
+          <el-card shadow="never" class="section-card">
+            <template #header>
+              <div class="section-card-header">
+                <span>仓库管理</span>
+                <el-button
+                  link
+                  :icon="Refresh"
+                  :loading="backendLoading"
+                  @click="refreshStoreBackends">
+                  刷新仓库列表
+                </el-button>
+              </div>
+            </template>
+
+            <div class="backend-add-row">
+              <el-input
+                v-model="backendInput"
+                clearable
+                placeholder="输入仓库 URL"
+                @keyup.enter="handleAddBackend" />
+              <el-button
+                type="primary"
+                :icon="Plus"
+                :loading="backendAddLoading"
+                @click="handleAddBackend">
+                添加后端
+              </el-button>
+            </div>
+
+            <div v-loading="backendLoading" class="backend-list">
+              <div
+                v-for="backend in storeBackends"
+                :key="getBackendKey(backend)"
+                class="backend-item">
+                <div class="backend-item-main">
+                  <el-space wrap>
+                    <el-text tag="strong">{{ getBackendLabel(backend) }}</el-text>
+                    <el-tag v-if="isBuiltinBackend(backend)" size="small" type="info">内置</el-tag>
+                  </el-space>
+                  <el-text type="info" class="break-text">{{ getBackendExtra(backend) }}</el-text>
+                </div>
+                <div class="backend-item-actions">
+                  <el-switch
+                    :model-value="isBackendEnabled(backend)"
+                    active-text="启用"
+                    inactive-text="禁用"
+                    :loading="Boolean(backendToggleLoading[getBackendKey(backend)])"
+                    @change="value => handleToggleBackend(backend, Boolean(value))" />
+                  <el-button
+                    v-if="!isBuiltinBackend(backend)"
+                    type="danger"
+                    link
+                    :loading="Boolean(backendRemoveLoading[getBackendKey(backend)])"
+                    @click="handleRemoveBackend(backend)">
+                    删除
+                  </el-button>
+                </div>
+              </div>
+              <el-empty
+                v-if="!backendLoading && storeBackends.length === 0"
+                description="暂无仓库后端"
+                :image-size="72" />
+            </div>
+          </el-card>
+
           <div class="install-grid">
             <el-card shadow="never" class="section-card">
               <template #header>
@@ -561,9 +530,8 @@
     :data="currentPackageDetail"
     :config-data="currentPackageConfig"
     :config-schema="currentPackageSchema"
+    :store-detail-url="currentPackageStoreDetailUrl"
     @save-config="handleSavePackageConfig" />
-
-  <PackageStoreDrawer v-model="storeDetailVisible" :size="drawerSize" :data="currentStorePackage" />
 
   <el-dialog
     v-model="storeInstallPreviewVisible"
@@ -571,7 +539,10 @@
     width="720px"
     class="store-install-preview-dialog">
     <template v-if="storeInstallPreviewTarget">
-      <div v-loading="storeInstallPreviewLoading" class="store-install-preview">
+      <div
+        v-loading="storeInstallPreviewLoading"
+        class="store-install-preview"
+        element-loading-text="正在获取安装预览">
         <template v-if="storeInstallPreviewData">
           <el-descriptions :column="2" border class="store-install-preview-summary">
             <el-descriptions-item label="名称">
@@ -580,37 +551,35 @@
                   <img :src="storeInstallPreviewIconUrl" alt="" />
                 </span>
                 <span>{{
-                  storeInstallPreviewData.manifest.package.name ||
-                  storeInstallPreviewData.manifest.package.id ||
-                  '-'
+                  storeInstallPreviewTarget.name || storeInstallPreviewTarget.id || '-'
                 }}</span>
               </span>
             </el-descriptions-item>
             <el-descriptions-item label="ID">{{
-              storeInstallPreviewData.manifest.package.id || '-'
+              storeInstallPreviewTarget.id || '-'
             }}</el-descriptions-item>
             <el-descriptions-item label="目标版本">{{
-              storeInstallPreviewData.manifest.package.version || '-'
+              storeInstallPreviewTarget.version || '-'
             }}</el-descriptions-item>
             <el-descriptions-item label="当前版本">{{
               getInstalledVersionByStore(storeInstallPreviewTarget) || '-'
             }}</el-descriptions-item>
             <el-descriptions-item label="作者">{{
-              joinList(storeInstallPreviewData.manifest.package.authors)
+              joinList(storeInstallPreviewTarget.authors)
             }}</el-descriptions-item>
             <el-descriptions-item label="动作">{{
               getStoreActionText(storeInstallPreviewTarget)
             }}</el-descriptions-item>
             <el-descriptions-item :span="2" label="描述">
               <span class="break-text">{{
-                storeInstallPreviewData.manifest.package.description || '暂无描述'
+                storeInstallPreviewTarget.description || '暂无描述'
               }}</span>
             </el-descriptions-item>
             <el-descriptions-item :span="2" label="内容统计">
-              {{ getUploadPreviewContentsText(storeInstallPreviewData) }}
+              {{ getStorePreviewContentsText(storeInstallPreviewTarget, storeInstallPreviewData) }}
             </el-descriptions-item>
             <el-descriptions-item :span="2" label="文件数量">
-              {{ storeInstallPreviewData.fileCount }}
+              {{ storeInstallPreviewData.length }}
             </el-descriptions-item>
           </el-descriptions>
 
@@ -637,7 +606,7 @@
 
           <section class="store-install-preview-files">
             <header class="store-install-preview-files-title">文件清单</header>
-            <PackageFileTree :files="storeInstallPreviewData.files" />
+            <PackageFileTree :files="storeInstallPreviewFiles" />
           </section>
         </template>
 
@@ -704,6 +673,7 @@ import {
   Plus,
   Refresh,
   Search,
+  TopRight,
   Upload,
   User,
 } from '@element-plus/icons-vue';
@@ -735,21 +705,41 @@ import {
   addStoreBackend,
   downloadStorePackage,
   getStoreBackendList,
+  getStorePackageAssetUrl,
+  getStorePackageDetailUrl,
+  getStorePackageDetailUrlById,
+  getStorePackageFiles,
   getStorePage,
   getStoreRecommend,
-  previewStorePackageDownload,
   removeStoreBackend,
   setStoreBackendEnabled,
   type StoreBackendRecord,
   type StorePackage,
+  type StorePackageFile,
   type StorePageQuery,
 } from '~/api/store';
 import PackageInstalledDrawer from '~/components/mod/package/PackageInstalledDrawer.vue';
 import PackageFileTree from '~/components/mod/package/PackageFileTree.vue';
-import PackageStoreDrawer from '~/components/mod/package/PackageStoreDrawer.vue';
 import { formatTime, getTimeTimestamp } from '~/components/mod/package/time';
 
-const activeTab = ref<'installed' | 'store' | 'install'>('installed');
+type PackageTab = 'installed' | 'store' | 'manage';
+
+const packageTabs: PackageTab[] = ['installed', 'store', 'manage'];
+const route = useRoute();
+const router = useRouter();
+const getPackageTab = (value: unknown): PackageTab =>
+  typeof value === 'string' && packageTabs.includes(value as PackageTab)
+    ? (value as PackageTab)
+    : 'installed';
+
+const activeTab = computed<PackageTab>({
+  get: () => getPackageTab(route.query.tab),
+  set: tab => {
+    if (route.query.tab !== tab) {
+      void router.push({ query: { ...route.query, tab } });
+    }
+  },
+});
 
 type ContentFilter = 'all' | ContentKind;
 type StoreViewMode = 'recommend' | 'search';
@@ -799,6 +789,7 @@ const currentPackageId = ref('');
 const currentPackageDetail = ref<PackageInstance | null>(null);
 const currentPackageConfig = ref<Record<string, any> | null>(null);
 const currentPackageSchema = ref<Record<string, any> | null>({});
+const currentPackageStoreDetailUrl = ref('');
 
 const backendLoading = ref(false);
 const backendAddLoading = ref(false);
@@ -813,32 +804,16 @@ const storeDownloadLoading = ref<Record<string, boolean>>({});
 const storePackages = ref<StorePackage[]>([]);
 const storeTotal = ref(0);
 const storeViewMode = ref<StoreViewMode>('recommend');
-const storeDetailVisible = ref(false);
-const currentStorePackage = ref<StorePackage | null>(null);
 const storeInstallPreviewVisible = ref(false);
 const storeInstallPreviewLoading = ref(false);
 const storeInstallPreviewTarget = ref<StorePackage | null>(null);
-const storeInstallPreviewData = ref<PackageUploadPreview | null>(null);
+const storeInstallPreviewData = ref<StorePackageFile[] | null>(null);
 const storeInstallPreviewAutoEnable = ref(true);
 const storeInstallPreviewAutoReload = ref(false);
 const storeQuery = reactive<
-  Required<Pick<StorePageQuery, 'pageNum' | 'pageSize'>> & {
-    backend: string;
-    content: ContentFilter;
-    author: string;
-    name: string;
-    category: string;
-    sortBy: string;
-    order: string;
-  }
+  Required<Pick<StorePageQuery, 'pageNum' | 'pageSize'>> & { name: string }
 >({
-  backend: '',
-  content: 'all',
-  author: '',
   name: '',
-  category: '',
-  sortBy: '',
-  order: '',
   pageNum: 1,
   pageSize: 20,
 });
@@ -1021,25 +996,6 @@ const getPackageSourceWarning = (pkg: PackageInstance) =>
 const isAbsoluteAssetUrl = (value: string) =>
   /^(https?:)?\/\//i.test(value) || /^(data|blob):/i.test(value) || value.startsWith('/');
 
-const resolvePreviewableAssetUrl = (value?: string, baseUrl?: string) => {
-  const asset = value?.trim();
-  if (!asset) {
-    return '';
-  }
-  if (isAbsoluteAssetUrl(asset)) {
-    return asset;
-  }
-  if (!baseUrl) {
-    return '';
-  }
-  try {
-    const base = new URL(baseUrl, window.location.origin);
-    return new URL(asset, base).toString();
-  } catch {
-    return '';
-  }
-};
-
 const getPackageIconUrl = (pkg: PackageInstance) => {
   const icon = pkg.manifest.store?.icon?.trim();
   if (!icon) {
@@ -1072,15 +1028,30 @@ const getStorePackageBackendUrl = (pkg?: StorePackage | null) => {
 };
 
 const getStorePackageIconUrl = (pkg?: StorePackage | null) =>
-  resolvePreviewableAssetUrl(pkg?.storeAssets?.icon, getStorePackageBackendUrl(pkg));
+  pkg
+    ? getStorePackageAssetUrl(pkg, pkg.storeAssets?.icon ?? '', getStorePackageBackendUrl(pkg))
+    : '';
 
-const getPackagePreviewIconUrl = (preview?: PackageUploadPreview | null) =>
-  resolvePreviewableAssetUrl(preview?.manifest.store?.icon);
+const getStorePackageDetailHref = (pkg: StorePackage) =>
+  getStorePackageDetailUrl(pkg, getStorePackageBackendUrl(pkg));
 
-const storeInstallPreviewIconUrl = computed(
-  () =>
-    getPackagePreviewIconUrl(storeInstallPreviewData.value) ||
-    getStorePackageIconUrl(storeInstallPreviewTarget.value),
+const getInstalledPackageStoreDetailHref = (pkg: PackageInstance) => {
+  const storePackage = storePackages.value.find(item => item.id === getPackageId(pkg));
+  if (storePackage) {
+    return getStorePackageDetailHref(storePackage);
+  }
+  const backend =
+    storeBackends.value.find(item => isBackendEnabled(item) && isBuiltinBackend(item)) ??
+    storeBackends.value.find(isBackendEnabled);
+  return backend?.url ? getStorePackageDetailUrlById(getPackageId(pkg), backend.url) : '';
+};
+
+const storeInstallPreviewIconUrl = computed(() =>
+  getStorePackageIconUrl(storeInstallPreviewTarget.value),
+);
+
+const storeInstallPreviewFiles = computed(
+  () => storeInstallPreviewData.value?.map(file => file.path) ?? [],
 );
 
 const getStorePackageSize = (pkg: StorePackage) => {
@@ -1298,9 +1269,31 @@ const loadPackageDetail = async (pkg: PackageInstance) => {
   }
 };
 
+const loadPackageStoreDetailUrl = async (packageId: string) => {
+  const knownPackage = storePackages.value.find(pkg => pkg.id === packageId);
+  if (knownPackage) {
+    currentPackageStoreDetailUrl.value = getStorePackageDetailHref(knownPackage);
+    return;
+  }
+
+  try {
+    const response = await getStorePage({ name: packageId, pageNum: 1, pageSize: 20 });
+    const storePackage = response.result
+      ? unwrapStoreList(response).list.find(pkg => pkg.id === packageId)
+      : null;
+    if (currentPackageId.value === packageId && storePackage) {
+      currentPackageStoreDetailUrl.value = getStorePackageDetailHref(storePackage);
+    }
+  } catch {
+    return;
+  }
+};
+
 const openPackageDetail = async (pkg: PackageInstance) => {
+  const packageId = getPackageId(pkg);
+  currentPackageStoreDetailUrl.value = '';
   packageDetailVisible.value = true;
-  await loadPackageDetail(pkg);
+  await Promise.all([loadPackageDetail(pkg), loadPackageStoreDetailUrl(packageId)]);
 };
 
 const refreshCurrentPackageDetail = async (packageId = currentPackageId.value) => {
@@ -1314,6 +1307,7 @@ const refreshCurrentPackageDetail = async (packageId = currentPackageId.value) =
     currentPackageDetail.value = null;
     currentPackageConfig.value = null;
     currentPackageSchema.value = {};
+    currentPackageStoreDetailUrl.value = '';
     return;
   }
   await loadPackageDetail(refreshed);
@@ -1509,6 +1503,7 @@ const handleConfirmUninstall = async () => {
       currentPackageDetail.value = null;
       currentPackageConfig.value = null;
       currentPackageSchema.value = {};
+      currentPackageStoreDetailUrl.value = '';
     }
     await refreshInstalledPackages();
     if (uninstallAutoReload.value) {
@@ -1606,8 +1601,6 @@ const isBackendEnabled = (backend: StoreBackendRecord) => {
   return true;
 };
 
-const enabledStoreBackends = computed(() => storeBackends.value.filter(isBackendEnabled));
-
 const getBackendActionPayload = (backend: StoreBackendRecord) => {
   if (backend.backendID) {
     return { backendID: backend.backendID };
@@ -1637,6 +1630,7 @@ const handleAddBackend = async () => {
     ElMessage.success('仓库后端已添加');
     backendInput.value = '';
     await refreshStoreBackends();
+    await refreshCurrentStoreView();
   } finally {
     backendAddLoading.value = false;
   }
@@ -1655,9 +1649,6 @@ const handleToggleBackend = async (backend: StoreBackendRecord, enabled: boolean
     }
     ElMessage.success(enabled ? '仓库后端已启用' : '仓库后端已禁用');
     await refreshStoreBackends();
-    if (!enabled && storeQuery.backend === getBackendValue(backend)) {
-      storeQuery.backend = '';
-    }
     await refreshCurrentStoreView();
   } finally {
     setLoadingFlag(backendToggleLoading, key, false);
@@ -1689,10 +1680,7 @@ const handleRemoveBackend = async (backend: StoreBackendRecord) => {
     }
     ElMessage.success('仓库后端已删除');
     await refreshStoreBackends();
-    if (storeQuery.backend === getBackendValue(backend)) {
-      storeQuery.backend = '';
-      await refreshCurrentStoreView();
-    }
+    await refreshCurrentStoreView();
   } finally {
     setLoadingFlag(backendRemoveLoading, key, false);
   }
@@ -1703,26 +1691,8 @@ const buildStoreQuery = () => {
     pageNum: storeQuery.pageNum,
     pageSize: storeQuery.pageSize,
   };
-  if (storeQuery.backend) {
-    query.backend = storeQuery.backend;
-  }
-  if (storeQuery.content !== 'all') {
-    query.content = storeQuery.content;
-  }
-  if (storeQuery.author.trim()) {
-    query.author = storeQuery.author.trim();
-  }
   if (storeQuery.name.trim()) {
     query.name = storeQuery.name.trim();
-  }
-  if (storeQuery.category.trim()) {
-    query.category = storeQuery.category.trim();
-  }
-  if (storeQuery.sortBy.trim()) {
-    query.sortBy = storeQuery.sortBy.trim();
-  }
-  if (storeQuery.order.trim()) {
-    query.order = storeQuery.order.trim();
   }
   return query;
 };
@@ -1731,9 +1701,7 @@ const loadStoreRecommend = async () => {
   storeViewMode.value = 'recommend';
   storeLoading.value = true;
   try {
-    const response = await getStoreRecommend(
-      storeQuery.backend ? { backend: storeQuery.backend } : undefined,
-    );
+    const response = await getStoreRecommend();
     if (!response.result) {
       storePackages.value = [];
       storeTotal.value = 0;
@@ -1767,6 +1735,15 @@ const searchStorePackages = async () => {
   }
 };
 
+const handleStoreSearch = async () => {
+  storeQuery.pageNum = 1;
+  if (storeQuery.name.trim()) {
+    await searchStorePackages();
+  } else {
+    await loadStoreRecommend();
+  }
+};
+
 const refreshCurrentStoreView = async () => {
   if (!storeLoadStarted.value) {
     return;
@@ -1783,24 +1760,30 @@ const handleStorePageChange = async (page: number) => {
   await searchStorePackages();
 };
 
-const openStoreDetail = (pkg: StorePackage) => {
-  currentStorePackage.value = pkg;
-  storeDetailVisible.value = true;
-};
-
 const ensureStoreLoaded = async () => {
   if (storeLoadStarted.value) {
     return;
   }
   storeLoadStarted.value = true;
   try {
-    await Promise.all([refreshStoreBackends(), loadStoreRecommend()]);
+    await loadStoreRecommend();
   } catch {
     storeLoadStarted.value = false;
   }
 };
 
 const getStorePackageKey = (pkg: StorePackage) => `${pkg.id}@${pkg.version}`;
+
+const isStorePackageActionLoading = (pkg: StorePackage) => {
+  const key = getStorePackageKey(pkg);
+  const previewTarget = storeInstallPreviewTarget.value;
+  return (
+    Boolean(storeDownloadLoading.value[key]) ||
+    (storeInstallPreviewLoading.value &&
+      previewTarget !== null &&
+      getStorePackageKey(previewTarget) === key)
+  );
+};
 
 const isStoreInstalled = (pkg: StorePackage) =>
   Boolean(pkg.installed || installedPackageIdSet.value.has(pkg.id));
@@ -1836,13 +1819,13 @@ const handleOpenStoreInstallPreview = async (pkg: StorePackage) => {
   storeInstallPreviewLoading.value = true;
 
   try {
-    const response = await previewStorePackageDownload({ id: pkg.id, version: pkg.version });
-    if (!response.result || !response.data) {
-      ElMessage.error(getResponseError(response, '获取商店扩展包预览失败'));
+    const response = await getStorePackageFiles(pkg);
+    if (!response.result) {
+      ElMessage.error(getResponseError(response, '获取扩展包文件清单失败'));
       storeInstallPreviewVisible.value = false;
       return;
     }
-    storeInstallPreviewData.value = response.data;
+    storeInstallPreviewData.value = response.data ?? [];
   } finally {
     storeInstallPreviewLoading.value = false;
   }
@@ -2084,6 +2067,27 @@ const updateInstallUploadProgress = (phase: string, loaded: number, total?: numb
   installUploadProgressText.value = phase;
 };
 
+const getStorePreviewContentsText = (pkg: StorePackage, files: StorePackageFile[]) => {
+  const counts = new Map<ContentKind | 'assets', number>();
+  files.forEach(file => {
+    const kind = file.path.split('/', 1)[0] as ContentKind | 'assets';
+    if (kind in uploadPreviewContentLabelMap) {
+      counts.set(kind, (counts.get(kind) ?? 0) + 1);
+    }
+  });
+  const kinds = new Set<ContentKind | 'assets'>(pkg.contents);
+  if (counts.has('assets')) {
+    kinds.add('assets');
+  }
+  const items = [...kinds].map(kind => {
+    const count = counts.get(kind) ?? 0;
+    return count > 0
+      ? `${getUploadPreviewContentLabel(kind)} ${count} 个`
+      : getUploadPreviewContentLabel(kind);
+  });
+  return items.length > 0 ? items.join('、') : '未声明扩展内容';
+};
+
 const getUploadPreviewContentsText = (preview: PackageUploadPreview) => {
   const counts = preview.contentCounts ?? {};
   const items = (
@@ -2300,7 +2304,10 @@ watch(storeInstallPreviewAutoEnable, enabled => {
 });
 
 onBeforeMount(async () => {
-  await refreshInstalledPackages();
+  if (route.query.tab !== activeTab.value) {
+    await router.replace({ query: { ...route.query, tab: activeTab.value } });
+  }
+  await Promise.all([refreshInstalledPackages(), refreshStoreBackends()]);
   if (activeTab.value === 'store') {
     await ensureStoreLoaded();
   }
@@ -2949,14 +2956,16 @@ onBeforeMount(async () => {
   min-height: 1.8rem;
 }
 
-.store-query-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0 1rem;
+.store-search-bar {
+  max-width: 42rem;
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
-.result-hint {
-  margin-bottom: 0.75rem;
+.store-search-input {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .table-wrap {
@@ -2972,6 +2981,38 @@ onBeforeMount(async () => {
 .table-wrap :deep(.el-table th.el-table__cell) {
   background: #f8fafc;
   color: #475569;
+}
+
+.store-package-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.75rem;
+  white-space: nowrap;
+}
+
+.store-package-actions :deep(.el-button) {
+  margin-left: 0;
+}
+
+.store-detail-link {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.store-detail-link :deep(.el-link__inner) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  line-height: 1;
+}
+
+.store-detail-link-icon {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 13px;
 }
 
 .store-package-name-cell {
@@ -3239,10 +3280,6 @@ onBeforeMount(async () => {
   .package-card-actions {
     justify-content: flex-start;
   }
-
-  .store-query-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media screen and (max-width: 768px) {
@@ -3291,9 +3328,18 @@ onBeforeMount(async () => {
   }
 
   .backend-add-row,
-  .install-grid,
-  .store-query-grid {
+  .install-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .store-search-bar {
+    max-width: none;
+    flex-direction: column;
+  }
+
+  .store-search-bar :deep(.el-button) {
+    width: 100%;
+    margin-left: 0;
   }
 
   .backend-item {
