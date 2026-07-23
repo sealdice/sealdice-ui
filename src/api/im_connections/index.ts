@@ -143,15 +143,26 @@ export function postAddSlack(botToken: string, appToken: string) {
 }
 
 export function postAddOfficialQQ(
-  appID: number,
+  appID: string | number,
   appSecret: string,
   token: string,
   onlyQQGuild: boolean,
+  useWebhook: boolean,
+  webhookPath: string,
+  webhookPort: number,
 ) {
   return request<DiceConnection>(
     'post',
     'addOfficialQQ',
-    { appID, appSecret, token, onlyQQGuild },
+    {
+      appID: String(appID),
+      appSecret,
+      token,
+      onlyQQGuild,
+      useWebhook,
+      webhookPath,
+      webhookPort,
+    },
     'json',
     {
       timeout: 65000,
@@ -286,13 +297,16 @@ interface AdapterQQ {
   redVersion: string;
   host: string;
   port: number;
-  appID: number;
+  appID: string | number;
   isReverse: boolean;
   reverseAddr: string;
   builtinMode: 'gocq' | 'lagrange' | 'lagrange-gocq';
   built_in_mode: string; // Milky
   signServerVer: string;
   signServerName: string;
+  useWebhook?: boolean;
+  webhookPath?: string;
+  webhookPort?: number;
 }
 enum goCqHttpStateCode {
   Init = 0,

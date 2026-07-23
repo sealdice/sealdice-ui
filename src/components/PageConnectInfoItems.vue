@@ -288,6 +288,17 @@
             <el-form-item label="AppID">
               <div>{{ i.adapter?.appID }}</div>
             </el-form-item>
+            <el-form-item label="连接方式">
+              <div>{{ i.adapter?.useWebhook ? 'Webhook' : 'WebSocket' }}</div>
+            </el-form-item>
+            <template v-if="i.adapter?.useWebhook">
+              <el-form-item label="回调路径">
+                <div>{{ i.adapter?.webhookPath }}</div>
+              </el-form-item>
+              <el-form-item label="监听端口">
+                <div>{{ i.adapter?.webhookPort }}</div>
+              </el-form-item>
+            </template>
           </template>
 
           <template
@@ -1490,6 +1501,39 @@
           required>
           <el-switch v-model="form.onlyQQGuild" />
         </el-form-item>
+        <el-form-item
+          v-if="form.accountType === ImConnectionTypeOfficialQQ"
+          label="连接方式"
+          :label-width="formLabelWidth"
+          required>
+          <el-radio-group v-model="form.useWebhook">
+            <el-radio-button :value="false">WebSocket</el-radio-button>
+            <el-radio-button :value="true">Webhook</el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item
+          v-if="form.accountType === ImConnectionTypeOfficialQQ && form.useWebhook"
+          label="回调路径"
+          :label-width="formLabelWidth"
+          required>
+          <el-input
+            v-model="form.webhookPath"
+            placeholder="例如 /webhook"
+            type="text"
+            autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item
+          v-if="form.accountType === ImConnectionTypeOfficialQQ && form.useWebhook"
+          label="监听端口"
+          :label-width="formLabelWidth"
+          required>
+          <el-input-number
+            v-model="form.webhookPort"
+            :min="1"
+            :max="65535"
+            placeholder="例如 8099"
+            autocomplete="off"></el-input-number>
+        </el-form-item>
 
         <el-form-item
           v-if="form.accountType === ImConnectionTypeOfficialQQ"
@@ -1952,7 +1996,13 @@
                   form.signServerName === '')) ||
               (form.accountType === ImConnectionTypeMilkySeparate &&
                 (form.wsGateway === '' || form.restGateway === '')) ||
-              (isInternalMilkyAccountType(form.accountType) && form.account === '')
+              (isInternalMilkyAccountType(form.accountType) && form.account === '') ||
+              (form.accountType === ImConnectionTypeOfficialQQ &&
+                (form.appID === undefined ||
+                  form.appID === '' ||
+                  form.token === '' ||
+                  form.appSecret === '' ||
+                  (form.useWebhook && (form.webhookPath === '' || form.webhookPort === undefined))))
             "
             @click="goStepTwo">
             下一步</el-button
@@ -2593,9 +2643,13 @@ const form = reactive({
   host: '',
   port: '',
 
-  appID: undefined,
+  appID: '' as string | number,
   appSecret: '',
-  onlyQQGuild: true,
+  onlyQQGuild: false,
+
+  useWebhook: false,
+  webhookPath: '/webhook',
+  webhookPort: 8099,
 
   useSignServer: false,
   signServerConfig: {

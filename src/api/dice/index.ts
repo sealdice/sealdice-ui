@@ -102,6 +102,8 @@ export type DiceConfig = {
   textCmdTrustOnly: boolean; // 仅信任的文本命令
   ignoreUnaddressedBotCmd: boolean; // 忽略未定向给机器人的命令
   QQEnablePoke: boolean; // 是否启用QQ戳一戳功能
+  officialQQFileSendBase64: boolean; // 是否以 Base64 发送文件
+  officialQQUseMarkdown: boolean; // 是否使用 Markdown
   playerNameWrapEnable: boolean; // 是否启用玩家名包裹
   mailEnable: boolean; // 是否启用邮件功能
   mailFrom: string; // 邮件发件人

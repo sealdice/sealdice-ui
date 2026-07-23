@@ -88,13 +88,16 @@ export interface AdapterQQ {
   redVersion: string;
   host: string;
   port: number;
-  appID: number;
+  appID: string | number;
   isReverse: boolean;
   reverseAddr: string;
   builtinMode: 'gocq' | 'lagrange' | 'lagrange-gocq';
   built_in_mode: string; // Milky 的字段，跟 ob 不太一样
   signServerVer: string;
   signServerName: string;
+  useWebhook?: boolean;
+  webhookPath?: string;
+  webhookPort?: number;
 }
 
 interface TalkLogItem {
@@ -323,6 +326,9 @@ export const useStore = defineStore('main', {
         wsGateway,
         restGateway,
         builtInMode,
+        useWebhook,
+        webhookPath,
+        webhookPort,
       } = form;
 
       let info = null;
@@ -378,7 +384,15 @@ export const useStore = defineStore('main', {
           info = await postAddSlack(botToken, appToken);
           break;
         case ImConnectionTypeOfficialQQ:
-          info = await postAddOfficialQQ(Number(appID), appSecret, token, onlyQQGuild);
+          info = await postAddOfficialQQ(
+            appID,
+            appSecret,
+            token,
+            onlyQQGuild,
+            useWebhook,
+            webhookPath,
+            webhookPort,
+          );
           break;
         case ImConnectionTypeOnebotReverse:
           info = await postAddOnebot11ReverseWs(account, reverseAddr?.trim());

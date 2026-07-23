@@ -229,6 +229,34 @@
     <el-form-item>
       <template #label>
         <div>
+          <span>以 Base64 发送文件</span>
+          <el-tooltip
+            raw-content
+            content="是否使用 Base64 发送本地/非公网图片或语音文件，仅对QQ 官方机器人有效。">
+            <el-icon><question-filled /></el-icon>
+          </el-tooltip>
+        </div>
+      </template>
+      <el-checkbox v-model="config.officialQQFileSendBase64" label="开启" />
+    </el-form-item>
+
+    <el-form-item>
+      <template #label>
+        <div>
+          <span>使用 Markdown</span>
+          <el-tooltip
+            raw-content
+            content="是否自动把发送的所有群聊和频道消息全转为 Markdown 类型消息，仅对QQ 官方机器人有效。">
+            <el-icon><question-filled /></el-icon>
+          </el-tooltip>
+        </div>
+      </template>
+      <el-checkbox v-model="config.officialQQUseMarkdown" label="开启" />
+    </el-form-item>
+
+    <el-form-item>
+      <template #label>
+        <div>
           <span>限制.text 指令</span>
           <el-tooltip
             raw-content
