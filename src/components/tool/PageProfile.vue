@@ -135,7 +135,7 @@ const profiles: ProfileEntry[] = [
   {
     key: 'profile',
     title: 'CPU Profile',
-    desc: '在指定时长内采集 CPU 使用情况，生成 .pb.gz 文件，可使用 go tool pprof 分析。',
+    desc: '在指定时长内采集 CPU 使用情况。',
     binaryPath: '',
     textPath: '',
     filename: 'cpu.pprof',
@@ -145,7 +145,7 @@ const profiles: ProfileEntry[] = [
   {
     key: 'trace',
     title: '执行轨迹 (Trace)',
-    desc: '在指定时长内采集程序执行轨迹，生成 .trace 文件，可使用 go tool trace 分析。',
+    desc: '在指定时长内采集程序执行轨迹。',
     binaryPath: '',
     textPath: '',
     filename: 'trace.out',
@@ -179,7 +179,7 @@ const profiles: ProfileEntry[] = [
   {
     key: 'block',
     title: '阻塞 (Block)',
-    desc: '同步原语上的阻塞事件采样，需运行时启用。需要较高开销，请谨慎使用。',
+    desc: '同步原语上的阻塞事件采样。采样率使用 -block-profile 启动参数调整。',
     binaryPath: 'block',
     textPath: 'block',
     filename: 'block.pprof',
@@ -187,7 +187,7 @@ const profiles: ProfileEntry[] = [
   {
     key: 'mutex',
     title: '互斥锁 (Mutex)',
-    desc: '互斥锁争用事件采样，需运行时启用。',
+    desc: '互斥锁争用事件采样。采样率使用 -mutex-profile 启动参数调整。',
     binaryPath: 'mutex',
     textPath: 'mutex',
     filename: 'mutex.pprof',
@@ -260,7 +260,7 @@ const handleView = async (entry: ProfileEntry) => {
             提供的端点对海豹核心进行性能分析。
           </div>
           <div>
-            采集得到的 .pprof / .trace 文件可以使用 Go 自带的 <code>go tool pprof</code> /
+            采集得到的文件可以使用 Go 自带的 <code>go tool pprof</code> /
             <code>go tool trace</code> 命令离线分析。
           </div>
           <div>长时间采样（如 CPU profile、trace）会持续占用资源，建议仅在排查问题时使用。</div>
