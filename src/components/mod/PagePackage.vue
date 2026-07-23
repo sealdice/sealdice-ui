@@ -6,15 +6,45 @@
         <p class="package-page-description">统一管理已安装包、商店推荐以及上传 / URL 安装。</p>
       </div>
 
-      <button
-        type="button"
-        class="package-update-card"
-        :class="{ 'is-loading': reloadAllLoading }"
-        @click="handleReloadPackagesByContent()">
-        <span class="package-update-card-icon" aria-hidden="true"></span>
-        <span class="package-update-card-label">扩展包有更新</span>
-        <span class="package-update-card-badge">{{ pendingReloadPackageCount }}</span>
-      </button>
+      <div class="package-update-actions" :class="{ 'has-pending': hasPendingReloadPackages }">
+        <button
+          type="button"
+          class="package-update-card"
+          :class="{ 'is-loading': reloadAllLoading, 'has-pending': hasPendingReloadPackages }"
+          @click="handleReloadPackagesByContent()">
+          <span class="package-update-card-icon" aria-hidden="true"></span>
+          <span class="package-update-card-label">重载扩展</span>
+          <span class="package-update-card-badge">{{ pendingReloadPackageCount }}</span>
+        </button>
+        <el-dropdown
+          class="package-update-dropdown"
+          trigger="click"
+          :hide-on-click="true"
+          @command="handleReloadDropdownCommand">
+          <button
+            type="button"
+            class="package-update-dropdown-trigger"
+            :class="{ 'has-pending': hasPendingReloadPackages }"
+            :disabled="reloadAllLoading"
+            aria-label="选择重载内容">
+            <el-icon><CaretBottom /></el-icon>
+          </button>
+          <template #dropdown>
+            <el-dropdown-menu class="reload-dropdown-menu">
+              <el-dropdown-item
+                v-for="item in reloadDropdownOptions"
+                :key="item.value"
+                :command="item.value"
+                :disabled="reloadAllLoading">
+                <span class="reload-dropdown-item">
+                  <span>{{ item.label }}</span>
+                  <span class="reload-dropdown-count">{{ item.count }}</span>
+                </span>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
     </header>
 
     <section class="package-main-panel">
@@ -38,30 +68,14 @@
                   :label="item.label"
                   :value="item.value" />
               </el-select>
-              <el-dropdown
-                class="reload-dropdown"
-                trigger="click"
-                :hide-on-click="true"
-                @command="handleReloadDropdownCommand">
-                <el-button plain class="reload-dropdown-button" :loading="reloadAllLoading">
-                  重载
-                  <span class="reload-button-count">{{ pendingReloadPackageCount }}</span>
-                </el-button>
-                <template #dropdown>
-                  <el-dropdown-menu class="reload-dropdown-menu">
-                    <el-dropdown-item
-                      v-for="item in reloadDropdownOptions"
-                      :key="item.value"
-                      :command="item.value"
-                      :disabled="reloadAllLoading">
-                      <span class="reload-dropdown-item">
-                        <span>{{ item.label }}</span>
-                        <span class="reload-dropdown-count">{{ item.count }}</span>
-                      </span>
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
+              <el-button
+                plain
+                class="installed-export-button"
+                :icon="Download"
+                :disabled="installedPackages.length === 0"
+                @click="installedExportVisible = true">
+                导出清单
+              </el-button>
               <el-button
                 plain
                 class="installed-disk-refresh-button"
@@ -95,8 +109,8 @@
                   ]">
                   <div class="package-card-media" :class="`accent-${getPackageAccent(pkg)}`">
                     <img
-                      v-if="pkg.manifest.store?.icon"
-                      :src="pkg.manifest.store.icon"
+                      v-if="getPackageIconUrl(pkg)"
+                      :src="getPackageIconUrl(pkg)"
                       alt=""
                       class="package-card-avatar-image" />
                     <span v-else class="package-card-avatar-fallback">{{
@@ -129,6 +143,17 @@
                       </div>
 
                       <div class="package-card-actions">
+                        <el-button
+                          v-if="getInstalledPackageStoreDetailHref(pkg)"
+                          plain
+                          size="small"
+                          tag="a"
+                          :icon="TopRight"
+                          :href="getInstalledPackageStoreDetailHref(pkg)"
+                          target="_blank"
+                          rel="noopener noreferrer">
+                          商店
+                        </el-button>
                         <el-button plain size="small" @click="openPackageDetail(pkg)"
                           >详情</el-button
                         >
@@ -220,6 +245,150 @@
           <el-card shadow="never" class="section-card">
             <template #header>
               <div class="section-card-header">
+                <span>扩展包商店</span>
+                <el-button plain :icon="DocumentAdd" @click="openManifestInstallDialog">
+                  从清单安装
+                </el-button>
+              </div>
+            </template>
+
+            <div class="store-search-bar">
+              <el-input
+                v-model="storeQuery.name"
+                class="store-search-input"
+                clearable
+                :prefix-icon="Search"
+                placeholder="搜索扩展包名称"
+                @clear="handleStoreSearch"
+                @keyup.enter="handleStoreSearch" />
+              <el-button
+                type="primary"
+                :icon="Search"
+                :loading="storeLoading"
+                @click="handleStoreSearch">
+                搜索
+              </el-button>
+            </div>
+
+            <div class="table-wrap">
+              <el-table v-loading="storeLoading" :data="storePackages" stripe>
+                <el-table-column label="名称" min-width="220">
+                  <template #default="scope">
+                    <div class="store-package-name-cell">
+                      <span
+                        class="store-package-icon"
+                        :class="`accent-${getStorePackageAccent(scope.row)}`">
+                        <img
+                          v-if="getStorePackageIconUrl(scope.row)"
+                          :src="getStorePackageIconUrl(scope.row)"
+                          alt=""
+                          class="store-package-icon-image" />
+                        <span v-else class="store-package-icon-fallback">{{
+                          getStorePackageAvatarText(scope.row)
+                        }}</span>
+                      </span>
+                      <span class="store-package-name-main">
+                        <span class="store-package-name-title">{{ scope.row.name }}</span>
+                        <span class="store-package-name-version">{{ scope.row.version }}</span>
+                      </span>
+                    </div>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="id" label="ID" min-width="220" show-overflow-tooltip />
+                <el-table-column label="作者" min-width="160">
+                  <template #default="scope">
+                    <span>{{ joinList(scope.row.authors) }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="内容类型" min-width="180">
+                  <template #default="scope">
+                    <el-space wrap>
+                      <el-tag v-for="content in scope.row.contents" :key="content" size="small">
+                        {{ getContentLabel(content) }}
+                      </el-tag>
+                    </el-space>
+                  </template>
+                </el-table-column>
+                <el-table-column label="分类" min-width="120">
+                  <template #default="scope">
+                    {{ scope.row.storeAssets?.category || '-' }}
+                  </template>
+                </el-table-column>
+                <el-table-column label="更新时间" min-width="170">
+                  <template #default="scope">
+                    {{ formatTime(scope.row.download?.updateTime) }}
+                  </template>
+                </el-table-column>
+                <el-table-column label="下载量" min-width="100">
+                  <template #default="scope">
+                    {{ scope.row.download?.downloadCount ?? '-' }}
+                  </template>
+                </el-table-column>
+                <el-table-column label="大小" min-width="110" align="right">
+                  <template #default="scope">
+                    <span class="store-package-size">{{ formatStorePackageSize(scope.row) }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="安装状态" min-width="120">
+                  <template #default="scope">
+                    <el-tag :type="isStoreInstalled(scope.row) ? 'success' : 'info'">
+                      {{ isStoreInstalled(scope.row) ? '已安装' : '未安装' }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作" fixed="right" width="220">
+                  <template #default="scope">
+                    <div class="store-package-actions">
+                      <el-link
+                        class="store-detail-link"
+                        type="primary"
+                        :underline="false"
+                        :href="getStorePackageDetailHref(scope.row)"
+                        target="_blank"
+                        rel="noopener noreferrer">
+                        <el-icon class="store-detail-link-icon"><TopRight /></el-icon>
+                        <span>查看详情</span>
+                      </el-link>
+                      <el-button
+                        v-if="findInstalledPackageByStore(scope.row)"
+                        link
+                        size="small"
+                        type="danger"
+                        @click="handleStoreUninstall(scope.row)">
+                        卸载
+                      </el-button>
+                      <el-button
+                        link
+                        size="small"
+                        type="primary"
+                        :loading="isStorePackageActionLoading(scope.row)"
+                        @click="handleOpenStoreInstallPreview(scope.row)">
+                        {{ getStoreActionText(scope.row) }}
+                      </el-button>
+                    </div>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+
+            <div v-if="storeViewMode === 'search'" class="pagination-row">
+              <el-config-provider :locale="zhCn">
+                <el-pagination
+                  background
+                  layout="total, prev, pager, next"
+                  :current-page="storeQuery.pageNum"
+                  :page-size="storeQuery.pageSize"
+                  :total="storeTotal"
+                  @current-change="handleStorePageChange" />
+              </el-config-provider>
+            </div>
+          </el-card>
+        </el-tab-pane>
+
+        <el-tab-pane label="其他" name="manage">
+          <el-card shadow="never" class="section-card">
+            <template #header>
+              <div class="section-card-header">
                 <span>仓库管理</span>
                 <el-button
                   link
@@ -282,166 +451,6 @@
             </div>
           </el-card>
 
-          <el-card shadow="never" class="section-card">
-            <template #header>
-              <div class="section-card-header">
-                <span>商店查询</span>
-                <el-space wrap>
-                  <el-button :loading="storeLoading" @click="loadStoreRecommend">推荐</el-button>
-                  <el-button type="primary" :loading="storeLoading" @click="searchStorePackages"
-                    >搜索</el-button
-                  >
-                </el-space>
-              </div>
-            </template>
-
-            <el-form label-position="top" class="store-query-grid">
-              <el-form-item label="仓库后端">
-                <el-select v-model="storeQuery.backend" clearable placeholder="全部仓库">
-                  <el-option
-                    v-for="backend in enabledStoreBackends"
-                    :key="getBackendKey(backend)"
-                    :label="getBackendLabel(backend)"
-                    :value="getBackendValue(backend)" />
-                </el-select>
-              </el-form-item>
-              <el-form-item label="内容类型">
-                <el-select v-model="storeQuery.content" placeholder="全部类型">
-                  <el-option
-                    v-for="item in contentFilterOptions"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value" />
-                </el-select>
-              </el-form-item>
-              <el-form-item label="作者">
-                <el-input v-model="storeQuery.author" clearable placeholder="按作者筛选" />
-              </el-form-item>
-              <el-form-item label="名称">
-                <el-input v-model="storeQuery.name" clearable placeholder="按名称筛选" />
-              </el-form-item>
-              <el-form-item label="分类">
-                <el-input v-model="storeQuery.category" clearable placeholder="按分类筛选" />
-              </el-form-item>
-              <el-form-item label="排序字段">
-                <el-input v-model="storeQuery.sortBy" clearable placeholder="如 updateTime" />
-              </el-form-item>
-              <el-form-item label="排序方式">
-                <el-select v-model="storeQuery.order" clearable placeholder="默认">
-                  <el-option label="升序" value="asc" />
-                  <el-option label="降序" value="desc" />
-                </el-select>
-              </el-form-item>
-              <el-form-item label="页码">
-                <el-input-number
-                  v-model="storeQuery.pageNum"
-                  :min="1"
-                  :step="1"
-                  controls-position="right" />
-              </el-form-item>
-              <el-form-item label="每页数量">
-                <el-input-number
-                  v-model="storeQuery.pageSize"
-                  :min="1"
-                  :step="10"
-                  controls-position="right" />
-              </el-form-item>
-            </el-form>
-
-            <div class="result-hint">
-              <el-text type="info">
-                当前视图：{{ storeViewMode === 'recommend' ? '推荐列表' : '分页搜索结果' }}
-              </el-text>
-            </div>
-
-            <div class="table-wrap">
-              <el-table v-loading="storeLoading" :data="storePackages" stripe>
-                <el-table-column label="名称" min-width="180">
-                  <template #default="scope">
-                    <div class="font-medium">{{ scope.row.name }}</div>
-                    <el-text type="info" size="small">{{ scope.row.version }}</el-text>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="id" label="ID" min-width="220" show-overflow-tooltip />
-                <el-table-column label="作者" min-width="160">
-                  <template #default="scope">
-                    <span>{{ joinList(scope.row.authors) }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column label="内容类型" min-width="180">
-                  <template #default="scope">
-                    <el-space wrap>
-                      <el-tag v-for="content in scope.row.contents" :key="content" size="small">
-                        {{ getContentLabel(content) }}
-                      </el-tag>
-                    </el-space>
-                  </template>
-                </el-table-column>
-                <el-table-column label="分类" min-width="120">
-                  <template #default="scope">
-                    {{ scope.row.storeAssets?.category || '-' }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="更新时间" min-width="170">
-                  <template #default="scope">
-                    {{ formatTime(scope.row.download?.updateTime) }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="下载量" min-width="100">
-                  <template #default="scope">
-                    {{ scope.row.download?.downloadCount ?? '-' }}
-                  </template>
-                </el-table-column>
-                <el-table-column label="安装状态" min-width="120">
-                  <template #default="scope">
-                    <el-tag :type="isStoreInstalled(scope.row) ? 'success' : 'info'">
-                      {{ isStoreInstalled(scope.row) ? '已安装' : '未安装' }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column label="操作" fixed="right" min-width="170">
-                  <template #default="scope">
-                    <el-space wrap>
-                      <el-button link size="small" @click="openStoreDetail(scope.row)"
-                        >查看详情</el-button
-                      >
-                      <el-button
-                        v-if="findInstalledPackageByStore(scope.row)"
-                        link
-                        size="small"
-                        type="danger"
-                        @click="handleStoreUninstall(scope.row)">
-                        卸载
-                      </el-button>
-                      <el-button
-                        link
-                        size="small"
-                        type="primary"
-                        :loading="Boolean(storeDownloadLoading[getStorePackageKey(scope.row)])"
-                        @click="handleOpenStoreInstallPreview(scope.row)">
-                        {{ getStoreActionText(scope.row) }}
-                      </el-button>
-                    </el-space>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </div>
-
-            <div v-if="storeViewMode === 'search'" class="pagination-row">
-              <el-config-provider :locale="zhCn">
-                <el-pagination
-                  background
-                  layout="total, prev, pager, next"
-                  :current-page="storeQuery.pageNum"
-                  :page-size="storeQuery.pageSize"
-                  :total="storeTotal"
-                  @current-change="handleStorePageChange" />
-              </el-config-provider>
-            </div>
-          </el-card>
-        </el-tab-pane>
-
-        <el-tab-pane label="安装" name="install">
           <div class="install-grid">
             <el-card shadow="never" class="section-card">
               <template #header>
@@ -464,6 +473,16 @@
                 </el-form-item>
                 <el-form-item>
                   <el-checkbox v-model="installUploadAutoEnable">安装后自动启用</el-checkbox>
+                </el-form-item>
+                <el-form-item>
+                  <el-checkbox
+                    v-model="installUploadAutoReload"
+                    :disabled="!installUploadAutoEnable">
+                    安装并启用后自动重载
+                  </el-checkbox>
+                  <div class="install-reload-tip">
+                    如果插件很多，重载会花费较长时间，特别是帮助文档。
+                  </div>
                 </el-form-item>
               </el-form>
               <el-button
@@ -497,6 +516,14 @@
                 <el-form-item>
                   <el-checkbox v-model="installUrlAutoEnable">安装后自动启用</el-checkbox>
                 </el-form-item>
+                <el-form-item>
+                  <el-checkbox v-model="installUrlAutoReload" :disabled="!installUrlAutoEnable">
+                    安装并启用后自动重载
+                  </el-checkbox>
+                  <div class="install-reload-tip">
+                    如果插件很多，重载会花费较长时间，特别是帮助文档。
+                  </div>
+                </el-form-item>
               </el-form>
               <el-button type="primary" :loading="installByUrlLoading" @click="handleInstallByUrl">
                 从 URL 安装
@@ -516,9 +543,174 @@
     :data="currentPackageDetail"
     :config-data="currentPackageConfig"
     :config-schema="currentPackageSchema"
+    :store-detail-url="currentPackageStoreDetailUrl"
     @save-config="handleSavePackageConfig" />
 
-  <PackageStoreDrawer v-model="storeDetailVisible" :size="drawerSize" :data="currentStorePackage" />
+  <el-dialog
+    v-model="installedExportVisible"
+    title="导出扩展包清单"
+    width="680px"
+    class="installed-export-dialog">
+    <div class="installed-export-content">
+      <div class="installed-export-count">共 {{ installedPackageListItems.length }} 个扩展包</div>
+      <el-input
+        :model-value="installedExportContent"
+        type="textarea"
+        :rows="12"
+        resize="vertical"
+        readonly />
+    </div>
+    <template #footer>
+      <el-button @click="installedExportVisible = false">关闭</el-button>
+      <el-button plain :icon="CopyDocument" @click="copyInstalledPackageList">复制</el-button>
+      <el-button type="primary" :icon="Download" @click="downloadInstalledPackageList">
+        下载
+      </el-button>
+    </template>
+  </el-dialog>
+
+  <el-dialog
+    v-model="manifestInstallVisible"
+    title="从清单安装扩展包"
+    width="760px"
+    class="manifest-install-dialog"
+    :close-on-click-modal="!manifestInstallLoading"
+    :close-on-press-escape="!manifestInstallLoading"
+    :show-close="!manifestInstallLoading">
+    <div class="manifest-install-content">
+      <input
+        ref="manifestInstallFileInput"
+        class="manifest-install-file-input"
+        type="file"
+        accept=".toml,application/toml,text/plain"
+        @change="handleManifestInstallFileChange" />
+
+      <div class="manifest-install-source-actions">
+        <el-button
+          plain
+          :icon="Upload"
+          :disabled="manifestInstallLoading"
+          @click="manifestInstallFileInput?.click()">
+          选择清单文件
+        </el-button>
+        <span v-if="manifestInstallFileName" class="manifest-install-file-name">
+          {{ manifestInstallFileName }}
+        </span>
+      </div>
+
+      <el-input
+        v-model="manifestInstallContent"
+        type="textarea"
+        :rows="8"
+        resize="vertical"
+        :disabled="manifestInstallLoading"
+        placeholder='# Generated by the SealRepo extension list.&#10;[dependencies]&#10;"author/package" = "=1.0.0"'
+        @input="handleManifestInstallContentInput" />
+
+      <el-alert
+        v-if="manifestInstallPreview.error"
+        type="error"
+        :title="manifestInstallPreview.error"
+        :closable="false"
+        show-icon />
+      <el-alert
+        v-else-if="manifestInstallPreview.items"
+        type="success"
+        :title="`已识别 ${manifestInstallPreview.items.length} 个扩展包`"
+        :closable="false"
+        show-icon />
+
+      <div v-if="manifestInstallPreview.items" class="manifest-install-table-wrap">
+        <el-table
+          :data="manifestInstallPreview.items"
+          size="small"
+          max-height="280"
+          :row-class-name="getManifestInstallRowClassName">
+          <el-table-column width="46" align="center">
+            <template #header>
+              <el-checkbox
+                :model-value="manifestInstallAllSelected"
+                :indeterminate="manifestInstallSelectionIndeterminate"
+                :disabled="manifestInstallSelectableItems.length === 0 || manifestInstallLoading"
+                aria-label="选择全部可安装扩展包"
+                @change="handleManifestInstallSelectAll" />
+            </template>
+            <template #default="scope">
+              <el-checkbox
+                :model-value="isManifestInstallItemSelected(scope.row.id)"
+                :disabled="isManifestInstallItemExactVersion(scope.row) || manifestInstallLoading"
+                :aria-label="`选择 ${getManifestInstallPackageName(scope.row.id) || scope.row.id}`"
+                @change="value => handleManifestInstallItemSelection(scope.row.id, value)" />
+            </template>
+          </el-table-column>
+          <el-table-column prop="id" label="扩展包 ID" min-width="180" />
+          <el-table-column label="扩展名称" min-width="140">
+            <template #default="scope">
+              <span v-if="getManifestInstallPackageName(scope.row.id)">
+                {{ getManifestInstallPackageName(scope.row.id) }}
+              </span>
+              <span v-else class="manifest-install-name-placeholder">
+                {{ manifestInstallPackageInfoLoading ? '查询中...' : '-' }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="version" label="目标版本" min-width="100" />
+          <el-table-column label="当前版本" min-width="100">
+            <template #default="scope">
+              {{ getInstalledVersionById(scope.row.id) || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column label="结果" min-width="130">
+            <template #default="scope">
+              <el-tooltip
+                :disabled="!getManifestInstallResult(scope.row.id)?.message"
+                :content="getManifestInstallResult(scope.row.id)?.message"
+                placement="top">
+                <el-tag :type="getManifestInstallResultTagType(scope.row.id)" size="small">
+                  {{ getManifestInstallResultText(scope.row.id) }}
+                </el-tag>
+              </el-tooltip>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+
+      <div v-if="manifestInstallPreview.items" class="manifest-install-options">
+        <el-checkbox v-model="manifestInstallAutoEnable" :disabled="manifestInstallLoading">
+          安装后自动启用
+        </el-checkbox>
+        <el-checkbox
+          v-model="manifestInstallAutoReload"
+          :disabled="manifestInstallLoading || !manifestInstallAutoEnable">
+          安装并启用后自动重载
+        </el-checkbox>
+      </div>
+
+      <div
+        v-if="manifestInstallLoading || manifestInstallProgress > 0"
+        class="manifest-install-progress">
+        <el-progress
+          :percentage="manifestInstallProgress"
+          :status="manifestInstallProgressStatus"
+          :indeterminate="manifestInstallLoading"
+          :duration="2" />
+        <span>{{ manifestInstallProgressText }}</span>
+      </div>
+    </div>
+
+    <template #footer>
+      <el-button :disabled="manifestInstallLoading" @click="manifestInstallVisible = false">
+        {{ manifestInstallResults.length > 0 ? '完成' : '取消' }}
+      </el-button>
+      <el-button
+        type="primary"
+        :loading="manifestInstallLoading"
+        :disabled="manifestInstallSelectedItems.length === 0"
+        @click="handleManifestInstall">
+        安装 {{ manifestInstallSelectedItems.length }} 个扩展包
+      </el-button>
+    </template>
+  </el-dialog>
 
   <el-dialog
     v-model="storeInstallPreviewVisible"
@@ -526,53 +718,74 @@
     width="720px"
     class="store-install-preview-dialog">
     <template v-if="storeInstallPreviewTarget">
-      <div v-loading="storeInstallPreviewLoading" class="store-install-preview">
+      <div
+        v-loading="storeInstallPreviewLoading"
+        class="store-install-preview"
+        element-loading-text="正在获取安装预览">
         <template v-if="storeInstallPreviewData">
           <el-descriptions :column="2" border class="store-install-preview-summary">
-            <el-descriptions-item label="名称">{{
-              storeInstallPreviewData.manifest.package.name ||
-              storeInstallPreviewData.manifest.package.id ||
-              '-'
-            }}</el-descriptions-item>
+            <el-descriptions-item label="名称">
+              <span class="store-install-preview-name-cell">
+                <span v-if="storeInstallPreviewIconUrl" class="store-install-preview-icon">
+                  <img :src="storeInstallPreviewIconUrl" alt="" />
+                </span>
+                <span>{{
+                  storeInstallPreviewTarget.name || storeInstallPreviewTarget.id || '-'
+                }}</span>
+              </span>
+            </el-descriptions-item>
             <el-descriptions-item label="ID">{{
-              storeInstallPreviewData.manifest.package.id || '-'
+              storeInstallPreviewTarget.id || '-'
             }}</el-descriptions-item>
             <el-descriptions-item label="目标版本">{{
-              storeInstallPreviewData.manifest.package.version || '-'
+              storeInstallPreviewTarget.version || '-'
             }}</el-descriptions-item>
             <el-descriptions-item label="当前版本">{{
               getInstalledVersionByStore(storeInstallPreviewTarget) || '-'
             }}</el-descriptions-item>
             <el-descriptions-item label="作者">{{
-              joinList(storeInstallPreviewData.manifest.package.authors)
+              joinList(storeInstallPreviewTarget.authors)
             }}</el-descriptions-item>
             <el-descriptions-item label="动作">{{
               getStoreActionText(storeInstallPreviewTarget)
             }}</el-descriptions-item>
             <el-descriptions-item :span="2" label="描述">
               <span class="break-text">{{
-                storeInstallPreviewData.manifest.package.description || '暂无描述'
+                storeInstallPreviewTarget.description || '暂无描述'
               }}</span>
             </el-descriptions-item>
             <el-descriptions-item :span="2" label="内容统计">
-              {{ getUploadPreviewContentsText(storeInstallPreviewData) }}
+              {{ getStorePreviewContentsText(storeInstallPreviewTarget, storeInstallPreviewData) }}
             </el-descriptions-item>
             <el-descriptions-item :span="2" label="文件数量">
-              {{ storeInstallPreviewData.fileCount }}
+              {{ storeInstallPreviewData.length }}
             </el-descriptions-item>
           </el-descriptions>
 
-          <el-form label-position="top" class="store-install-preview-options">
-            <el-form-item>
-              <el-checkbox v-model="storeInstallPreviewAutoEnable">安装后启用</el-checkbox>
-            </el-form-item>
-          </el-form>
+          <div class="store-install-preview-options" role="group" aria-label="安装选项">
+            <div class="store-install-preview-option-row">
+              <el-checkbox
+                v-model="storeInstallPreviewAutoEnable"
+                class="store-install-preview-checkbox">
+                安装后启用
+              </el-checkbox>
+            </div>
+            <div class="store-install-preview-option-row">
+              <el-checkbox
+                v-model="storeInstallPreviewAutoReload"
+                :disabled="!storeInstallPreviewAutoEnable"
+                class="store-install-preview-checkbox">
+                安装并启用后自动重载
+              </el-checkbox>
+              <div class="install-reload-tip store-install-preview-reload-tip">
+                如果插件很多，重载会花费较长时间，特别是帮助文档。
+              </div>
+            </div>
+          </div>
 
           <section class="store-install-preview-files">
             <header class="store-install-preview-files-title">文件清单</header>
-            <pre class="store-install-preview-files-content">{{
-              storeInstallPreviewData.files.join('\n')
-            }}</pre>
+            <PackageFileTree :files="storeInstallPreviewFiles" />
           </section>
         </template>
 
@@ -616,6 +829,10 @@
           <el-option label="keep_data - 保留数据" value="keep_data" />
         </el-select>
       </el-form-item>
+      <el-form-item>
+        <el-checkbox v-model="uninstallAutoReload">卸载后自动重载</el-checkbox>
+        <div class="install-reload-tip">如果插件很多，重载会花费较长时间，特别是帮助文档。</div>
+      </el-form-item>
     </el-form>
     <template #footer>
       <el-button @click="uninstallDialogVisible = false">取消</el-button>
@@ -628,11 +845,26 @@
 
 <script setup lang="ts">
 import type { UploadFile, UploadFiles, UploadRawFile } from 'element-plus';
-import { Clock, Document, Plus, Refresh, Search, Upload, User } from '@element-plus/icons-vue';
+import {
+  CaretBottom,
+  Clock,
+  CopyDocument,
+  Document,
+  DocumentAdd,
+  Download,
+  Plus,
+  Refresh,
+  Search,
+  TopRight,
+  Upload,
+  User,
+} from '@element-plus/icons-vue';
 import zhCn from 'element-plus/es/locale/lang/zh-cn';
+import { filesize } from 'filesize';
 import {
   disablePackage,
   enablePackage,
+  getPackageAssetUrl,
   getPackageConfig,
   getPackageConfigSchema,
   getPackageDetail,
@@ -655,23 +887,57 @@ import {
   addStoreBackend,
   downloadStorePackage,
   getStoreBackendList,
+  getStorePackageAssetUrl,
+  getStorePackageDetailUrl,
+  getStorePackageDetailUrlById,
+  getStorePackageFiles,
+  getStorePackageInfoList,
   getStorePage,
   getStoreRecommend,
-  previewStorePackageDownload,
+  installStorePackageList,
   removeStoreBackend,
   setStoreBackendEnabled,
   type StoreBackendRecord,
   type StorePackage,
+  type StorePackageFile,
+  type StoreInstallListItemResult,
+  type StoreInstallListItemStatus,
   type StorePageQuery,
 } from '~/api/store';
 import PackageInstalledDrawer from '~/components/mod/package/PackageInstalledDrawer.vue';
-import PackageStoreDrawer from '~/components/mod/package/PackageStoreDrawer.vue';
+import PackageFileTree from '~/components/mod/package/PackageFileTree.vue';
+import {
+  parsePackageInstallList,
+  serializePackageInstallList,
+  type PackageInstallListItem,
+} from '~/components/mod/package/package-install-list';
 import { formatTime, getTimeTimestamp } from '~/components/mod/package/time';
 
-const activeTab = ref<'installed' | 'store' | 'install'>('installed');
+type PackageTab = 'installed' | 'store' | 'manage';
+
+const packageTabs: PackageTab[] = ['installed', 'store', 'manage'];
+const route = useRoute();
+const router = useRouter();
+const getPackageTab = (value: unknown): PackageTab =>
+  typeof value === 'string' && packageTabs.includes(value as PackageTab)
+    ? (value as PackageTab)
+    : 'installed';
+
+const activeTab = computed<PackageTab>({
+  get: () => getPackageTab(route.query.tab),
+  set: tab => {
+    if (route.query.tab !== tab) {
+      void router.push({ query: { ...route.query, tab } });
+    }
+  },
+});
 
 type ContentFilter = 'all' | ContentKind;
 type StoreViewMode = 'recommend' | 'search';
+type ManifestInstallResultStatus = StoreInstallListItemStatus | 'enabled' | 'enable_failed';
+type ManifestInstallResult = Omit<StoreInstallListItemResult, 'status'> & {
+  status: ManifestInstallResultStatus;
+};
 
 const contentFilterOptions: Array<{ label: string; value: ContentFilter }> = [
   { label: '全部内容', value: 'all' },
@@ -708,8 +974,9 @@ const installedKeyword = ref('');
 const installedContentFilter = ref<ContentFilter>('all');
 const reloadContentTarget = ref<ContentFilter>('all');
 const installedPage = ref(1);
-const installedPageSize = ref(10);
+const installedPageSize = ref(20);
 const packageActionLoading = ref<Record<string, boolean>>({});
+const installedExportVisible = ref(false);
 
 const packageDetailVisible = ref(false);
 const packageDetailLoading = ref(false);
@@ -718,6 +985,7 @@ const currentPackageId = ref('');
 const currentPackageDetail = ref<PackageInstance | null>(null);
 const currentPackageConfig = ref<Record<string, any> | null>(null);
 const currentPackageSchema = ref<Record<string, any> | null>({});
+const currentPackageStoreDetailUrl = ref('');
 
 const backendLoading = ref(false);
 const backendAddLoading = ref(false);
@@ -732,38 +1000,40 @@ const storeDownloadLoading = ref<Record<string, boolean>>({});
 const storePackages = ref<StorePackage[]>([]);
 const storeTotal = ref(0);
 const storeViewMode = ref<StoreViewMode>('recommend');
-const storeDetailVisible = ref(false);
-const currentStorePackage = ref<StorePackage | null>(null);
 const storeInstallPreviewVisible = ref(false);
 const storeInstallPreviewLoading = ref(false);
 const storeInstallPreviewTarget = ref<StorePackage | null>(null);
-const storeInstallPreviewData = ref<PackageUploadPreview | null>(null);
+const storeInstallPreviewData = ref<StorePackageFile[] | null>(null);
 const storeInstallPreviewAutoEnable = ref(true);
+const storeInstallPreviewAutoReload = ref(false);
+const manifestInstallVisible = ref(false);
+const manifestInstallLoading = ref(false);
+const manifestInstallContent = ref('');
+const manifestInstallFileName = ref('');
+const manifestInstallFileInput = ref<HTMLInputElement | null>(null);
+const manifestInstallAutoEnable = ref(true);
+const manifestInstallAutoReload = ref(false);
+const manifestInstallResults = ref<ManifestInstallResult[]>([]);
+const manifestInstallProgress = ref(0);
+const manifestInstallProgressStatus = ref<'success' | 'exception' | undefined>();
+const manifestInstallProgressText = ref('');
+const manifestInstallPackageNames = ref<Record<string, string>>({});
+const manifestInstallPackageInfoLoading = ref(false);
+const manifestInstallSelectedIds = ref<Set<string>>(new Set());
+let manifestInstallPackageInfoRequest = 0;
 const storeQuery = reactive<
-  Required<Pick<StorePageQuery, 'pageNum' | 'pageSize'>> & {
-    backend: string;
-    content: ContentFilter;
-    author: string;
-    name: string;
-    category: string;
-    sortBy: string;
-    order: string;
-  }
+  Required<Pick<StorePageQuery, 'pageNum' | 'pageSize'>> & { name: string }
 >({
-  backend: '',
-  content: 'all',
-  author: '',
   name: '',
-  category: '',
-  sortBy: '',
-  order: '',
   pageNum: 1,
   pageSize: 20,
 });
 
 const installUrlInput = ref('');
 const installUploadAutoEnable = ref(true);
+const installUploadAutoReload = ref(false);
 const installUrlAutoEnable = ref(true);
+const installUrlAutoReload = ref(false);
 const installByUploadLoading = ref(false);
 const installByUrlLoading = ref(false);
 const installUploadFileList = ref<UploadFile[]>([]);
@@ -775,6 +1045,7 @@ const installUploadProgressText = ref('');
 const uninstallDialogVisible = ref(false);
 const uninstallTarget = ref<PackageInstance | null>(null);
 const uninstallMode = ref<'full' | 'keep_data'>('full');
+const uninstallAutoReload = ref(false);
 const uninstallLoading = ref(false);
 
 const { width } = useWindowSize();
@@ -817,9 +1088,63 @@ const filteredInstalledPackages = computed(() => {
 const installedPackageIdSet = computed(
   () => new Set(installedPackages.value.map(pkg => getPackageId(pkg))),
 );
+
+const installedPackageListItems = computed<PackageInstallListItem[]>(() =>
+  installedPackages.value.map(pkg => ({
+    id: getPackageId(pkg),
+    version: getPackageVersion(pkg),
+  })),
+);
+
+const installedExportContent = computed(() =>
+  serializePackageInstallList(installedPackageListItems.value),
+);
+
+const manifestInstallPreview = computed<{
+  items: PackageInstallListItem[] | null;
+  error: string;
+}>(() => {
+  if (!manifestInstallContent.value.trim()) {
+    return { items: null, error: '' };
+  }
+  try {
+    return { items: parsePackageInstallList(manifestInstallContent.value), error: '' };
+  } catch (error) {
+    return { items: null, error: getErrorMessage(error, '无法解析这份扩展包清单。') };
+  }
+});
+
+const manifestInstallResultMap = computed(
+  () => new Map(manifestInstallResults.value.map(item => [item.id, item])),
+);
+
+const manifestInstallSelectableItems = computed(() =>
+  (manifestInstallPreview.value.items ?? []).filter(
+    item => !isManifestInstallItemExactVersion(item),
+  ),
+);
+
+const manifestInstallSelectedItems = computed(() =>
+  manifestInstallSelectableItems.value.filter(item =>
+    manifestInstallSelectedIds.value.has(item.id),
+  ),
+);
+
+const manifestInstallAllSelected = computed(
+  () =>
+    manifestInstallSelectableItems.value.length > 0 &&
+    manifestInstallSelectedItems.value.length === manifestInstallSelectableItems.value.length,
+);
+
+const manifestInstallSelectionIndeterminate = computed(
+  () =>
+    manifestInstallSelectedItems.value.length > 0 &&
+    manifestInstallSelectedItems.value.length < manifestInstallSelectableItems.value.length,
+);
 const pendingReloadPackageCount = computed(
   () => installedPackages.value.filter(pkg => (pkg.pendingReload ?? []).length > 0).length,
 );
+const hasPendingReloadPackages = computed(() => pendingReloadPackageCount.value > 0);
 
 const contentKindValues: ContentKind[] = ['scripts', 'decks', 'reply', 'helpdoc', 'templates'];
 
@@ -931,6 +1256,77 @@ const isCacheOnlyPackage = (pkg: PackageInstance) => pkg.sourceStatus === 'cache
 const getPackageSourceWarning = (pkg: PackageInstance) =>
   pkg.sourceWarning ||
   '源 .sealpack 文件缺失，当前仅保留缓存安装。请将 sealpack 放回 data/packages 后刷新。';
+
+const isAbsoluteAssetUrl = (value: string) =>
+  /^(https?:)?\/\//i.test(value) || /^(data|blob):/i.test(value) || value.startsWith('/');
+
+const getPackageIconUrl = (pkg: PackageInstance) => {
+  const icon = pkg.manifest.store?.icon?.trim();
+  if (!icon) {
+    return '';
+  }
+  if (isAbsoluteAssetUrl(icon)) {
+    return icon;
+  }
+  return getPackageAssetUrl(getPackageId(pkg), icon);
+};
+
+const getStorePackageName = (pkg: StorePackage) => pkg.name || pkg.id;
+
+const getStorePackageAccent = (pkg: StorePackage): ContentFilter => pkg.contents?.[0] ?? 'all';
+
+const getStorePackageAvatarText = (pkg: StorePackage) => {
+  const accent = getStorePackageAccent(pkg);
+  return packageAvatarMap[accent] ?? getStorePackageName(pkg).slice(0, 2).toUpperCase();
+};
+
+const getStorePackageBackendUrl = (pkg?: StorePackage | null) => {
+  const backendID = pkg?.backendID;
+  if (!backendID) {
+    return '';
+  }
+  const backend = storeBackends.value.find(item =>
+    [item.backendID, item.id, item.url].filter(Boolean).includes(backendID),
+  );
+  return backend?.url ?? '';
+};
+
+const getStorePackageIconUrl = (pkg?: StorePackage | null) =>
+  pkg
+    ? getStorePackageAssetUrl(pkg, pkg.storeAssets?.icon ?? '', getStorePackageBackendUrl(pkg))
+    : '';
+
+const getStorePackageDetailHref = (pkg: StorePackage) =>
+  getStorePackageDetailUrl(pkg, getStorePackageBackendUrl(pkg));
+
+const getInstalledPackageStoreDetailHref = (pkg: PackageInstance) => {
+  const storePackage = storePackages.value.find(item => item.id === getPackageId(pkg));
+  if (storePackage) {
+    return getStorePackageDetailHref(storePackage);
+  }
+  const backend =
+    storeBackends.value.find(item => isBackendEnabled(item) && isBuiltinBackend(item)) ??
+    storeBackends.value.find(isBackendEnabled);
+  return backend?.url ? getStorePackageDetailUrlById(getPackageId(pkg), backend.url) : '';
+};
+
+const storeInstallPreviewIconUrl = computed(() =>
+  getStorePackageIconUrl(storeInstallPreviewTarget.value),
+);
+
+const storeInstallPreviewFiles = computed(
+  () => storeInstallPreviewData.value?.map(file => file.path) ?? [],
+);
+
+const getStorePackageSize = (pkg: StorePackage) => {
+  const size = pkg.download?.size;
+  return typeof size === 'number' && Number.isFinite(size) && size >= 0 ? size : null;
+};
+
+const formatStorePackageSize = (pkg: StorePackage) => {
+  const size = getStorePackageSize(pkg);
+  return size === null ? '-' : filesize(size);
+};
 
 const joinList = (value?: string[]) => {
   if (!value || value.length === 0) {
@@ -1137,9 +1533,31 @@ const loadPackageDetail = async (pkg: PackageInstance) => {
   }
 };
 
+const loadPackageStoreDetailUrl = async (packageId: string) => {
+  const knownPackage = storePackages.value.find(pkg => pkg.id === packageId);
+  if (knownPackage) {
+    currentPackageStoreDetailUrl.value = getStorePackageDetailHref(knownPackage);
+    return;
+  }
+
+  try {
+    const response = await getStorePage({ name: packageId, pageNum: 1, pageSize: 20 });
+    const storePackage = response.result
+      ? unwrapStoreList(response).list.find(pkg => pkg.id === packageId)
+      : null;
+    if (currentPackageId.value === packageId && storePackage) {
+      currentPackageStoreDetailUrl.value = getStorePackageDetailHref(storePackage);
+    }
+  } catch {
+    return;
+  }
+};
+
 const openPackageDetail = async (pkg: PackageInstance) => {
+  const packageId = getPackageId(pkg);
+  currentPackageStoreDetailUrl.value = '';
   packageDetailVisible.value = true;
-  await loadPackageDetail(pkg);
+  await Promise.all([loadPackageDetail(pkg), loadPackageStoreDetailUrl(packageId)]);
 };
 
 const refreshCurrentPackageDetail = async (packageId = currentPackageId.value) => {
@@ -1153,6 +1571,7 @@ const refreshCurrentPackageDetail = async (packageId = currentPackageId.value) =
     currentPackageDetail.value = null;
     currentPackageConfig.value = null;
     currentPackageSchema.value = {};
+    currentPackageStoreDetailUrl.value = '';
     return;
   }
   await loadPackageDetail(refreshed);
@@ -1247,6 +1666,28 @@ const handleReloadPackagesByContent = async (target: ContentFilter = reloadConte
   }
 };
 
+const reloadPackagesAfterPackageChange = async () => {
+  reloadAllLoading.value = true;
+  try {
+    const response = await reloadAllPackages();
+    if (!response.result) {
+      return getResponseError(response, '扩展包自动重载失败');
+    }
+    const reloadedKinds = resolveReloadedKinds(
+      'all',
+      response as { data?: { reloadedItems?: Record<string, string> } },
+    );
+    await refreshInstalledPackages();
+    clearPendingReloadLocally(reloadedKinds);
+    await refreshCurrentPackageDetail();
+    return '';
+  } catch (error) {
+    return getErrorMessage(error, '扩展包自动重载失败');
+  } finally {
+    reloadAllLoading.value = false;
+  }
+};
+
 const handleEnablePackage = async (pkg: PackageInstance) => {
   if (isCacheOnlyPackage(pkg)) {
     ElMessage.warning(getPackageSourceWarning(pkg));
@@ -1302,6 +1743,7 @@ const handleDisablePackage = async (pkg: PackageInstance) => {
 const openUninstallDialog = (pkg: PackageInstance) => {
   uninstallTarget.value = pkg;
   uninstallMode.value = 'full';
+  uninstallAutoReload.value = false;
   uninstallDialogVisible.value = true;
 };
 
@@ -1325,8 +1767,17 @@ const handleConfirmUninstall = async () => {
       currentPackageDetail.value = null;
       currentPackageConfig.value = null;
       currentPackageSchema.value = {};
+      currentPackageStoreDetailUrl.value = '';
     }
     await refreshInstalledPackages();
+    if (uninstallAutoReload.value) {
+      const reloadError = await reloadPackagesAfterPackageChange();
+      if (reloadError) {
+        ElMessage.warning(`扩展包已卸载，但自动重载失败：${reloadError}`);
+      } else {
+        ElMessage.success('扩展包已卸载并完成重载');
+      }
+    }
     await refreshCurrentStoreView();
   } finally {
     uninstallLoading.value = false;
@@ -1414,8 +1865,6 @@ const isBackendEnabled = (backend: StoreBackendRecord) => {
   return true;
 };
 
-const enabledStoreBackends = computed(() => storeBackends.value.filter(isBackendEnabled));
-
 const getBackendActionPayload = (backend: StoreBackendRecord) => {
   if (backend.backendID) {
     return { backendID: backend.backendID };
@@ -1445,6 +1894,7 @@ const handleAddBackend = async () => {
     ElMessage.success('仓库后端已添加');
     backendInput.value = '';
     await refreshStoreBackends();
+    await refreshCurrentStoreView();
   } finally {
     backendAddLoading.value = false;
   }
@@ -1463,9 +1913,6 @@ const handleToggleBackend = async (backend: StoreBackendRecord, enabled: boolean
     }
     ElMessage.success(enabled ? '仓库后端已启用' : '仓库后端已禁用');
     await refreshStoreBackends();
-    if (!enabled && storeQuery.backend === getBackendValue(backend)) {
-      storeQuery.backend = '';
-    }
     await refreshCurrentStoreView();
   } finally {
     setLoadingFlag(backendToggleLoading, key, false);
@@ -1497,10 +1944,7 @@ const handleRemoveBackend = async (backend: StoreBackendRecord) => {
     }
     ElMessage.success('仓库后端已删除');
     await refreshStoreBackends();
-    if (storeQuery.backend === getBackendValue(backend)) {
-      storeQuery.backend = '';
-      await refreshCurrentStoreView();
-    }
+    await refreshCurrentStoreView();
   } finally {
     setLoadingFlag(backendRemoveLoading, key, false);
   }
@@ -1511,26 +1955,8 @@ const buildStoreQuery = () => {
     pageNum: storeQuery.pageNum,
     pageSize: storeQuery.pageSize,
   };
-  if (storeQuery.backend) {
-    query.backend = storeQuery.backend;
-  }
-  if (storeQuery.content !== 'all') {
-    query.content = storeQuery.content;
-  }
-  if (storeQuery.author.trim()) {
-    query.author = storeQuery.author.trim();
-  }
   if (storeQuery.name.trim()) {
     query.name = storeQuery.name.trim();
-  }
-  if (storeQuery.category.trim()) {
-    query.category = storeQuery.category.trim();
-  }
-  if (storeQuery.sortBy.trim()) {
-    query.sortBy = storeQuery.sortBy.trim();
-  }
-  if (storeQuery.order.trim()) {
-    query.order = storeQuery.order.trim();
   }
   return query;
 };
@@ -1539,9 +1965,7 @@ const loadStoreRecommend = async () => {
   storeViewMode.value = 'recommend';
   storeLoading.value = true;
   try {
-    const response = await getStoreRecommend(
-      storeQuery.backend ? { backend: storeQuery.backend } : undefined,
-    );
+    const response = await getStoreRecommend();
     if (!response.result) {
       storePackages.value = [];
       storeTotal.value = 0;
@@ -1575,6 +1999,15 @@ const searchStorePackages = async () => {
   }
 };
 
+const handleStoreSearch = async () => {
+  storeQuery.pageNum = 1;
+  if (storeQuery.name.trim()) {
+    await searchStorePackages();
+  } else {
+    await loadStoreRecommend();
+  }
+};
+
 const refreshCurrentStoreView = async () => {
   if (!storeLoadStarted.value) {
     return;
@@ -1591,24 +2024,30 @@ const handleStorePageChange = async (page: number) => {
   await searchStorePackages();
 };
 
-const openStoreDetail = (pkg: StorePackage) => {
-  currentStorePackage.value = pkg;
-  storeDetailVisible.value = true;
-};
-
 const ensureStoreLoaded = async () => {
   if (storeLoadStarted.value) {
     return;
   }
   storeLoadStarted.value = true;
   try {
-    await Promise.all([refreshStoreBackends(), loadStoreRecommend()]);
+    await loadStoreRecommend();
   } catch {
     storeLoadStarted.value = false;
   }
 };
 
 const getStorePackageKey = (pkg: StorePackage) => `${pkg.id}@${pkg.version}`;
+
+const isStorePackageActionLoading = (pkg: StorePackage) => {
+  const key = getStorePackageKey(pkg);
+  const previewTarget = storeInstallPreviewTarget.value;
+  return (
+    Boolean(storeDownloadLoading.value[key]) ||
+    (storeInstallPreviewLoading.value &&
+      previewTarget !== null &&
+      getStorePackageKey(previewTarget) === key)
+  );
+};
 
 const isStoreInstalled = (pkg: StorePackage) =>
   Boolean(pkg.installed || installedPackageIdSet.value.has(pkg.id));
@@ -1619,11 +2058,332 @@ const findInstalledPackageByStore = (pkg: StorePackage) =>
 const getInstalledVersionByStore = (pkg: StorePackage) =>
   findInstalledPackageByStore(pkg)?.manifest.package.version || '';
 
+const getInstalledVersionById = (id: string) =>
+  installedPackages.value.find(pkg => getPackageId(pkg) === id)?.manifest.package.version || '';
+
+const isManifestInstallItemExactVersion = (item: PackageInstallListItem) =>
+  getInstalledVersionById(item.id) === item.version;
+
+const isManifestInstallItemSelected = (id: string) => manifestInstallSelectedIds.value.has(id);
+
+const resetManifestInstallSelection = (items: PackageInstallListItem[] | null) => {
+  manifestInstallSelectedIds.value = new Set(
+    (items ?? []).filter(item => !isManifestInstallItemExactVersion(item)).map(item => item.id),
+  );
+};
+
+const handleManifestInstallItemSelection = (id: string, selected: boolean | string | number) => {
+  const next = new Set(manifestInstallSelectedIds.value);
+  if (Boolean(selected)) {
+    next.add(id);
+  } else {
+    next.delete(id);
+  }
+  manifestInstallSelectedIds.value = next;
+};
+
+const handleManifestInstallSelectAll = (selected: boolean | string | number) => {
+  manifestInstallSelectedIds.value = Boolean(selected)
+    ? new Set(manifestInstallSelectableItems.value.map(item => item.id))
+    : new Set();
+};
+
+const getManifestInstallRowClassName = ({ row }: { row: PackageInstallListItem }) =>
+  isManifestInstallItemExactVersion(row) ? 'manifest-install-row-disabled' : '';
+
+const copyInstalledPackageList = async () => {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(installedExportContent.value);
+    } else {
+      const textarea = document.createElement('textarea');
+      textarea.value = installedExportContent.value;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      const copied = document.execCommand('copy');
+      textarea.remove();
+      if (!copied) {
+        throw new Error('copy failed');
+      }
+    }
+    ElMessage.success(`已复制 ${installedPackageListItems.value.length} 个扩展包的清单`);
+  } catch {
+    ElMessage.error('复制失败，请检查浏览器的剪贴板权限');
+  }
+};
+
+const downloadInstalledPackageList = () => {
+  const blob = new Blob([installedExportContent.value], {
+    type: 'application/toml;charset=utf-8',
+  });
+  const objectURL = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = objectURL;
+  anchor.download = 'sealpack-dependencies.toml';
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectURL), 0);
+  ElMessage.success('扩展包清单已下载');
+};
+
+const getManifestInstallPackageName = (id: string) => manifestInstallPackageNames.value[id] || '';
+
+const refreshManifestInstallPackageNames = async (items: PackageInstallListItem[] | null) => {
+  const requestID = ++manifestInstallPackageInfoRequest;
+  manifestInstallPackageInfoLoading.value = false;
+  if (!items) {
+    manifestInstallPackageNames.value = {};
+    return;
+  }
+
+  const names: Record<string, string> = {};
+  const unresolved = items.filter(item => {
+    const installed = installedPackages.value.find(pkg => getPackageId(pkg) === item.id);
+    const storePackage = storePackages.value.find(pkg => pkg.id === item.id);
+    const name = installed?.manifest.package.name || storePackage?.name;
+    if (name) {
+      names[item.id] = name;
+      return false;
+    }
+    return true;
+  });
+  manifestInstallPackageNames.value = names;
+  if (unresolved.length === 0) {
+    return;
+  }
+
+  manifestInstallPackageInfoLoading.value = true;
+  try {
+    const response = await getStorePackageInfoList(unresolved);
+    if (requestID !== manifestInstallPackageInfoRequest) {
+      return;
+    }
+    if (response.result && response.data) {
+      response.data.forEach(item => {
+        if (item.name) {
+          names[item.id] = item.name;
+        }
+      });
+      manifestInstallPackageNames.value = { ...names };
+    }
+  } catch {
+    // Individual metadata failures leave a dash in the name column.
+  } finally {
+    if (requestID === manifestInstallPackageInfoRequest) {
+      manifestInstallPackageInfoLoading.value = false;
+    }
+  }
+};
+
 const getStoreActionText = (pkg: StorePackage) => {
   if (!isStoreInstalled(pkg)) {
     return '安装';
   }
   return getInstalledVersionByStore(pkg) === pkg.version ? '重装' : '升级';
+};
+
+const resetManifestInstallResults = () => {
+  manifestInstallResults.value = [];
+  manifestInstallProgress.value = 0;
+  manifestInstallProgressStatus.value = undefined;
+  manifestInstallProgressText.value = '';
+};
+
+const openManifestInstallDialog = () => {
+  manifestInstallContent.value = '';
+  manifestInstallFileName.value = '';
+  manifestInstallAutoEnable.value = true;
+  manifestInstallAutoReload.value = false;
+  resetManifestInstallResults();
+  resetManifestInstallSelection(null);
+  void refreshManifestInstallPackageNames(null);
+  manifestInstallVisible.value = true;
+};
+
+const handleManifestInstallContentInput = () => {
+  manifestInstallFileName.value = '';
+  resetManifestInstallResults();
+};
+
+const handleManifestInstallFileChange = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  input.value = '';
+  if (!file) {
+    return;
+  }
+  if (file.size > 1024 * 1024) {
+    ElMessage.error('清单文件不能超过 1 MB');
+    return;
+  }
+
+  try {
+    manifestInstallContent.value = await file.text();
+    manifestInstallFileName.value = file.name;
+    resetManifestInstallResults();
+  } catch (error) {
+    ElMessage.error(getErrorMessage(error, '无法读取这个清单文件。'));
+  }
+};
+
+const getManifestInstallResult = (id: string) => manifestInstallResultMap.value.get(id);
+
+const getManifestInstallResultText = (id: string) => {
+  switch (getManifestInstallResult(id)?.status) {
+    case 'installed':
+      return '安装成功';
+    case 'skipped':
+      return '无需安装';
+    case 'failed':
+      return '安装失败';
+    case 'enabled':
+      return '已安装并启用';
+    case 'enable_failed':
+      return '启用失败';
+    default:
+      if (!getInstalledVersionById(id)) {
+        return '待安装';
+      }
+      return manifestInstallPreview.value.items?.some(
+        item => item.id === id && isManifestInstallItemExactVersion(item),
+      )
+        ? '已安装'
+        : '待升级';
+  }
+};
+
+const getManifestInstallResultTagType = (id: string): 'success' | 'info' | 'warning' | 'danger' => {
+  switch (getManifestInstallResult(id)?.status) {
+    case 'installed':
+    case 'enabled':
+      return 'success';
+    case 'skipped':
+      return 'info';
+    case 'enable_failed':
+      return 'warning';
+    case 'failed':
+      return 'danger';
+    default:
+      if (!getInstalledVersionById(id)) {
+        return 'info';
+      }
+      return manifestInstallPreview.value.items?.some(
+        item => item.id === id && isManifestInstallItemExactVersion(item),
+      )
+        ? 'info'
+        : 'warning';
+  }
+};
+
+const handleManifestInstall = async () => {
+  const items = manifestInstallSelectedItems.value;
+  if (items.length === 0 || manifestInstallLoading.value) {
+    return;
+  }
+
+  manifestInstallLoading.value = true;
+  manifestInstallResults.value = [];
+  manifestInstallProgress.value = 10;
+  manifestInstallProgressStatus.value = undefined;
+  manifestInstallProgressText.value = '正在从扩展商店下载并安装清单...';
+
+  try {
+    const response = await installStorePackageList(items);
+    if (!response.result || !response.data) {
+      manifestInstallProgressStatus.value = 'exception';
+      manifestInstallProgressText.value = '清单安装失败';
+      ElMessage.error(getResponseError(response, '清单安装失败'));
+      return;
+    }
+
+    manifestInstallResults.value = response.data.items.map(item => ({ ...item }));
+    manifestInstallProgress.value = 60;
+    manifestInstallProgressText.value = manifestInstallAutoEnable.value
+      ? '安装完成，正在启用扩展包...'
+      : '扩展包安装完成';
+    await refreshInstalledPackages();
+
+    let enableFailedCount = 0;
+    let enableCandidateCount = 0;
+    if (manifestInstallAutoEnable.value) {
+      const candidates = manifestInstallResults.value.filter(item => item.status !== 'failed');
+      enableCandidateCount = candidates.length;
+      for (let index = 0; index < candidates.length; index += 1) {
+        const item = candidates[index];
+        const installedPackage = installedPackages.value.find(pkg => getPackageId(pkg) === item.id);
+        if (!installedPackage) {
+          item.status = 'enable_failed';
+          item.message = '安装完成后未找到扩展包记录';
+          enableFailedCount += 1;
+        } else if (installedPackage.state === 'enabled') {
+          item.status = 'enabled';
+          item.message = '扩展包已处于启用状态';
+        } else {
+          try {
+            const enableResponse = await enablePackage(item.id);
+            if (enableResponse.result) {
+              item.status = 'enabled';
+              item.message = '扩展包已启用';
+            } else {
+              item.status = 'enable_failed';
+              item.message = getResponseError(enableResponse, '自动启用扩展包失败');
+              enableFailedCount += 1;
+            }
+          } catch (error) {
+            item.status = 'enable_failed';
+            item.message = getErrorMessage(error, '自动启用扩展包失败');
+            enableFailedCount += 1;
+          }
+        }
+        manifestInstallProgress.value = Math.min(
+          90,
+          60 + Math.round(((index + 1) / Math.max(candidates.length, 1)) * 30),
+        );
+      }
+      await refreshInstalledPackages();
+    }
+
+    let reloadError = '';
+    if (
+      manifestInstallAutoReload.value &&
+      enableCandidateCount > 0 &&
+      enableFailedCount < enableCandidateCount
+    ) {
+      manifestInstallProgress.value = 92;
+      manifestInstallProgressText.value = '正在重载扩展包内容...';
+      reloadError = await reloadPackagesAfterPackageChange();
+    }
+
+    await refreshCurrentStoreView();
+    const failedCount = response.data.failed + enableFailedCount;
+    manifestInstallProgress.value = 100;
+    manifestInstallProgressStatus.value = failedCount > 0 || reloadError ? 'exception' : 'success';
+    manifestInstallProgressText.value = [
+      `安装 ${response.data.installed} 个`,
+      `跳过 ${response.data.skipped} 个`,
+      `失败 ${response.data.failed} 个`,
+      enableFailedCount > 0 ? `启用失败 ${enableFailedCount} 个` : '',
+      reloadError ? `重载失败：${reloadError}` : '',
+    ]
+      .filter(Boolean)
+      .join('，');
+
+    if (failedCount > 0 || reloadError) {
+      ElMessage.warning('清单已处理完成，部分扩展包需要手动检查');
+    } else {
+      ElMessage.success('清单中的扩展包已处理完成');
+    }
+  } catch (error) {
+    manifestInstallProgress.value = Math.max(manifestInstallProgress.value, 10);
+    manifestInstallProgressStatus.value = 'exception';
+    manifestInstallProgressText.value = '清单安装失败';
+    ElMessage.error(getErrorMessage(error, '清单安装失败'));
+  } finally {
+    manifestInstallLoading.value = false;
+  }
 };
 
 const handleStoreUninstall = (pkg: StorePackage) => {
@@ -1639,17 +2399,18 @@ const handleOpenStoreInstallPreview = async (pkg: StorePackage) => {
   storeInstallPreviewTarget.value = pkg;
   storeInstallPreviewData.value = null;
   storeInstallPreviewAutoEnable.value = true;
+  storeInstallPreviewAutoReload.value = false;
   storeInstallPreviewVisible.value = true;
   storeInstallPreviewLoading.value = true;
 
   try {
-    const response = await previewStorePackageDownload({ id: pkg.id, version: pkg.version });
-    if (!response.result || !response.data) {
-      ElMessage.error(getResponseError(response, '获取商店扩展包预览失败'));
+    const response = await getStorePackageFiles(pkg);
+    if (!response.result) {
+      ElMessage.error(getResponseError(response, '获取扩展包文件清单失败'));
       storeInstallPreviewVisible.value = false;
       return;
     }
-    storeInstallPreviewData.value = response.data;
+    storeInstallPreviewData.value = response.data ?? [];
   } finally {
     storeInstallPreviewLoading.value = false;
   }
@@ -1671,7 +2432,11 @@ const handleConfirmStoreInstallPreview = async () => {
       return;
     }
     storeInstallPreviewVisible.value = false;
-    await handlePostInstallSuccess(beforeInstallPackages, storeInstallPreviewAutoEnable.value);
+    await handlePostInstallSuccess(
+      beforeInstallPackages,
+      storeInstallPreviewAutoEnable.value,
+      storeInstallPreviewAutoReload.value,
+    );
   } finally {
     setLoadingFlag(storeDownloadLoading, key, false);
   }
@@ -1691,6 +2456,8 @@ type InstallAutoEnableResult =
       packageId: string;
       message?: string;
     };
+
+type PostInstallReloadResult = 'skipped' | 'success' | 'failed' | 'not_applicable';
 
 const getPackageInstallTimestamp = (pkg: PackageInstance) => {
   return getTimeTimestamp(pkg.installTime);
@@ -1762,25 +2529,69 @@ const enableInstalledPackageAfterInstall = async (
   }
 };
 
-const getPostInstallNotice = (result: InstallAutoEnableResult) => {
+const autoReloadAfterInstall = async (
+  enableResult: InstallAutoEnableResult,
+  autoReload: boolean,
+): Promise<{ status: PostInstallReloadResult; message?: string }> => {
+  if (!autoReload) {
+    return { status: 'skipped' };
+  }
+  if (enableResult.status !== 'enabled' && enableResult.status !== 'already_enabled') {
+    return { status: 'not_applicable' };
+  }
+  const reloadError = await reloadPackagesAfterPackageChange();
+  if (reloadError) {
+    return { status: 'failed', message: reloadError };
+  }
+  return { status: 'success' };
+};
+
+const getPostInstallReloadNotice = (
+  result: { status: PostInstallReloadResult; message?: string },
+  enableResult: InstallAutoEnableResult,
+) => {
   switch (result.status) {
-    case 'enabled':
-      return `扩展包「${result.packageId}」已安装并自动启用。请切到“已安装包”页面，点击顶部“重载”进行重载后生效。`;
-    case 'already_enabled':
-      return `扩展包「${result.packageId}」已安装且已处于启用状态。请切到“已安装包”页面，点击顶部“重载”进行重载后生效。`;
+    case 'success':
+      return '已自动重载，扩展包已应用。';
     case 'failed':
-      return `扩展包已安装，但自动启用「${result.packageId}」失败：${result.message ?? '未知错误'}。请切到“已安装包”页面手动启用，并点击顶部“重载”进行重载后生效。`;
-    case 'not_found':
-      return '扩展包已安装，但未能定位新安装的包。请切到“已安装包”页面检查启用状态，并点击顶部“重载”进行重载后生效。';
+      return `已尝试自动重载，但失败：${result.message ?? '未知错误'}。请稍后在“已安装包”页面手动重载。`;
+    case 'not_applicable':
+      return enableResult.status === 'skipped'
+        ? '未自动启用，因此没有执行自动重载。'
+        : '自动启用未完成，因此没有执行自动重载。';
     case 'skipped':
     default:
-      return '扩展包已安装。请切到“已安装包”页面启用扩展包，并在启用后点击顶部“重载”进行重载后生效。';
+      return '需要重载后才能应用。如果插件很多，重载会花费较长时间，特别是帮助文档。';
+  }
+};
+
+const getPostInstallNotice = (
+  result: InstallAutoEnableResult,
+  reloadResult: { status: PostInstallReloadResult; message?: string },
+) => {
+  const reloadNotice = getPostInstallReloadNotice(reloadResult, result);
+  switch (result.status) {
+    case 'enabled':
+      return `扩展包「${result.packageId}」已安装并自动启用。${reloadNotice}`;
+    case 'already_enabled':
+      return `扩展包「${result.packageId}」已安装且已处于启用状态。${reloadNotice}`;
+    case 'failed':
+      return `扩展包已安装，但自动启用「${result.packageId}」失败：${result.message ?? '未知错误'}。请切到“已安装包”页面手动启用；启用后需要重载才能应用。`;
+    case 'not_found':
+      return '扩展包已安装，但未能定位新安装的包。请切到“已安装包”页面检查启用状态；启用后需要重载才能应用。';
+    case 'skipped':
+    default:
+      return '扩展包已安装。请切到“已安装包”页面启用扩展包；启用后需要重载才能应用。';
   }
 };
 
 const getPostInstallNoticeType = (
   result: InstallAutoEnableResult,
+  reloadResult: { status: PostInstallReloadResult; message?: string },
 ): 'success' | 'warning' | 'info' => {
+  if (reloadResult.status === 'failed' || reloadResult.status === 'not_applicable') {
+    return 'warning';
+  }
   if (result.status === 'failed' || result.status === 'not_found') {
     return 'warning';
   }
@@ -1805,6 +2616,7 @@ const showPostInstallNotice = async (message: string, type: 'success' | 'warning
 const handlePostInstallSuccess = async (
   beforeInstallPackages: InstalledPackageSnapshot[],
   autoEnable: boolean,
+  autoReload: boolean,
 ) => {
   await refreshInstalledPackages();
   const installedPackage = findPostInstallPackage(beforeInstallPackages);
@@ -1816,11 +2628,12 @@ const handlePostInstallSuccess = async (
   if (autoEnableResult.status === 'enabled' || autoEnableResult.status === 'already_enabled') {
     await refreshCurrentPackageDetail(autoEnableResult.packageId);
   }
+  const autoReloadResult = await autoReloadAfterInstall(autoEnableResult, autoReload);
   await refreshCurrentStoreView();
 
   void showPostInstallNotice(
-    getPostInstallNotice(autoEnableResult),
-    getPostInstallNoticeType(autoEnableResult),
+    getPostInstallNotice(autoEnableResult, autoReloadResult),
+    getPostInstallNoticeType(autoEnableResult, autoReloadResult),
   );
 };
 
@@ -1837,6 +2650,27 @@ const updateInstallUploadProgress = (phase: string, loaded: number, total?: numb
     installUploadProgress.value = Math.max(installUploadProgress.value, 1);
   }
   installUploadProgressText.value = phase;
+};
+
+const getStorePreviewContentsText = (pkg: StorePackage, files: StorePackageFile[]) => {
+  const counts = new Map<ContentKind | 'assets', number>();
+  files.forEach(file => {
+    const kind = file.path.split('/', 1)[0] as ContentKind | 'assets';
+    if (kind in uploadPreviewContentLabelMap) {
+      counts.set(kind, (counts.get(kind) ?? 0) + 1);
+    }
+  });
+  const kinds = new Set<ContentKind | 'assets'>(pkg.contents);
+  if (counts.has('assets')) {
+    kinds.add('assets');
+  }
+  const items = [...kinds].map(kind => {
+    const count = counts.get(kind) ?? 0;
+    return count > 0
+      ? `${getUploadPreviewContentLabel(kind)} ${count} 个`
+      : getUploadPreviewContentLabel(kind);
+  });
+  return items.length > 0 ? items.join('、') : '未声明扩展内容';
 };
 
 const getUploadPreviewContentsText = (preview: PackageUploadPreview) => {
@@ -1870,6 +2704,9 @@ const getUploadPreviewMessage = (preview: PackageUploadPreview, file: UploadRawF
     `内容：${getUploadPreviewContentsText(preview)}`,
     `文件数：${preview.fileCount}`,
     `动作：${actionText}`,
+    `安装后自动启用：${installUploadAutoEnable.value ? '是' : '否'}`,
+    `自动重载：${installUploadAutoReload.value ? '是' : '否'}`,
+    installUploadAutoReload.value ? '提示：如果插件很多，重载会花费较长时间，特别是帮助文档。' : '',
     '',
     '将安装的文件预览：',
     getUploadPreviewFileSamples(preview),
@@ -1976,7 +2813,11 @@ const handleInstallByUpload = async () => {
     installUploadProgressText.value = '上传安装完成';
     installUploadRawFile.value = null;
     installUploadFileList.value = [];
-    await handlePostInstallSuccess(beforeInstallPackages, installUploadAutoEnable.value);
+    await handlePostInstallSuccess(
+      beforeInstallPackages,
+      installUploadAutoEnable.value,
+      installUploadAutoReload.value,
+    );
   } catch (error) {
     if (installUploadProgressStatus.value !== 'exception') {
       installUploadProgress.value = Math.max(installUploadProgress.value, 1);
@@ -2004,7 +2845,11 @@ const handleInstallByUrl = async () => {
       return;
     }
     installUrlInput.value = '';
-    await handlePostInstallSuccess(beforeInstallPackages, installUrlAutoEnable.value);
+    await handlePostInstallSuccess(
+      beforeInstallPackages,
+      installUrlAutoEnable.value,
+      installUrlAutoReload.value,
+    );
   } finally {
     installByUrlLoading.value = false;
   }
@@ -2021,11 +2866,54 @@ watch(storeInstallPreviewVisible, visible => {
     storeInstallPreviewTarget.value = null;
     storeInstallPreviewData.value = null;
     storeInstallPreviewAutoEnable.value = true;
+    storeInstallPreviewAutoReload.value = false;
+  }
+});
+
+watch(installUploadAutoEnable, enabled => {
+  if (!enabled) {
+    installUploadAutoReload.value = false;
+  }
+});
+
+watch(installUrlAutoEnable, enabled => {
+  if (!enabled) {
+    installUrlAutoReload.value = false;
+  }
+});
+
+watch(manifestInstallAutoEnable, enabled => {
+  if (!enabled) {
+    manifestInstallAutoReload.value = false;
+  }
+});
+
+watch(manifestInstallContent, () => {
+  manifestInstallPackageInfoRequest += 1;
+  manifestInstallPackageNames.value = {};
+  manifestInstallPackageInfoLoading.value = Boolean(manifestInstallPreview.value.items);
+  resetManifestInstallSelection(manifestInstallPreview.value.items);
+});
+
+watchDebounced(
+  manifestInstallContent,
+  () => {
+    void refreshManifestInstallPackageNames(manifestInstallPreview.value.items);
+  },
+  { debounce: 350, maxWait: 1000 },
+);
+
+watch(storeInstallPreviewAutoEnable, enabled => {
+  if (!enabled) {
+    storeInstallPreviewAutoReload.value = false;
   }
 });
 
 onBeforeMount(async () => {
-  await refreshInstalledPackages();
+  if (route.query.tab !== activeTab.value) {
+    await router.replace({ query: { ...route.query, tab: activeTab.value } });
+  }
+  await Promise.all([refreshInstalledPackages(), refreshStoreBackends()]);
   if (activeTab.value === 'store') {
     await ensureStoreLoaded();
   }
@@ -2067,7 +2955,7 @@ onBeforeMount(async () => {
   font-size: 24px;
   font-weight: 700;
   line-height: 1.2;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .package-page-description {
@@ -2077,14 +2965,25 @@ onBeforeMount(async () => {
   line-height: 1.65;
 }
 
+.package-update-actions {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: 0.38rem;
+}
+
+.package-update-actions.has-pending {
+  box-shadow: 0 0 0 3px rgb(248 92 92 / 12%);
+}
+
 .package-update-card {
   flex: 0 0 auto;
-  height: 24px;
+  min-height: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  padding: 0 0.48rem;
+  gap: 0.45rem;
+  padding: 0 0.7rem;
   border: 1px solid #e6ebf2;
   border-radius: 0.38rem;
   background: #f5f8fc;
@@ -2092,24 +2991,48 @@ onBeforeMount(async () => {
   cursor: pointer;
 }
 
+.package-update-actions .package-update-card {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 .package-update-card.is-loading {
   opacity: 0.72;
 }
 
+.package-update-card.has-pending {
+  border-color: #f97373;
+  background: #fff1f1;
+  color: #b42318;
+  box-shadow: 0 0 0 3px rgb(248 92 92 / 12%);
+}
+
+.package-update-actions .package-update-card.has-pending {
+  box-shadow: none;
+}
+
 .package-update-card-icon {
-  display: none;
+  width: 7px;
+  height: 7px;
+  display: inline-block;
+  border-radius: 999px;
+  background: #91a4bd;
+}
+
+.package-update-card.has-pending .package-update-card-icon {
+  background: #ef4444;
 }
 
 .package-update-card-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
 }
 
 .package-update-card-badge {
-  min-width: 14px;
-  height: 14px;
+  min-width: 18px;
+  height: 18px;
   padding: 0 4px;
   display: inline-flex;
   align-items: center;
@@ -2120,6 +3043,44 @@ onBeforeMount(async () => {
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
+}
+
+.package-update-card.has-pending .package-update-card-badge {
+  background: #ef4444;
+}
+
+.package-update-dropdown {
+  display: inline-flex;
+}
+
+.package-update-dropdown-trigger {
+  width: 32px;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e6ebf2;
+  border-left: 0;
+  border-radius: 0 0.38rem 0.38rem 0;
+  background: #f5f8fc;
+  color: #34445d;
+  cursor: pointer;
+}
+
+.package-update-dropdown-trigger.has-pending {
+  border-color: #f97373;
+  border-left-color: #fecaca;
+  background: #fff1f1;
+  color: #b42318;
+}
+
+.package-update-dropdown-trigger:disabled {
+  opacity: 0.72;
+  cursor: default;
+}
+
+.package-update-dropdown-trigger :deep(.el-icon) {
+  font-size: 14px;
 }
 
 .package-main-panel {
@@ -2182,36 +3143,6 @@ onBeforeMount(async () => {
   width: 7.2rem;
 }
 
-.reload-dropdown {
-  flex: 0 0 auto;
-}
-
-.reload-dropdown-button {
-  min-width: 6rem;
-  height: 36px;
-  border-radius: 0.45rem;
-  color: #263852;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.reload-button-count {
-  min-width: 18px;
-  height: 18px;
-  margin-left: 0.25rem;
-  padding: 0 5px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: #edf4ff;
-  color: var(--package-blue);
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
-}
-
 :global(.reload-dropdown-item) {
   min-width: 9.5rem;
   display: flex;
@@ -2235,6 +3166,7 @@ onBeforeMount(async () => {
   line-height: 1;
 }
 
+.installed-export-button,
 .installed-disk-refresh-button,
 .installed-refresh-button {
   min-width: 6.8rem;
@@ -2252,9 +3184,13 @@ onBeforeMount(async () => {
   cursor: pointer;
 }
 
+.installed-export-button {
+  margin-left: auto;
+}
+
 .installed-disk-refresh-button {
   min-width: 5.8rem;
-  margin-left: auto;
+  margin-left: 0;
 }
 
 .installed-toolbar :deep(.installed-refresh-button.el-button) {
@@ -2262,6 +3198,7 @@ onBeforeMount(async () => {
 }
 
 .installed-toolbar :deep(.installed-disk-refresh-button .el-icon),
+.installed-toolbar :deep(.installed-export-button .el-icon),
 .installed-toolbar :deep(.installed-refresh-button .el-icon) {
   align-self: center;
 }
@@ -2631,14 +3568,16 @@ onBeforeMount(async () => {
   min-height: 1.8rem;
 }
 
-.store-query-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0 1rem;
+.store-search-bar {
+  max-width: 42rem;
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
-.result-hint {
-  margin-bottom: 0.75rem;
+.store-search-input {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .table-wrap {
@@ -2656,6 +3595,120 @@ onBeforeMount(async () => {
   color: #475569;
 }
 
+.store-package-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.75rem;
+  white-space: nowrap;
+}
+
+.store-package-actions :deep(.el-button) {
+  margin-left: 0;
+}
+
+.store-detail-link {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.store-detail-link :deep(.el-link__inner) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  line-height: 1;
+}
+
+.store-detail-link-icon {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 13px;
+}
+
+.store-package-name-cell {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.75rem;
+}
+
+.store-package-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 0.45rem;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.store-package-icon.accent-all,
+.store-package-icon.accent-decks {
+  background: linear-gradient(135deg, #2f73f6, #5d9cff);
+}
+
+.store-package-icon.accent-scripts {
+  background: linear-gradient(135deg, #f2a400, #ffc22a);
+}
+
+.store-package-icon.accent-reply {
+  background: linear-gradient(135deg, #31bd55, #53d675);
+}
+
+.store-package-icon.accent-helpdoc {
+  background: linear-gradient(135deg, #10aeca, #35cde5);
+}
+
+.store-package-icon.accent-templates {
+  background: linear-gradient(135deg, #f85c5c, #ff7f39);
+}
+
+.store-package-icon-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.store-package-name-main {
+  min-width: 0;
+  display: grid;
+  justify-items: start;
+  gap: 0.08rem;
+}
+
+.store-package-name-title {
+  max-width: 100%;
+  display: block;
+  overflow: hidden;
+  color: #1f2f46;
+  font-weight: 600;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.store-package-name-version {
+  display: block;
+  color: var(--el-text-color-secondary);
+  font-size: var(--el-font-size-extra-small);
+  line-height: 1.35;
+  text-align: left;
+}
+
+.store-package-size {
+  color: #1f2f46;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .pagination-row {
   margin-top: 1rem;
   display: flex;
@@ -2668,10 +3721,12 @@ onBeforeMount(async () => {
   gap: 1rem;
 }
 
-.install-upload-tip {
+.install-upload-tip,
+.install-reload-tip {
   margin-top: 0.45rem;
   color: var(--package-muted);
   font-size: 0.82rem;
+  line-height: 1.45;
 }
 
 .install-upload-progress {
@@ -2684,16 +3739,203 @@ onBeforeMount(async () => {
   font-size: 0.82rem;
 }
 
+:global(.installed-export-dialog) {
+  max-width: calc(100vw - 32px);
+}
+
+.installed-export-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.installed-export-count {
+  color: #000;
+  font-size: 0.85rem;
+}
+
+.installed-export-content :deep(.el-textarea__inner) {
+  color: #000;
+  -webkit-text-fill-color: #000;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  line-height: 1.55;
+}
+
+:global(.manifest-install-dialog) {
+  display: flex;
+  max-width: calc(100vw - 32px);
+  max-height: min(82vh, 780px);
+  flex-direction: column;
+  overflow: hidden;
+}
+
+:global(.manifest-install-dialog .el-dialog__header),
+:global(.manifest-install-dialog .el-dialog__footer) {
+  flex: 0 0 auto;
+}
+
+:global(.manifest-install-dialog .el-dialog__body) {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+.manifest-install-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.manifest-install-file-input {
+  display: none;
+}
+
+.manifest-install-source-actions {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.manifest-install-file-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--package-muted);
+  font-size: 0.85rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.manifest-install-name-placeholder {
+  color: var(--package-muted);
+}
+
+.manifest-install-content :deep(.el-textarea__inner) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  line-height: 1.55;
+}
+
+.manifest-install-table-wrap {
+  overflow: hidden;
+  border: 1px solid var(--package-border);
+  border-radius: 0.45rem;
+}
+
+.manifest-install-table-wrap :deep(.manifest-install-row-disabled > .el-table__cell),
+.manifest-install-table-wrap
+  :deep(.el-table__body tr.manifest-install-row-disabled:hover > .el-table__cell) {
+  background: #f5f7fa;
+  color: #a8abb2;
+}
+
+.manifest-install-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1.25rem;
+}
+
+.manifest-install-options :deep(.el-checkbox) {
+  margin-right: 0;
+}
+
+.manifest-install-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  color: var(--package-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
 .store-install-preview {
   min-height: 12rem;
+}
+
+:global(.store-install-preview-dialog) {
+  display: flex;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 120px);
+  max-height: min(76vh, 680px);
+  flex-direction: column;
+  overflow: hidden;
+}
+
+:global(.store-install-preview-dialog .el-dialog__header),
+:global(.store-install-preview-dialog .el-dialog__footer) {
+  flex: 0 0 auto;
+}
+
+:global(.store-install-preview-dialog .el-dialog__body) {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: auto;
 }
 
 .store-install-preview-summary {
   margin-bottom: 1rem;
 }
 
+.store-install-preview-name-cell {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.55rem;
+  vertical-align: middle;
+}
+
+.store-install-preview-icon {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  overflow: hidden;
+  border: 1px solid #dce5ef;
+  border-radius: 0.4rem;
+  background: #f8fafc;
+}
+
+.store-install-preview-icon img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
 .store-install-preview-options {
-  margin-bottom: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+}
+
+.store-install-preview-option-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.store-install-preview-checkbox {
+  min-height: 22px;
+  height: auto;
+}
+
+.store-install-preview-checkbox :deep(.el-checkbox__input) {
+  flex: 0 0 auto;
+}
+
+.store-install-preview-checkbox :deep(.el-checkbox__label) {
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.store-install-preview-option-row .install-reload-tip {
+  margin-top: 0.2rem;
+  margin-left: 22px;
+}
+
+.store-install-preview-reload-tip {
+  color: #8a98aa;
+  font-size: 0.78rem;
 }
 
 .store-install-preview-files {
@@ -2702,25 +3944,15 @@ onBeforeMount(async () => {
   gap: 0.6rem;
 }
 
+.store-install-preview-files :deep(.package-file-tree) {
+  max-height: none;
+  overflow: visible;
+}
+
 .store-install-preview-files-title {
   font-size: 0.95rem;
   font-weight: 700;
   color: #263852;
-}
-
-.store-install-preview-files-content {
-  margin: 0;
-  max-height: 20rem;
-  overflow: auto;
-  padding: 0.9rem 1rem;
-  border-radius: 0.55rem;
-  background: #f8fafc;
-  border: 1px solid var(--package-line);
-  color: #334155;
-  font-size: 0.82rem;
-  line-height: 1.55;
-  white-space: pre-wrap;
-  word-break: break-word;
 }
 
 .break-text {
@@ -2741,7 +3973,7 @@ onBeforeMount(async () => {
     gap: 0.45rem;
   }
 
-  .package-update-card {
+  .package-update-actions {
     align-self: flex-start;
   }
 
@@ -2758,6 +3990,7 @@ onBeforeMount(async () => {
     margin-left: 0;
   }
 
+  .installed-export-button,
   .installed-disk-refresh-button {
     margin-left: 0;
   }
@@ -2769,13 +4002,19 @@ onBeforeMount(async () => {
   .package-card-actions {
     justify-content: flex-start;
   }
-
-  .store-query-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media screen and (max-width: 768px) {
+  .manifest-install-options,
+  .manifest-install-source-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .manifest-install-file-name {
+    max-width: 100%;
+  }
+
   .package-page-title {
     font-size: 1.35rem;
   }
@@ -2821,9 +4060,18 @@ onBeforeMount(async () => {
   }
 
   .backend-add-row,
-  .install-grid,
-  .store-query-grid {
+  .install-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .store-search-bar {
+    max-width: none;
+    flex-direction: column;
+  }
+
+  .store-search-bar :deep(.el-button) {
+    width: 100%;
+    margin-left: 0;
   }
 
   .backend-item {
@@ -2837,8 +4085,7 @@ onBeforeMount(async () => {
   }
 
   .toolbar-select,
-  .reload-dropdown,
-  .reload-dropdown-button,
+  .installed-export-button,
   .installed-disk-refresh-button,
   .installed-refresh-button {
     flex: 1 1 100%;

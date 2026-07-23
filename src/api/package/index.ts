@@ -60,6 +60,7 @@ export interface PackageInstance {
   sourceStatus?: PackageSourceStatus;
   sourceWarning?: string;
   pendingReload?: string[];
+  files?: string[];
 }
 
 export interface PackageRefreshResult {
@@ -99,6 +100,15 @@ export function refreshPackageInstallations() {
 export function getPackageDetail(id: string) {
   // ID 可能包含 /，接口通过固定路径 + query 传参。
   return request<ApiResponse<PackageInstance>>('get', '_', { id });
+}
+
+export function getPackageAssetUrl(id: string, path: string) {
+  const params = new URLSearchParams({ id, path });
+  const token = localStorage.getItem('t');
+  if (token) {
+    params.set('token', token);
+  }
+  return `/sd-api${baseUrl}asset?${params.toString()}`;
 }
 
 export function installPackageByUrl(payload: PackageInstallUrlPayload) {
