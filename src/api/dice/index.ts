@@ -30,8 +30,24 @@ export function postMailTest() {
   >('post', 'config/mail_test');
 }
 
-export function postExec(message: string, messageType: 'private' | 'group') {
-  return request('post', 'exec', { message, messageType });
+export function getExecSplitOptions() {
+  return request<ExecSplitOptions>('get', 'exec/split_options');
+}
+
+export function postExec(
+  message: string,
+  messageType: 'private' | 'group',
+  messageSplitLen?: number,
+) {
+  const payload: {
+    message: string;
+    messageType: 'private' | 'group';
+    messageSplitLen?: number;
+  } = { message, messageType };
+  if (messageSplitLen !== undefined) {
+    payload.messageSplitLen = messageSplitLen;
+  }
+  return request('post', 'exec', payload);
 }
 
 export function postUploadToUpgrade(files: Blob) {
@@ -103,6 +119,19 @@ type ExtensionSettings = {
   autoActive: boolean; // 是否自动激活
   disabledCommand: { [key: string]: boolean }; // 禁用的命令
   loaded: boolean; // 是否加载
+};
+
+export type ExecSplitOptionKey = 'short' | 'qq' | 'unlimited';
+
+export type ExecSplitOption = {
+  key: ExecSplitOptionKey;
+  label: string;
+  messageSplitLen: number;
+};
+
+export type ExecSplitOptions = {
+  defaultKey: ExecSplitOptionKey;
+  options: ExecSplitOption[];
 };
 
 type RecentMsg = {

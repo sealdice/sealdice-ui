@@ -744,11 +744,7 @@
         如果你依然需要使用 gocq，可以切换到分离部署方式进行连接，但我们非常不建议您再继续使用 gocq。
       </el-alert>
       <el-alert
-        v-if="
-          store.diceServers.length > 0 &&
-          store.diceServers[0].baseInfo.containerMode &&
-          (form.accountType === 15 || form.accountType === 0)
-        "
+        v-if="isContainerMode() && isBuiltinAccountType(form.accountType)"
         type="warning"
         :closable="false"
         class="mb-6">
@@ -765,7 +761,14 @@
                 store.diceServers.length > 0 && store.diceServers[0].baseInfo.containerMode
               "></el-option>
             <el-option label="QQ(Milky)" :value="ImConnectionTypeMilkySeparate"></el-option>
-            <el-option label="QQ(内置Milky)" :value="ImConnectionTypeMilkyInternal"></el-option>
+            <el-option
+              label="QQ(内置Lagrange.Milky)"
+              :value="ImConnectionTypeMilkyInternalLagrange"
+              :disabled="isContainerMode()"></el-option>
+            <el-option
+              label="QQ(内置Yogurt)"
+              :value="ImConnectionTypeMilkyInternalYogurt"
+              :disabled="isContainerMode()"></el-option>
             <el-option
               label="QQ(onebot11正向WS)"
               :value="ImConnectionTypeOnebotSeparate"></el-option>
@@ -975,12 +978,16 @@
         <el-form-item
           v-if="
             form.accountType === ImConnectionTypeGocqLegacy ||
-            form.accountType === ImConnectionTypeMilkyInternal
+            isInternalMilkyAccountType(form.accountType)
           "
           label="账号"
           :label-width="formLabelWidth"
           required>
           <el-input v-model="form.account" type="number" autocomplete="off"></el-input>
+          <small v-if="isInternalMilkyAccountType(form.accountType)">
+            <div style="color: #aa4422">输入的 QQ 账号务必是你即将扫码登录的账号</div>
+            <div style="color: #aa4422">否则登录会失败</div>
+          </small>
         </el-form-item>
 
         <el-form-item
@@ -997,21 +1004,6 @@
               提示：首次登录时，建议先尝试 AndroidPad，如失败，切换使用 Android，再失败手表协议。
             </div>
             <!-- <div v-if="form.protocol !== 1" style="color: #aa4422;">提示：首次登录时，iPad 或者 Android 手表协议一般都会失败，建议用安卓登录后改协议。</div> -->
-          </small>
-        </el-form-item>
-
-        <el-form-item
-          v-if="form.accountType === ImConnectionTypeMilkyInternal"
-          label="协议端"
-          required
-          :label-width="formLabelWidth">
-          <el-select v-model="form.builtInMode" placeholder="建议选择 Yogurt">
-            <el-option label="Yogurt" :value="'yogurt'"></el-option>
-            <el-option label="LagrangeV2" :value="'lagrangeV2'"></el-option>
-          </el-select>
-          <small>
-            <div style="color: #aa4422">输入的 QQ 账号务必是你即将扫码登录的账号</div>
-            <div style="color: #aa4422">否则登录会失败</div>
           </small>
         </el-form-item>
 
@@ -1960,8 +1952,7 @@
                   form.signServerName === '')) ||
               (form.accountType === ImConnectionTypeMilkySeparate &&
                 (form.wsGateway === '' || form.restGateway === '')) ||
-              (form.accountType === ImConnectionTypeMilkyInternal &&
-                (form.account === '' || form.builtInMode === ''))
+              (isInternalMilkyAccountType(form.accountType) && form.account === '')
             "
             @click="goStepTwo">
             下一步</el-button
@@ -2035,7 +2026,8 @@ import {
   ImConnectionTypeSealChat,
   ImConnectionTypeLagrangeOnebot,
   ImConnectionTypeMilkySeparate,
-  ImConnectionTypeMilkyInternal,
+  ImConnectionTypeMilkyInternalLagrange,
+  ImConnectionTypeMilkyInternalYogurt,
   ImConnectionTypeOfficialQQ,
   ImConnectionTypeSatori,
 } from '~/store';
@@ -2101,6 +2093,25 @@ const activities = ref([] as typeof fullActivities);
 
 const store = useStore();
 const curCaptchaIdSet = ref(''); // 当前设置了 ticket 的 id
+
+const isContainerMode = () => {
+  return store.diceServers.length > 0 && store.diceServers[0].baseInfo.containerMode;
+};
+
+const isInternalMilkyAccountType = (accountType: number) => {
+  return (
+    accountType === ImConnectionTypeMilkyInternalLagrange ||
+    accountType === ImConnectionTypeMilkyInternalYogurt
+  );
+};
+
+const isBuiltinAccountType = (accountType: number) => {
+  return (
+    accountType === ImConnectionTypeLagrangeOnebot ||
+    accountType === ImConnectionTypeGocqLegacy ||
+    isInternalMilkyAccountType(accountType)
+  );
+};
 
 const isRecentLogin = ref(false);
 const duringRelogin = ref(false);

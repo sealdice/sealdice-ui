@@ -65,6 +65,8 @@ export const ImConnectionTypeLagrangeOnebot = 15;
 // 16 is langrange gocq, deprecated
 export const ImConnectionTypeMilkySeparate = 17;
 export const ImConnectionTypeMilkyInternal = 18;
+export const ImConnectionTypeMilkyInternalLagrange = 19;
+export const ImConnectionTypeMilkyInternalYogurt = 20;
 
 export interface AdapterQQ {
   DiceServing: boolean;
@@ -405,7 +407,17 @@ export const useStore = defineStore('main', {
           break;
         case ImConnectionTypeMilkyInternal:
           {
-            info = await postAddMilkyInternal(toNumber(account), builtInMode);
+            info = await postAddMilkyInternal(toNumber(account), builtInMode || 'yogurt');
+          }
+          break;
+        case ImConnectionTypeMilkyInternalLagrange:
+          {
+            info = await postAddMilkyInternal(toNumber(account), 'lagrangeV2');
+          }
+          break;
+        case ImConnectionTypeMilkyInternalYogurt:
+          {
+            info = await postAddMilkyInternal(toNumber(account), 'yogurt');
           }
           break;
       }
