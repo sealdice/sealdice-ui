@@ -764,31 +764,9 @@
 
       <el-form :model="form">
         <el-form-item label="账号类型" :label-width="formLabelWidth">
-          <el-select v-model="form.accountType">
-            <el-option
-              label="QQ(内置客户端)"
-              :value="ImConnectionTypeLagrangeOnebot"
-              :disabled="
-                store.diceServers.length > 0 && store.diceServers[0].baseInfo.containerMode
-              "></el-option>
-            <el-option label="QQ(Milky)" :value="ImConnectionTypeMilkySeparate"></el-option>
-            <el-option
-              label="QQ(内置Lagrange.Milky)"
-              :value="ImConnectionTypeMilkyInternalLagrange"
-              :disabled="isContainerMode()"></el-option>
-            <el-option
-              label="QQ(内置Yogurt)"
-              :value="ImConnectionTypeMilkyInternalYogurt"
-              :disabled="isContainerMode()"></el-option>
-            <el-option
-              label="QQ(onebot11正向WS)"
-              :value="ImConnectionTypeOnebotSeparate"></el-option>
-            <el-option
-              label="QQ(onebot11反向WS)"
-              :value="ImConnectionTypeOnebotReverse"></el-option>
-            <el-option label="QQ(官方机器人)" :value="ImConnectionTypeOfficialQQ"></el-option>
-            <el-option label="[WIP]Satori" :value="ImConnectionTypeSatori"></el-option>
-            <el-option label="[WIP]SealChat" :value="ImConnectionTypeSealChat"></el-option>
+          <el-select v-model="selectedAccountPlatform" filterable :clearable="false">
+            <el-option label="QQ" value="QQ"></el-option>
+            <el-option label="SealChat" :value="ImConnectionTypeSealChat"></el-option>
             <el-option label="Discord" :value="ImConnectionTypeDiscord"></el-option>
             <el-option label="KOOK(开黑啦)" :value="ImConnectionTypeKook"></el-option>
             <el-option label="Telegram" :value="ImConnectionTypeTelegram"></el-option>
@@ -796,7 +774,34 @@
             <el-option label="Dodo语音" :value="ImConnectionTypeDodo"></el-option>
             <el-option label="钉钉" :value="ImConnectionTypeDingTalk"></el-option>
             <el-option label="Slack" :value="ImConnectionTypeSlack"></el-option>
-            <el-option label="[已弃用]QQ(red协议)" :value="ImConnectionTypeRed"></el-option>
+          </el-select>
+        </el-form-item>
+
+        <el-form-item
+          v-if="selectedAccountPlatform === 'QQ'"
+          label="QQ 协议"
+          :label-width="formLabelWidth">
+          <el-select v-model="form.accountType">
+            <el-option
+              label="Yogurt 客户端 (内置)"
+              :value="ImConnectionTypeMilkyInternalYogurt"
+              :disabled="isContainerMode()"></el-option>
+            <el-option
+              label="Lagrange.Milky 客户端 (内置)"
+              :value="ImConnectionTypeMilkyInternalLagrange"
+              :disabled="isContainerMode()"></el-option>
+            <el-option
+              label="Lagrange.OneBot 客户端 (内置，不推荐)"
+              :value="ImConnectionTypeLagrangeOnebot"
+              :disabled="isContainerMode()"></el-option>
+            <el-option label="Milky 协议 (分离)" :value="ImConnectionTypeMilkySeparate"></el-option>
+            <el-option
+              label="OneBot 11 正向 WS (分离，主动连接对方)"
+              :value="ImConnectionTypeOnebotSeparate"></el-option>
+            <el-option
+              label="OneBot 11 反向 WS (分离，开启服务等待被连接)"
+              :value="ImConnectionTypeOnebotReverse"></el-option>
+            <el-option label="QQ 官方机器人" :value="ImConnectionTypeOfficialQQ"></el-option>
           </el-select>
         </el-form-item>
 
@@ -1540,7 +1545,11 @@
           :label-width="formLabelWidth">
           <small>
             <div>提示：进入腾讯开放平台创建一个机器人</div>
-            <div>https://q.qq.com/#/app/bot</div>
+            <div>
+              <a href="https://q.qq.com/#/app/bot" target="_blank" rel="noopener noreferrer"
+                >https://q.qq.com/#/app/bot</a
+              >
+            </div>
             <div>创建之后进入机器人管理后台，切换到「开发 - 开发设置」页</div>
             <div>把机器人的相关信息复制并粘贴进来</div>
           </small>
@@ -1554,7 +1563,14 @@
           <el-input v-model="form.token" type="string" autocomplete="off"></el-input>
           <small>
             <div>提示：首先去 discord 开发者平台创建一个新的 Application</div>
-            <div>https://discord.com/developers/applications</div>
+            <div>
+              <a
+                href="https://discord.com/developers/applications"
+                target="_blank"
+                rel="noopener noreferrer"
+                >https://discord.com/developers/applications</a
+              >
+            </div>
             <div>点击 New Application 创建之后进入应用，然后点 bot，Add bot</div>
             <div>然后把 Privileged Gateway Intents 下面的三个开关打开</div>
             <div>最后把 bot 的 token 复制下来粘贴进来</div>
@@ -1598,7 +1614,14 @@
           <el-input v-model="form.token" type="string" autocomplete="off"></el-input>
           <small>
             <div>提示：进入 KOOK 开发者平台创建一个新的应用</div>
-            <div>https://developer.kookapp.cn/app/index</div>
+            <div>
+              <a
+                href="https://developer.kookapp.cn/app/index"
+                target="_blank"
+                rel="noopener noreferrer"
+                >https://developer.kookapp.cn/app/index</a
+              >
+            </div>
             <div>点击新建应用 创建之后进入应用，然后点机器人</div>
             <div>把机器人的 token 复制下来粘贴进来</div>
           </small>
@@ -1611,7 +1634,14 @@
           required>
           <el-input v-model="form.token" type="string" autocomplete="off"></el-input>
           <small>
-            <div>提示：私聊 BotFather(https://t.me/BotFather)</div>
+            <div>
+              提示：私聊 BotFather（<a
+                href="https://t.me/BotFather"
+                target="_blank"
+                rel="noopener noreferrer"
+                >https://t.me/BotFather</a
+              >）
+            </div>
             <div>使用/newbot 申请一个新的机器人</div>
             <div>
               按照指示创建机器人之后，在 Bot setting 里面把 Group privacy 里面 privacy mode 关掉
@@ -1710,7 +1740,12 @@
           required>
           <el-input v-model="form.token" type="string" autocomplete="off"></el-input>
           <small>
-            <div>提示：前往 Dodo 开发者平台 https://doker.imdodo.com/bot-list</div>
+            <div>
+              提示：前往 Dodo 开发者平台
+              <a href="https://doker.imdodo.com/bot-list" target="_blank" rel="noopener noreferrer"
+                >https://doker.imdodo.com/bot-list</a
+              >
+            </div>
             <div>如果需要提交审核可以写跑团机器人开发</div>
             <div>你的帐号过审后，点击创建应用</div>
             <div>创建完成之后将 clientID 和 Token 复制到这两个框中</div>
@@ -1749,7 +1784,15 @@
           required>
           <el-input v-model="form.token" type="string" autocomplete="off"></el-input>
           <small>
-            <div>提示：前往钉钉开发者平台 https://open-dev.dingtalk.com/fe/app</div>
+            <div>
+              提示：前往钉钉开发者平台
+              <a
+                href="https://open-dev.dingtalk.com/fe/app"
+                target="_blank"
+                rel="noopener noreferrer"
+                >https://open-dev.dingtalk.com/fe/app</a
+              >
+            </div>
             <div>点击创建应用</div>
             <div>点击 基础信息 - 应用信息</div>
             <div>把 AppKey 复制到 ClientID 内</div>
@@ -1774,7 +1817,12 @@
           required>
           <el-input v-model="form.botToken" type="string" autocomplete="off"></el-input>
           <small>
-            <div>提示：前往 Slack 开发者平台 https://api.slack.com/apps</div>
+            <div>
+              提示：前往 Slack 开发者平台
+              <a href="https://api.slack.com/apps" target="_blank" rel="noopener noreferrer"
+                >https://api.slack.com/apps</a
+              >
+            </div>
             <div>点击 Create an app 选择 From scratch</div>
             <div>按照要求创建 APP 后，点击 OAuth & Permissions</div>
             <div>在下方的 Scopes 中，为机器人添加 channels:write 和 im:write</div>
@@ -1791,36 +1839,36 @@
             <div>随后将生成的 Token 复制到 App Token 内</div>
           </small>
         </el-form-item>
-      </el-form>
 
-      <el-form-item
-        v-if="form.accountType === ImConnectionTypeMilkySeparate"
-        label="Token"
-        :label-width="formLabelWidth">
-        <el-input v-model="form.token" type="string" autocomplete="off"></el-input>
-      </el-form-item>
-      <el-form-item
-        v-if="form.accountType === ImConnectionTypeMilkySeparate"
-        label="Websocket Gateway"
-        :label-width="formLabelWidth"
-        required>
-        <el-input
-          v-model="form.wsGateway"
-          type="string"
-          autocomplete="off"
-          placeholder="ws://127.0.0.1:3000/event"></el-input>
-      </el-form-item>
-      <el-form-item
-        v-if="form.accountType === ImConnectionTypeMilkySeparate"
-        label="REST Gateway"
-        :label-width="formLabelWidth"
-        required>
-        <el-input
-          v-model="form.restGateway"
-          type="string"
-          autocomplete="off"
-          placeholder="http://127.0.0.1:3000/api"></el-input>
-      </el-form-item>
+        <el-form-item
+          v-if="form.accountType === ImConnectionTypeMilkySeparate"
+          label="Token"
+          :label-width="formLabelWidth">
+          <el-input v-model="form.token" type="string" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item
+          v-if="form.accountType === ImConnectionTypeMilkySeparate"
+          label="Websocket Gateway"
+          :label-width="formLabelWidth"
+          required>
+          <el-input
+            v-model="form.wsGateway"
+            type="string"
+            autocomplete="off"
+            placeholder="ws://127.0.0.1:3000/event"></el-input>
+        </el-form-item>
+        <el-form-item
+          v-if="form.accountType === ImConnectionTypeMilkySeparate"
+          label="REST Gateway"
+          :label-width="formLabelWidth"
+          required>
+          <el-input
+            v-model="form.restGateway"
+            type="string"
+            autocomplete="off"
+            placeholder="http://127.0.0.1:3000/api"></el-input>
+        </el-form-item>
+      </el-form>
     </template>
     <template v-else-if="form.step === 2">
       <el-timeline style="min-height: 260px">
@@ -2058,7 +2106,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive } from 'vue';
+import { computed, reactive } from 'vue';
 import {
   useStore,
   goCqHttpStateCode,
@@ -2161,6 +2209,20 @@ const isBuiltinAccountType = (accountType: number) => {
     accountType === ImConnectionTypeGocqLegacy ||
     isInternalMilkyAccountType(accountType)
   );
+};
+
+const isQQAccountType = (accountType: number) => {
+  return [
+    ImConnectionTypeGocqLegacy,
+    ImConnectionTypeOnebotSeparate,
+    ImConnectionTypeRed,
+    ImConnectionTypeOfficialQQ,
+    ImConnectionTypeOnebotReverse,
+    ImConnectionTypeLagrangeOnebot,
+    ImConnectionTypeMilkySeparate,
+    ImConnectionTypeMilkyInternalLagrange,
+    ImConnectionTypeMilkyInternalYogurt,
+  ].includes(accountType);
 };
 
 const isRecentLogin = ref(false);
@@ -2613,7 +2675,7 @@ const handleSignServerDelete = (url: string) => {
 const supportedQQVersions = ref<string[]>([]);
 
 const form = reactive({
-  accountType: 15,
+  accountType: ImConnectionTypeMilkyInternalYogurt,
   step: 1,
   isEnd: false,
   account: '',
@@ -2680,6 +2742,18 @@ const form = reactive({
   builtInMode: '',
 });
 
+const selectedAccountPlatform = computed<number | 'QQ'>({
+  get: () => (isQQAccountType(form.accountType) ? 'QQ' : form.accountType),
+  set: accountType => {
+    form.accountType =
+      accountType === 'QQ'
+        ? isContainerMode()
+          ? ImConnectionTypeOnebotSeparate
+          : ImConnectionTypeMilkyInternalYogurt
+        : accountType;
+  },
+});
+
 export type addImConnectionForm = typeof form;
 
 // 添加一个新账号
@@ -2705,17 +2779,8 @@ onBeforeMount(async () => {
     supportedQQVersions.value = ['', ...versionsRes.versions];
   }
 
-  // form.accountType 默认账号类型，在 android 与 mac 系统中，默认账号类型为内置 gocq，其余系统为内置客户端
-  if (store.diceServers.length > 0) {
-    if (
-      store.diceServers[0].baseInfo.OS === 'android' ||
-      store.diceServers[0].baseInfo.OS === 'darwin'
-    ) {
-      form.accountType = 16;
-    }
-    if (store.diceServers[0].baseInfo.containerMode) {
-      form.accountType = 6;
-    }
+  if (isContainerMode()) {
+    form.accountType = ImConnectionTypeOnebotSeparate;
   }
 
   timerId = setInterval(async () => {
