@@ -50,6 +50,80 @@
     <div></div>
     <div class="subtitle">社区协力</div>
 
+    <div style="margin-top: 2rem" class="subtitle">V1.6 版本</div>
+    <div class="developers">
+      <el-link :underline="false" href="https://github.com/Szzrain" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/Szzrain'" />Szzrain</el-link
+      >
+      <el-link :underline="false" href="https://github.com/fy0" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/fy0'" />木落</el-link
+      >
+      <el-link :underline="false" href="https://github.com/MX-fox" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/MX-fox'" />暮星</el-link
+      >
+      <el-link :underline="false" href="https://github.com/kenichiLyon" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          src="https://d1.sealdice.com/images/kenichiLyon.jpg" />山本健一</el-link
+      >
+      <el-link :underline="false" href="https://github.com/PaienNate" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/PaienNate'" />PaienNate</el-link
+      >
+      <el-link :underline="false" href="https://github.com/baiyu-yu" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/baiyu-yu'" />白鱼</el-link
+      >
+      <el-link :underline="false" href="https://github.com/lyjjl" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/lyjjl'" />SomeOne</el-link
+      >
+      <el-link :underline="false" href="https://github.com/kagangtuya-star" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/kagangtuya-star'" />SilverDragon</el-link
+      >
+      <el-link :underline="false" href="https://github.com/oissevalt" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/oissevalt'" />檀轶步棋</el-link
+      >
+      <el-link :underline="false" href="https://github.com/BQxiaojiao" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/BQxiaojiao'" />BQxiaojiao</el-link
+      >
+      <el-link :underline="false" href="https://github.com/Dontplay0112" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/Dontplay0112'" />Dontplay (UI)</el-link
+      >
+      <el-link :underline="false" href="https://github.com/ShiaNyaa" target="_blank"
+        ><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/ShiaNyaa'" />希亚
+        (UI)</el-link
+      >
+    </div>
+
     <div style="margin-top: 2rem" class="subtitle">V1.5 版本</div>
     <div class="developers">
       <el-link :underline="false" href="https://github.com/fy0" target="_blank"
