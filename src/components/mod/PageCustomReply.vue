@@ -58,6 +58,9 @@
               :label="item.filename"
               :value="item.filename" />
           </el-select>
+          <el-tag v-if="currentReplyPackageId" size="small" type="warning" effect="plain">
+            来源包 {{ currentReplyPackageId }}
+          </el-tag>
           <el-checkbox-button
             v-model="cr.enable"
             :class="cr.enable ? `reply-file-status-open` : `reply-file-status-close`"
@@ -252,6 +255,7 @@ import {
   getCustomReplyFileList,
   postCustomReplyDel,
   postCustomReplyNew,
+  type ReplyFileInfo,
   saveCustomReply,
   uploadCustomReply,
 } from '~/api/configs';
@@ -290,7 +294,7 @@ const list = ref<any>([
   // {"enable":true,"condition":{"condType":"match","matchType":"match_fuzzy","value":"ccc"},"results":[{"resultType":"replyToSender","delay":0.3,"message":"text"}]},
 ]);
 
-const fileItems = ref<any>([
+const fileItems = ref<ReplyFileInfo[]>([
   // {"enable":true,"condition":{"condType":"match","matchType":"match_exact","value":"asd"},"results":[{"resultType":"replyToSender","delay":0.3,"message":"text"}]},
   // {"enable":true,"condition":{"condType":"match","matchType":"match_fuzzy","value":"ccc"},"results":[{"resultType":"replyToSender","delay":0.3,"message":"text"}]},
 ]);
@@ -298,6 +302,12 @@ const fileItems = ref<any>([
 const uploadFileList = ref<any[]>([]);
 
 const cr = ref<any>({ enable: true });
+
+const currentReplyPackageId = computed(
+  () =>
+    cr.value.packageId ||
+    fileItems.value.find(item => item.filename === curFilename.value)?.packageId,
+);
 
 const switchClick = () => {
   if (!store.curDice.config.customReplyConfigEnable) {
@@ -390,7 +400,8 @@ const beforeUpload = async (file: any) => {
     ElMessage.success('上传完成');
     const ret = await getCustomReplyFileList();
     fileItems.value = ret.items;
-    curFilename.value = ret.items[0].filename;
+    curFilename.value = file.name;
+    ElMessage.success(`已切换到新文件: ${file.name}`);
     await refreshCurrent();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {

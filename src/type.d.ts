@@ -17,11 +17,13 @@ export interface JsScriptInfo {
   official: boolean;
   builtin: boolean;
   builtinUpdated: boolean;
+  packageID?: string;
 }
 
 export interface JsPluginConfigItem {
   key: string;
   type: string;
+  group?: string;
   defaultValue: any;
   value: any;
   option: any[];
@@ -89,6 +91,7 @@ export interface BanConfig {
   banBehaviorQuitLastPlace: boolean;
   banBehaviorQuitPlaceImmediately: boolean;
   banBehaviorQuitIfAdmin: boolean;
+  banBehaviorQuitIfAdminSilentIfNotAdmin: boolean;
 
   thresholdWarn: number;
   thresholdBan: number;

@@ -245,13 +245,17 @@ onBeforeMount(async () => {
   }
 
   timerId = setInterval(async () => {
+    // 没输入密码，先不心跳
+    if (!store.canAccess) {
+      return;
+    }
     try {
       await store.getBaseInfo();
       if (dialogLostConnectionVisible.value) {
         dialogLostConnectionVisible.value = false;
       }
     } catch (e: any) {
-      if (!e.response) {
+      if (!e.response || e.response.status === 403) {
         // 此时是连接不上，404
         // e.response.status 有可能为 403
         dialogLostConnectionVisible.value = true;
@@ -345,13 +349,17 @@ body {
   height: 100%;
 }
 
-@media screen and (max-width: 640px) {
+@media screen and (max-width: 639.9px) {
   .nav {
     padding: 0 0.5rem 0 0;
   }
 
   .menu {
     display: none;
+  }
+
+  .menu-button-wrapper {
+    display: block;
   }
 
   .main-container {
@@ -362,6 +370,10 @@ body {
 @media screen and (min-width: 640px) {
   .nav {
     padding: 0 1rem 0 1.5rem;
+  }
+
+  .menu {
+    display: block;
   }
 
   .menu-button-wrapper {
@@ -376,8 +388,9 @@ body {
 }
 
 #app {
-  font-family: 'PingFang SC', 'Helvetica Neue', 'Hiragino Sans GB', 'Segoe UI', 'Microsoft YaHei',
-    '微软雅黑', sans-serif;
+  font-family:
+    'PingFang SC', 'Helvetica Neue', 'Hiragino Sans GB', 'Segoe UI', 'Microsoft YaHei', '微软雅黑',
+    sans-serif;
   /* font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif; */
   text-align: center;
   color: #2c3e50;

@@ -9,6 +9,7 @@ import PageMiscDeck from '~/components/mod/PageMiscDeck.vue';
 import PageHelpDoc from '~/components/mod/PageHelpDoc.vue';
 import PageStory from '~/components/mod/PageStory.vue';
 import PageCensor from '~/components/mod/PageCensor.vue';
+import PagePackage from '~/components/mod/PagePackage.vue';
 import PageTest from '~/components/tool/PageTest.vue';
 import PageResource from '~/components/tool/PageResource.vue';
 import PageProfile from '~/components/tool/PageProfile.vue';
@@ -16,6 +17,7 @@ import PageMiscSettings from '~/components/misc/PageMiscSettings.vue';
 import PageMiscBackup from '~/components/misc/PageMiscBackup.vue';
 import PageMiscGroup from '~/components/misc/PageMiscGroup.vue';
 import PageMiscBan from '~/components/misc/PageMiscBan.vue';
+import PageMiscDicePublic from '~/components/misc/PageMiscDicePublic.vue';
 import PageMiscAdvancedSettings from '~/components/misc/PageMiscAdvancedSettings.vue';
 
 const router = createRouter({
@@ -33,6 +35,7 @@ const router = createRouter({
         { path: 'helpdoc', component: PageHelpDoc },
         { path: 'story', component: PageStory },
         { path: 'censor', component: PageCensor },
+        { path: 'package', component: PagePackage },
       ],
     },
     {
@@ -50,6 +53,7 @@ const router = createRouter({
         { path: 'backup', component: PageMiscBackup },
         { path: 'group', component: PageMiscGroup },
         { path: 'ban', component: PageMiscBan },
+        { path: 'dice-public', component: PageMiscDicePublic },
         { path: 'advanced-setting', component: PageMiscAdvancedSettings },
       ],
     },

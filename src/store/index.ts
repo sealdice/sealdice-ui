@@ -15,6 +15,8 @@ import {
   postAddGocqSeparate,
   postAddKook,
   postAddLagrange,
+  postAddMilky,
+  postAddMilkyInternal,
   postAddMinecraft,
   postAddOfficialQQ,
   postAddOnebot11ReverseWs,
@@ -23,24 +25,48 @@ import {
   postaddSealChat,
   postAddSlack,
   postAddTelegram,
-  postAddWalleQ,
 } from '~/api/im_connections';
 import { getBaseInfo, getHello, getLogFetchAndClear, getPreInfo } from '~/api/others';
 import { getSalt, signin } from '~/api/signin';
 
 import type { addImConnectionForm } from '~/components/PageConnectInfoItems.vue';
 import type { AdvancedConfig } from '~/type.d.ts';
+import { toNumber } from 'lodash-es';
 export enum goCqHttpStateCode {
   Init = 0,
   InLogin = 1,
   InLoginQrCode = 2,
   InLoginBar = 3,
+  MilkyLoginConnected = 4,
+  MilkyLoginFailed = 5,
   InLoginVerifyCode = 6,
   InLoginDeviceLock = 7,
   LoginSuccessed = 10,
   LoginFailed = 11,
   Closed = 20,
 }
+
+export const ImConnectionTypeGocqLegacy = 0;
+export const ImConnectionTypeDiscord = 1;
+export const ImConnectionTypeKook = 2;
+export const ImConnectionTypeTelegram = 3;
+export const ImConnectionTypeMinecraft = 4;
+export const ImConnectionTypeDodo = 5;
+export const ImConnectionTypeOnebotSeparate = 6;
+export const ImConnectionTypeRed = 7;
+export const ImConnectionTypeDingTalk = 8;
+export const ImConnectionTypeSlack = 9;
+export const ImConnectionTypeOfficialQQ = 10;
+export const ImConnectionTypeOnebotReverse = 11;
+// no 12 type here
+export const ImConnectionTypeSealChat = 13;
+export const ImConnectionTypeSatori = 14;
+export const ImConnectionTypeLagrangeOnebot = 15;
+// 16 is langrange gocq, deprecated
+export const ImConnectionTypeMilkySeparate = 17;
+export const ImConnectionTypeMilkyInternal = 18;
+export const ImConnectionTypeMilkyInternalLagrange = 19;
+export const ImConnectionTypeMilkyInternalYogurt = 20;
 
 export interface AdapterQQ {
   DiceServing: boolean;
@@ -62,10 +88,16 @@ export interface AdapterQQ {
   redVersion: string;
   host: string;
   port: number;
-  appID: number;
+  appID: string | number;
   isReverse: boolean;
   reverseAddr: string;
   builtinMode: 'gocq' | 'lagrange' | 'lagrange-gocq';
+  built_in_mode: string; // Milky 的字段，跟 ob 不太一样
+  signServerVer: string;
+  signServerName: string;
+  useWebhook?: boolean;
+  webhookPath?: string;
+  webhookPort?: number;
 }
 
 interface TalkLogItem {
@@ -87,7 +119,7 @@ export interface DiceConnection {
   groupNum: number;
   cmdExecutedNum: number;
   cmdExecutedLastTime: number;
-  onlineTotalTime: number;
+  isPublic: boolean;
 
   adapter: AdapterQQ;
 }
@@ -286,17 +318,23 @@ export const useStore = defineStore('main', {
         accessToken,
         useSignServer,
         signServerConfig,
-        signServerUrl,
+        signServerName,
         signServerVersion,
         reverseAddr,
         onlyQQGuild,
         platform,
+        wsGateway,
+        restGateway,
+        builtInMode,
+        useWebhook,
+        webhookPath,
+        webhookPort,
       } = form;
 
       let info = null;
       switch (accountType) {
         //QQ
-        case 0:
+        case ImConnectionTypeGocqLegacy:
           if (implementation === 'gocq') {
             info = await postAddGocq(
               account,
@@ -306,26 +344,28 @@ export const useStore = defineStore('main', {
               useSignServer,
               signServerConfig,
             );
-          } else if (implementation === 'walle-q') {
-            info = await postAddWalleQ(account, password, protocol);
           }
+          // deprecated
+          // else if (implementation === 'walle-q') {
+          //   info = await postAddWalleQ(account, password, protocol);
+          // }
           break;
-        case 1:
+        case ImConnectionTypeDiscord:
           info = await postAddDiscord(token.trim(), proxyURL, reverseProxyUrl, reverseProxyCDNUrl);
           break;
-        case 2:
+        case ImConnectionTypeKook:
           info = await postAddKook(token.trim());
           break;
-        case 3:
+        case ImConnectionTypeTelegram:
           info = await postAddTelegram(token.trim(), proxyURL);
           break;
-        case 4:
+        case ImConnectionTypeMinecraft:
           info = await postAddMinecraft(url);
           break;
-        case 5:
+        case ImConnectionTypeDodo:
           info = await postAddDodo(clientID.trim(), token.trim());
           break;
-        case 6: {
+        case ImConnectionTypeOnebotSeparate: {
           // onebot11 正向
           let realUrl: string = connectUrl.trim();
           if (!realUrl.startsWith('ws://') && !realUrl.startsWith('wss://')) {
@@ -334,43 +374,64 @@ export const useStore = defineStore('main', {
           info = await postAddGocqSeparate(relWorkDir, realUrl, accessToken, account);
           break;
         }
-        case 7:
+        case ImConnectionTypeRed:
           info = await postAddRed(host, port, token);
           break;
-        case 8:
+        case ImConnectionTypeDingTalk:
           info = await postAddDingtalk(clientID, token, nickname, robotCode);
           break;
-        case 9:
+        case ImConnectionTypeSlack:
           info = await postAddSlack(botToken, appToken);
           break;
-        case 10:
-          info = await postAddOfficialQQ(Number(appID), appSecret, token, onlyQQGuild);
+        case ImConnectionTypeOfficialQQ:
+          info = await postAddOfficialQQ(
+            appID,
+            appSecret,
+            token,
+            onlyQQGuild,
+            useWebhook,
+            webhookPath,
+            webhookPort,
+          );
           break;
-        case 11:
+        case ImConnectionTypeOnebotReverse:
           info = await postAddOnebot11ReverseWs(account, reverseAddr?.trim());
           break;
-        case 13:
+        case ImConnectionTypeSealChat:
           info = await postaddSealChat(url.trim(), token.trim());
           break;
-        case 14:
+        case ImConnectionTypeSatori:
           info = await postAddSatori(platform, host, port, token);
           break;
-        case 15:
+        case ImConnectionTypeLagrangeOnebot:
           {
-            let version = '';
-            if (['sealdice', 'lagrange', 'newProxy'].includes(signServerUrl)) {
-              version = signServerVersion;
-            }
-            info = await postAddLagrange(account, signServerUrl, version, false);
+            info = await postAddLagrange(account, signServerName, signServerVersion);
           }
           break;
-        case 16:
+        // lagrange gocq deprecated
+        // case 16:
+        //   {
+        //     info = await postAddLagrange(account, signServerName, signServerVersion, true);
+        //   }
+        //   break;
+        case ImConnectionTypeMilkySeparate:
           {
-            let version = '';
-            if (['sealdice', 'lagrange', 'newProxy'].includes(signServerUrl)) {
-              version = signServerVersion;
-            }
-            info = await postAddLagrange(account, signServerUrl, version, true);
+            info = await postAddMilky(token, wsGateway, restGateway);
+          }
+          break;
+        case ImConnectionTypeMilkyInternal:
+          {
+            info = await postAddMilkyInternal(toNumber(account), builtInMode || 'yogurt');
+          }
+          break;
+        case ImConnectionTypeMilkyInternalLagrange:
+          {
+            info = await postAddMilkyInternal(toNumber(account), 'lagrangeV2');
+          }
+          break;
+        case ImConnectionTypeMilkyInternalYogurt:
+          {
+            info = await postAddMilkyInternal(toNumber(account), 'yogurt');
           }
           break;
       }
@@ -388,6 +449,9 @@ export const useStore = defineStore('main', {
 
     async diceConfigSet(data: DiceConfig) {
       await setDiceConfig(data);
+      if (data.uiPassword) {
+        window.location.reload();
+      }
       await this.diceConfigGet();
     },
 

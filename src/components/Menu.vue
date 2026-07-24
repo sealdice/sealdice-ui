@@ -43,6 +43,9 @@
         </el-icon>
         <span>扩展功能</span>
       </template>
+      <el-menu-item index="/mod/package">
+        <span>扩展包</span>
+      </el-menu-item>
 
       <el-menu-item index="/mod/reply">
         <span>自定义回复</span>
@@ -87,6 +90,10 @@
 
       <el-menu-item index="/misc/ban">
         <span>黑白名单</span>
+      </el-menu-item>
+
+      <el-menu-item index="/misc/dice-public">
+        <span>公骰设置</span>
       </el-menu-item>
 
       <el-menu-item index="/misc/backup">

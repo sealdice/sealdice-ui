@@ -64,7 +64,7 @@
               <el-upload
                 action=""
                 multiple
-                accept="application/javascript,application/typescript,.js,.ts"
+                accept="*"
                 class="upload"
                 :before-upload="beforeUpload"
                 :file-list="uploadFileList">
@@ -95,7 +95,7 @@
               :err-title="i.filename"
               :err-text="i.errText">
               <template #title>
-                <el-space class="js-item-header">
+                <el-space class="js-item-header" wrap>
                   <el-switch
                     v-model="i.enable"
                     :disabled="i.errText !== ''"
@@ -116,6 +116,9 @@
                       >TS</el-tag
                     >
                   </el-tooltip>
+                  <el-tag v-if="i.packageID" size="small" type="warning" effect="plain">
+                    来源包 {{ i.packageID }}
+                  </el-tag>
                 </el-space>
               </template>
 
@@ -248,12 +251,40 @@
                         (config as unknown as JsPluginConfig)['pluginName']
                       }}</el-text>
                     </el-space>
+                    <el-space>
+                      <template
+                        v-if="getDeprecatedKeys(config as unknown as JsPluginConfig).length > 0">
+                        <el-tooltip
+                          content="移除 - 当前插件存在暂未使用的配置项，<br />点击以移除此插件全部暂未使用的配置项。"
+                          raw-content
+                          placement="bottom-end">
+                          <el-icon
+                            style="float: right; margin-left: 1rem"
+                            @click="
+                              doDeleteUnusedConfigs(
+                                (config as unknown as JsPluginConfig)['pluginName'],
+                                getDeprecatedKeys(config as unknown as JsPluginConfig),
+                              )
+                            ">
+                            <delete-filled />
+                          </el-icon>
+                        </el-tooltip>
+                      </template>
+                    </el-space>
                   </div>
                 </template>
                 <el-card shadow="never" style="border: 0">
-                  <el-form
-                    v-for="(c, index) in (config as unknown as JsPluginConfig)['configs']"
-                    :key="index">
+                  <el-tabs
+                    v-if="hasSecondLevelGroupByAny(config)"
+                    v-model="jsConfigGroupActive[getPluginNameByAny(config)]"
+                    style="margin-bottom: 0.75rem">
+                    <el-tab-pane
+                      v-for="group in getConfigGroupsByAny(config)"
+                      :key="group.key"
+                      :label="group.label"
+                      :name="group.key" />
+                  </el-tabs>
+                  <el-form v-for="c in getDisplayConfigsByAny(config)" :key="c.key">
                     <template #header>
                       <div class="js-item-header">
                         <el-space>
@@ -810,7 +841,7 @@ import { postUtilsCheckCronExpr } from '~/api/utils';
 import {
   checkJsUpdate,
   deleteJs,
-  deleteUnusedJsConfig,
+  deleteUnusedJsConfigs,
   disableJS,
   enableJS,
   executeJS,
@@ -934,7 +965,96 @@ const doDeleteUnusedConfig = (pluginName: any, key: any, isTask: boolean) => {
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ).then(async data => {
-    await deleteUnusedJsConfig(pluginName, key);
+    await deleteUnusedJsConfigs(pluginName, [key]);
+    setTimeout(() => {
+      // 稍等等再重载，以免出现没删掉
+      refreshConfig();
+    }, 1000);
+    ElMessage.success('配置项已删除');
+  });
+};
+
+const getDeprecatedKeys = (config: JsPluginConfig): string[] => {
+  const configs = config.configs || [];
+  const result: string[] = [];
+  for (const c of configs) {
+    if (c.deprecated) {
+      result.push(c.key);
+    }
+  }
+  return result;
+};
+
+interface JsConfigGroup {
+  key: string;
+  label: string;
+  items: JsPluginConfigItem[];
+}
+
+const normalizeGroupName = (group?: string): string => (group || '').trim();
+
+const buildConfigGroups = (config: JsPluginConfig): JsConfigGroup[] => {
+  const groups: JsConfigGroup[] = [];
+  const groupMap = new Map<string, JsConfigGroup>();
+  for (const item of config.configs || []) {
+    const groupName = normalizeGroupName(item.group);
+    const key = groupName;
+    let group = groupMap.get(key);
+    if (!group) {
+      group = {
+        key,
+        label: groupName === '' ? '默认分组' : groupName,
+        items: [],
+      };
+      groupMap.set(key, group);
+      groups.push(group);
+    }
+    group.items.push(item);
+  }
+  return groups;
+};
+
+const getConfigGroups = (config: JsPluginConfig): JsConfigGroup[] =>
+  configGroupsByPlugin.value[config.pluginName] || [];
+
+const hasSecondLevelGroup = (config: JsPluginConfig): boolean =>
+  getConfigGroups(config).some(group => group.key !== '');
+
+const getDisplayConfigs = (config: JsPluginConfig): JsPluginConfigItem[] => {
+  const configs = config.configs || [];
+  if (!hasSecondLevelGroup(config)) {
+    return configs;
+  }
+  const groups = getConfigGroups(config);
+  if (groups.length === 0) {
+    return [];
+  }
+  const activeGroup = jsConfigGroupActive.value[config.pluginName];
+  const match = groups.find(group => group.key === activeGroup) || groups[0];
+  return match.items;
+};
+
+const getConfigByAny = (config: unknown): JsPluginConfig => config as JsPluginConfig;
+const getPluginNameByAny = (config: unknown): string => getConfigByAny(config).pluginName;
+const hasSecondLevelGroupByAny = (config: unknown): boolean =>
+  hasSecondLevelGroup(getConfigByAny(config));
+const getConfigGroupsByAny = (config: unknown): JsConfigGroup[] =>
+  getConfigGroups(getConfigByAny(config));
+const getDisplayConfigsByAny = (config: unknown): JsPluginConfigItem[] =>
+  getDisplayConfigs(getConfigByAny(config));
+
+const doDeleteUnusedConfigs = (pluginName: string, keys: string[]) => {
+  ElMessageBox.confirm(
+    `删除插件 ${pluginName} 的共 ${keys.length} 个暂未使用的配置项/定时任务，确定吗？`,
+    '删除',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  ).then(async data => {
+    await deleteUnusedJsConfigs(pluginName, keys);
     setTimeout(() => {
       // 稍等等再重载，以免出现没删掉
       refreshConfig();
@@ -1012,11 +1132,10 @@ onMounted(async () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {}
 
-  await refreshList();
+  await refreshJsData();
   if (jsList.value.length > 0) {
     mode.value = 'list';
   }
-  await refreshConfig();
 
   timerId = setInterval(async () => {
     console.log('refresh');
@@ -1044,11 +1163,20 @@ const filteredJsList = computed(() =>
     return (
       js.name?.toLowerCase()?.includes(val) ||
       js.desc?.toLowerCase()?.includes(val) ||
-      js.author?.toLowerCase()?.includes(val)
+      js.author?.toLowerCase()?.includes(val) ||
+      js.packageID?.toLowerCase()?.includes(val)
     );
   }),
 );
 const jsConfig = ref<{ [key: string]: JsPluginConfig }>({});
+const jsConfigGroupActive = ref<{ [pluginName: string]: string }>({});
+const configGroupsByPlugin = computed<Record<string, JsConfigGroup[]>>(() => {
+  const next: Record<string, JsConfigGroup[]> = {};
+  for (const config of Object.values(jsConfig.value)) {
+    next[config.pluginName] = buildConfigGroups(config);
+  }
+  return next;
+});
 const uploadFileList = ref<any[]>([]);
 
 // const jsVisitDir = async () => {
@@ -1066,8 +1194,36 @@ const refreshList = async () => {
   jsList.value = lst;
 };
 
+const initConfigGroupActive = () => {
+  const next: { [pluginName: string]: string } = {};
+  for (const config of Object.values(jsConfig.value)) {
+    if (!hasSecondLevelGroup(config)) {
+      continue;
+    }
+    const groups = getConfigGroups(config);
+    if (groups.length === 0) {
+      continue;
+    }
+    const old = jsConfigGroupActive.value[config.pluginName];
+    const exists = groups.some(group => group.key === old);
+    next[config.pluginName] = exists ? old : groups[0].key;
+  }
+  jsConfigGroupActive.value = next;
+};
+
 const refreshConfig = async () => {
   jsConfig.value = await getJsConfigs();
+  initConfigGroupActive();
+};
+
+const refreshJsData = async () => {
+  await refreshList();
+  try {
+    await refreshConfig();
+  } catch (err) {
+    console.error('refresh js config failed:', err);
+    ElMessage.warning('插件配置刷新失败，请手动刷新界面');
+  }
 };
 
 const jsReload = async () => {
@@ -1076,7 +1232,7 @@ const jsReload = async () => {
     ElMessage.success('展示模式无法重载脚本');
   } else {
     ElMessage.success('已重载');
-    await refreshList();
+    await refreshJsData();
     needReload.value = false;
   }
   jsEnable.value = await jsStatus();
@@ -1095,7 +1251,11 @@ const jsShutdown = async () => {
 };
 
 const beforeUpload = async (file: UploadRawFile) => {
-  // UploadRawFile
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  if (ext !== 'js' && ext !== 'ts') {
+    ElMessage.error('仅支持上传 .js 或 .ts 格式的插件文件');
+    return false;
+  }
   const fd = new FormData();
   fd.append('file', file);
   await uploadJs(file);

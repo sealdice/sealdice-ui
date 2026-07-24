@@ -20,6 +20,13 @@ export function postGoCqHttpRelogin(id: string) {
   });
 }
 
+export function getLagrangeSignInfo() {
+  return request<{ result: true; data: SignInfo[] } | { result: false; err: string }>(
+    'get',
+    'get_lgr_signinfo',
+  );
+}
+
 export function postAddGocq(
   account: string,
   password: string,
@@ -136,15 +143,26 @@ export function postAddSlack(botToken: string, appToken: string) {
 }
 
 export function postAddOfficialQQ(
-  appID: number,
+  appID: string | number,
   appSecret: string,
   token: string,
   onlyQQGuild: boolean,
+  useWebhook: boolean,
+  webhookPath: string,
+  webhookPort: number,
 ) {
   return request<DiceConnection>(
     'post',
     'addOfficialQQ',
-    { appID, appSecret, token, onlyQQGuild },
+    {
+      appID: String(appID),
+      appSecret,
+      token,
+      onlyQQGuild,
+      useWebhook,
+      webhookPath,
+      webhookPort,
+    },
     'json',
     {
       timeout: 65000,
@@ -170,19 +188,30 @@ export function postAddSatori(platform: string, host: string, port: string, toke
 
 export function postAddLagrange(
   account: string,
-  signServerUrl: string,
+  signServerName: string,
   signServerVersion: string,
-  isGocq: boolean,
 ) {
   return request<DiceConnection>(
     'post',
     'addLagrange',
-    { account, signServerUrl, signServerVersion, isGocq },
+    { account, signServerName, signServerVersion },
     'json',
     {
       timeout: 65000,
     },
   );
+}
+
+export function postAddMilky(token: string, wsGateway: string, restGateway: string) {
+  return request<DiceConnection>('post', 'addMilky', { token, wsGateway, restGateway }, 'json', {
+    timeout: 65000,
+  });
+}
+
+export function postAddMilkyInternal(uin: number, clientMode: string) {
+  return request<DiceConnection>('post', 'addMilkyInternal', { uin, clientMode }, 'json', {
+    timeout: 65000,
+  });
 }
 
 export function postConnectionDel(id: string) {
@@ -231,18 +260,6 @@ export function postConnectSetData(
   });
 }
 
-export function postSetSignServer(
-  id: string,
-  signServerUrl: string | 'sealdice' | 'lagrange',
-  w: boolean,
-  signServerVersion: string,
-) {
-  return request<
-    | { result: false; err: string }
-    | { result: true; signServerUrl: string; signServerVersion: string }
-  >('post', 'set_sign_server', { id, signServerUrl, w, signServerVersion });
-}
-
 export interface DiceConnection {
   id: string;
   state: number;
@@ -255,7 +272,7 @@ export interface DiceConnection {
   groupNum: number;
   cmdExecutedNum: number;
   cmdExecutedLastTime: number;
-  onlineTotalTime: number;
+  isPublic: boolean;
 
   adapter: AdapterQQ;
 }
@@ -280,16 +297,24 @@ interface AdapterQQ {
   redVersion: string;
   host: string;
   port: number;
-  appID: number;
+  appID: string | number;
   isReverse: boolean;
   reverseAddr: string;
   builtinMode: 'gocq' | 'lagrange' | 'lagrange-gocq';
+  built_in_mode: string; // Milky
+  signServerVer: string;
+  signServerName: string;
+  useWebhook?: boolean;
+  webhookPath?: string;
+  webhookPort?: number;
 }
 enum goCqHttpStateCode {
   Init = 0,
   InLogin = 1,
   InLoginQrCode = 2,
   InLoginBar = 3,
+  MilkyLoginConnected = 4,
+  MilkyLoginFailed = 5,
   InLoginVerifyCode = 6,
   InLoginDeviceLock = 7,
   LoginSuccessed = 10,
@@ -370,3 +395,19 @@ type ServerConfig = {
   key: string;
   authorization: string;
 };
+interface SignServer {
+  name: string;
+  url: string;
+  latency: number;
+  selected: boolean;
+  ignored: boolean;
+  note: string;
+}
+export interface SignInfo {
+  version: string;
+  appinfo: [];
+  servers: SignServer[];
+  selected: boolean;
+  ignored: boolean;
+  note: string;
+}

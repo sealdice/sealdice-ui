@@ -99,11 +99,71 @@
           :size="50"
           :src="urlBase + '/sd-api/utils/ga/bugtower100'" />Bugtower100</el-link
       >
-      <el-link :underline="false" href="https://github.com/-" target="_blank"
+      <el-link :underline="false" href="https://github.com/charyflys" target="_blank"
         ><el-avatar
           shape="circle"
           :size="50"
-          :src="urlBase + '/sd-api/utils/ga/-'" />大概不全，下版本纠正……</el-link
+          :src="urlBase + '/sd-api/utils/ga/charyflys'" />希望潇洒的风：Ceeling (UI)</el-link
+      >
+      <el-link :underline="false" href="https://github.com/Szzrain" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/Szzrain'" />Szzrain</el-link
+      >
+      <el-link :underline="false" href="https://github.com/asterson" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/asterson'" />冬子(UI)</el-link
+      >
+      <el-link :underline="false" href="https://github.com/GUERdugujian" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/GUERdugujian'" />咕之勇者独孤剑(dnd5文档)</el-link
+      >
+      <el-link :underline="false" href="https://github.com/oissevalt" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/oissevalt'" />檀轶步棋</el-link
+      >
+      <el-link :underline="false" href="https://github.com/kenichiLyon" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          src="https://d1.sealdice.com/images/kenichiLyon.jpg" />山本健一</el-link
+      >
+      <el-link :underline="false" href="https://github.com/error2913" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/error2913'" />error2913</el-link
+      >
+      <el-link :underline="false" href="https://github.com/baiyu-yu" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/baiyu-yu'" />白鱼</el-link
+      >
+      <el-link :underline="false" href="https://github.com/FairyOwO" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/FairyOwO'" />FairyOwO</el-link
+      >
+      <el-link :underline="false" href="https://github.com/conglinyizhi" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/conglinyizhi'" />丛林意志(UI)</el-link
+      >
+      <el-link :underline="false" href="https://github.com/yichere" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/yichere'" />炽热</el-link
       >
     </div>
     <div style="margin-top: 2rem" class="subtitle">V1.5.0 特别致谢</div>
@@ -114,6 +174,38 @@
           shape="circle"
           :size="50"
           :src="urlBase + '/sd-api/utils/ga/LoranaAurelia'" />雪桃 - 提供新的魔法阵代理</el-link
+      >
+      <el-link
+        :underline="false"
+        href="https://dice.weizaima.com/public-dice"
+        target="_blank"
+        style="color: var(--el-link-text-color); transition: color 3s"
+        onmouseover="this.style.color = 'red'"
+        onmouseout="this.style.color = 'var(--el-link-text-color)'"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          src="https://d1.sealdice.com/images/bird.jpg" />[骰]诺扣提 - 公骰 (协助测试)</el-link
+      >
+
+      <el-link :underline="false" href="https://github.com/kenichiLyon" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          src="https://d1.sealdice.com/images/kenichiLyon.jpg" />山本健一 - 协助测试</el-link
+      >
+
+      <el-link :underline="false" href="https://github.com/baiyu-yu" target="_blank"
+        ><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/baiyu-yu'" />白鱼 -
+        协助测试</el-link
+      >
+
+      <el-link :underline="false" href="#/about" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          src="https://firehomework.top/img/6819CBB71F64D7BBFC90DCF4432B76BC.jpg" />[骰]Gaza(3658887052)
+        - 协助测试</el-link
       >
     </div>
 
@@ -428,25 +520,108 @@
     <div>格莱德 - 在4月7日的可靠性测试中，参与构造了让旧版海豹进程崩溃的指令</div>
     <div>我来逛街 - 提出很多建议；帮助改进了DND5E同义词列表，增加许多常用说法</div>
 
-    <div style="margin-top: 2rem;" class="subtitle">手册编写</div>
+    <div style="margin-top: 2rem" class="subtitle">手册编写</div>
     <div class="developers">
-      <el-link :underline="false" href="https://github.com/JustAnotherID" target="_blank"><el-avatar shape="circle" :size="50" style="border: 1px solid #aaa;" :src="urlBase + '/sd-api/utils/ga/JustAnotherID'"/>只是另一个ID</el-link>
-      <el-link :underline="false" href="https://github.com/Xiangze-Li" target="_blank"><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/Xiangze-Li'"/>JohNSoN</el-link>
-      <el-link :underline="false" href="https://github.com/MX-fox" target="_blank"><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/MX-fox'"/>暮星</el-link>
-      <el-link :underline="false" href="https://github.com/Szzrain" target="_blank"><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/Szzrain?v=1'"/>Szzrain</el-link>
-      <el-link :underline="false" href="https://github.com/fy0" target="_blank"><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/fy0'"/>木落</el-link>
-      <el-link :underline="false" href="https://github.com/kenichiLyon" target="_blank"><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/kenichiLyon'"/>山本健一</el-link>
-      <el-link :underline="false" href="https://github.com/MintCider" target="_blank"><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/MintCider'"/>逐风</el-link>
-      <el-link :underline="false" href="https://github.com/f44r" target="_blank"><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/f44r'"/>脑</el-link>
-      <el-link :underline="false" href="https://github.com/bugtower100" target="_blank"><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/bugtower100'"/>Bugtower</el-link>
-      <el-link :underline="false" href="https://github.com/Mitxoleta" target="_blank"><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/Mitxoleta'"/>Monad</el-link>
-      <el-link :underline="false" href="https://github.com/yichirehuijian" target="_blank"><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/yichirehuijian'"/>以炽热挥剑</el-link>
-      <el-link :underline="false" href="https://github.com/oissevalt" target="_blank"><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/oissevalt'"/>檀轶步棋</el-link>
-      <el-link :underline="false" href="https://github.com/lxy071130" target="_blank"><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/lxy071130'"/>流溪</el-link>
-      <el-link :underline="false" href="https://github.com/PaienNate" target="_blank"><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/PaienNate'"/>PaienNate</el-link>
-      <el-link :underline="false" href="https://github.com/nodisease" target="_blank"><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/nodisease'"/>病</el-link>
-      <el-link :underline="false" href="https://github.com/Stanlty998" target="_blank"><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/Stanlty998'"/>綮小灰</el-link>
-      <el-link :underline="false" href="https://github.com/-" target="_blank"><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/-'"/>大概不全，下版本纠正……</el-link>
+      <el-link :underline="false" href="https://github.com/JustAnotherID" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          style="border: 1px solid #aaa"
+          :src="urlBase + '/sd-api/utils/ga/JustAnotherID'" />只是另一个ID</el-link
+      >
+      <el-link :underline="false" href="https://github.com/Xiangze-Li" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/Xiangze-Li'" />JohNSoN</el-link
+      >
+      <el-link :underline="false" href="https://github.com/MX-fox" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/MX-fox'" />暮星</el-link
+      >
+      <el-link :underline="false" href="https://github.com/Szzrain" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/Szzrain?v=1'" />Szzrain</el-link
+      >
+      <el-link :underline="false" href="https://github.com/fy0" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/fy0'" />木落</el-link
+      >
+      <el-link :underline="false" href="https://github.com/kenichiLyon" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          src="https://d1.sealdice.com/images/kenichiLyon.jpg" />山本健一</el-link
+      >
+      <el-link :underline="false" href="https://github.com/MintCider" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/MintCider'" />逐风</el-link
+      >
+      <el-link :underline="false" href="https://github.com/f44r" target="_blank"
+        ><el-avatar shape="circle" :size="50" :src="urlBase + '/sd-api/utils/ga/f44r'" />脑</el-link
+      >
+      <el-link :underline="false" href="https://github.com/bugtower100" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/bugtower100'" />Bugtower</el-link
+      >
+      <el-link :underline="false" href="https://github.com/Mitxoleta" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/Mitxoleta'" />Monad</el-link
+      >
+      <el-link :underline="false" href="https://github.com/yichirehuijian" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/yichirehuijian'" />以炽热挥剑</el-link
+      >
+      <el-link :underline="false" href="https://github.com/oissevalt" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/oissevalt'" />檀轶步棋</el-link
+      >
+      <el-link :underline="false" href="https://github.com/lxy071130" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/lxy071130'" />流溪</el-link
+      >
+      <el-link :underline="false" href="https://github.com/PaienNate" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/PaienNate'" />PaienNate</el-link
+      >
+      <el-link :underline="false" href="https://github.com/nodisease" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/nodisease'" />病</el-link
+      >
+      <el-link :underline="false" href="https://github.com/Stanlty998" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/Stanlty998'" />綮小灰</el-link
+      >
+      <el-link :underline="false" href="https://github.com/-" target="_blank"
+        ><el-avatar
+          shape="circle"
+          :size="50"
+          :src="urlBase + '/sd-api/utils/ga/-'" />大概不全，下版本纠正……</el-link
+      >
     </div>
 
     <div style="margin-top: 2rem" class="subtitle">参考</div>

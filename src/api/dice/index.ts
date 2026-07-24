@@ -30,12 +30,28 @@ export function postMailTest() {
   >('post', 'config/mail_test');
 }
 
-export function postExec(message: string, messageType: 'private' | 'group') {
-  return request('post', 'exec', { message, messageType });
+export function getExecSplitOptions() {
+  return request<ExecSplitOptions>('get', 'exec/split_options');
+}
+
+export function postExec(
+  message: string,
+  messageType: 'private' | 'group',
+  messageSplitLen?: number,
+) {
+  const payload: {
+    message: string;
+    messageType: 'private' | 'group';
+    messageSplitLen?: number;
+  } = { message, messageType };
+  if (messageSplitLen !== undefined) {
+    payload.messageSplitLen = messageSplitLen;
+  }
+  return request('post', 'exec', payload);
 }
 
 export function postUploadToUpgrade(files: Blob) {
-  return request('post', 'upload_to_upgrade', { files }, 'formdata');
+  return request('post', 'upload_to_upgrade', { files }, 'formdata', { timeout: 60000 });
 }
 
 export function getRecentMessage() {
@@ -66,13 +82,16 @@ export type DiceConfig = {
   QQChannelLogMessage: boolean; // QQ频道是否记录消息
   refuseGroupInvite: boolean; // 是否拒绝群组邀请
   quitInactiveThreshold: number; // 退出不活跃状态的阈值
+  quitInactiveNoticeSummaryMode: boolean; // 自动退群通知摘要模式
   quitInactiveBatchSize: number; // 每次退出不活跃的批量大小
   quitInactiveBatchWait: number; // 批量退出时的等待时间
   defaultCocRuleIndex: string; // 默认的COC规则索引
   maxExecuteTime: string; // 最大执行时间
   maxCocCardGen: string; // 最大COC卡片生成数量
+  cocCardMergeForward: boolean; // COC制卡是否使用合并转发
   extDefaultSettings: ExtensionSettings[]; // 扩展插件的默认设置
   botExtFreeSwitch: boolean; // 机器人扩展是否自由开关
+  botExitWithoutAt: boolean; // 是否在未被@时退出
   trustOnlyMode: boolean; // 是否启用信任模式
   aliveNoticeEnable: boolean; // 是否启用存活通知
   aliveNoticeValue: string; // 存活通知的值
@@ -83,6 +102,8 @@ export type DiceConfig = {
   textCmdTrustOnly: boolean; // 仅信任的文本命令
   ignoreUnaddressedBotCmd: boolean; // 忽略未定向给机器人的命令
   QQEnablePoke: boolean; // 是否启用QQ戳一戳功能
+  officialQQFileSendBase64: boolean; // 是否以 Base64 发送文件
+  officialQQUseMarkdown: boolean; // 是否使用 Markdown
   playerNameWrapEnable: boolean; // 是否启用玩家名包裹
   mailEnable: boolean; // 是否启用邮件功能
   mailFrom: string; // 邮件发件人
@@ -100,6 +121,19 @@ type ExtensionSettings = {
   autoActive: boolean; // 是否自动激活
   disabledCommand: { [key: string]: boolean }; // 禁用的命令
   loaded: boolean; // 是否加载
+};
+
+export type ExecSplitOptionKey = 'short' | 'qq' | 'unlimited';
+
+export type ExecSplitOption = {
+  key: ExecSplitOptionKey;
+  label: string;
+  messageSplitLen: number;
+};
+
+export type ExecSplitOptions = {
+  defaultKey: ExecSplitOptionKey;
+  options: ExecSplitOption[];
 };
 
 type RecentMsg = {
