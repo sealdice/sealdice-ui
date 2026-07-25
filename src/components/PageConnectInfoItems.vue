@@ -39,7 +39,8 @@
         <div
           v-if="
             (i.adapter?.loginState === goCqHttpStateCode.InLoginQrCode ||
-              (i.protocolType === 'official' && i.adapter?.qrLoginState === 1)) &&
+              (i.protocolType === 'official' &&
+                i.adapter?.qrLoginState === OfficialQQLoginState.QRWaitingForScan)) &&
             store.curDice.qrcodes[i.id]
           "
           style="position: absolute; width: 17rem; height: 14rem; background: #fff; z-index: 1">
@@ -1897,7 +1898,8 @@
             v-else-if="
               index === 2 &&
               (curConn.adapter?.loginState === goCqHttpStateCode.InLoginQrCode ||
-                (curConn.protocolType === 'official' && curConn.adapter?.qrLoginState === 1))
+                (curConn.protocolType === 'official' &&
+                  curConn.adapter?.qrLoginState === OfficialQQLoginState.QRWaitingForScan))
             ">
             <div>登录需要扫码验证，请使用登录此账号的手机 QQ 扫描二维码以继续登录：</div>
             <img
@@ -2119,6 +2121,7 @@ import { computed, reactive } from 'vue';
 import {
   useStore,
   goCqHttpStateCode,
+  OfficialQQLoginState,
   ImConnectionTypeGocqLegacy,
   ImConnectionTypeDiscord,
   ImConnectionTypeKook,
@@ -2717,7 +2720,6 @@ const form = reactive({
 
   appID: '' as string | number,
   appSecret: '',
-  onlyQQGuild: false,
   officialQQLoginMode: 'manual' as 'manual' | 'qrcode',
 
   useWebhook: false,
@@ -2812,7 +2814,7 @@ onBeforeMount(async () => {
         store.curDice.qrcodes[i.id] = (await postConnectionQrcode(i.id)).img ?? '';
       } else if (
         i.protocolType === 'official' &&
-        i.adapter?.qrLoginState === 1 // OfficialQQLoginStateQRWaitingForScan
+        i.adapter?.qrLoginState === OfficialQQLoginState.QRWaitingForScan
       ) {
         store.curDice.qrcodes[i.id] = (await postConnectionQrcode(i.id)).img ?? '';
       }

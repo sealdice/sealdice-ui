@@ -32,6 +32,14 @@ import { getSalt, signin } from '~/api/signin';
 import type { addImConnectionForm } from '~/components/PageConnectInfoItems.vue';
 import type { AdvancedConfig } from '~/type.d.ts';
 import { toNumber } from 'lodash-es';
+export enum OfficialQQLoginState {
+  Init = 0,
+  QRWaitingForScan = 1,
+  QRScanned = 2,
+  Connecting = 3,
+  Failed = 4,
+}
+
 export enum goCqHttpStateCode {
   Init = 0,
   InLogin = 1,
@@ -98,7 +106,7 @@ export interface AdapterQQ {
   useWebhook?: boolean;
   webhookPath?: string;
   webhookPort?: number;
-  qrLoginState?: number; // OfficialQQ 扫码登录状态
+  qrLoginState?: OfficialQQLoginState;
 }
 
 interface TalkLogItem {

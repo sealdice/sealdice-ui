@@ -217,7 +217,8 @@ export function postConnectionDel(id: string) {
 }
 
 export function postConnectionQrcode(id: string) {
-  // gocq/walle-q/milky/official 均返回 { img: base64DataUrl }
+  // 二维码就绪时返回 { img: base64DataUrl }，其他状态下不包含 img 字段
+  // 支持 gocq / walle-q / milky / official 协议
   return request<{ img?: string }>('post', 'qrcode', { id });
 }
 
@@ -306,7 +307,14 @@ interface AdapterQQ {
   useWebhook?: boolean;
   webhookPath?: string;
   webhookPort?: number;
-  qrLoginState?: number; // OfficialQQ 扫码登录状态
+  qrLoginState?: OfficialQQLoginState;
+}
+enum OfficialQQLoginState {
+  Init = 0,
+  QRWaitingForScan = 1,
+  QRScanned = 2,
+  Connecting = 3,
+  Failed = 4,
 }
 enum goCqHttpStateCode {
   Init = 0,
