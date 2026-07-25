@@ -98,6 +98,7 @@ export interface AdapterQQ {
   useWebhook?: boolean;
   webhookPath?: string;
   webhookPort?: number;
+  qrLoginState?: number; // OfficialQQ 扫码登录状态
 }
 
 interface TalkLogItem {
@@ -321,7 +322,6 @@ export const useStore = defineStore('main', {
         signServerName,
         signServerVersion,
         reverseAddr,
-        onlyQQGuild,
         platform,
         wsGateway,
         restGateway,
@@ -387,8 +387,7 @@ export const useStore = defineStore('main', {
           info = await postAddOfficialQQ(
             appID,
             appSecret,
-            token,
-            onlyQQGuild,
+            false, // onlyQQGuild: 默认全局使用
             useWebhook,
             webhookPath,
             webhookPort,

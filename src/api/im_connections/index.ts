@@ -145,7 +145,6 @@ export function postAddSlack(botToken: string, appToken: string) {
 export function postAddOfficialQQ(
   appID: string | number,
   appSecret: string,
-  token: string,
   onlyQQGuild: boolean,
   useWebhook: boolean,
   webhookPath: string,
@@ -157,7 +156,6 @@ export function postAddOfficialQQ(
     {
       appID: String(appID),
       appSecret,
-      token,
       onlyQQGuild,
       useWebhook,
       webhookPath,
@@ -219,7 +217,8 @@ export function postConnectionDel(id: string) {
 }
 
 export function postConnectionQrcode(id: string) {
-  return request<{ img: string }>('post', 'qrcode', { id });
+  // gocq/walle-q/milky/official 均返回 { img: base64DataUrl }
+  return request<{ img?: string }>('post', 'qrcode', { id });
 }
 
 export function postSmsCodeSet(id: string, code: string) {
@@ -307,6 +306,7 @@ interface AdapterQQ {
   useWebhook?: boolean;
   webhookPath?: string;
   webhookPort?: number;
+  qrLoginState?: number; // OfficialQQ 扫码登录状态
 }
 enum goCqHttpStateCode {
   Init = 0,
