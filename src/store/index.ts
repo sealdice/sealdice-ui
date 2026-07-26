@@ -32,6 +32,14 @@ import { getSalt, signin } from '~/api/signin';
 import type { addImConnectionForm } from '~/components/PageConnectInfoItems.vue';
 import type { AdvancedConfig } from '~/type.d.ts';
 import { toNumber } from 'lodash-es';
+export enum OfficialQQLoginState {
+  Init = 0,
+  QRWaitingForScan = 1,
+  QRScanned = 2,
+  Connecting = 3,
+  Failed = 4,
+}
+
 export enum goCqHttpStateCode {
   Init = 0,
   InLogin = 1,
@@ -98,6 +106,7 @@ export interface AdapterQQ {
   useWebhook?: boolean;
   webhookPath?: string;
   webhookPort?: number;
+  qrLoginState?: OfficialQQLoginState;
 }
 
 interface TalkLogItem {
@@ -321,7 +330,6 @@ export const useStore = defineStore('main', {
         signServerName,
         signServerVersion,
         reverseAddr,
-        onlyQQGuild,
         platform,
         wsGateway,
         restGateway,
@@ -387,8 +395,7 @@ export const useStore = defineStore('main', {
           info = await postAddOfficialQQ(
             appID,
             appSecret,
-            token,
-            onlyQQGuild,
+            false, // onlyQQGuild: 默认全局使用
             useWebhook,
             webhookPath,
             webhookPort,

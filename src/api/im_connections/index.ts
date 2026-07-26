@@ -145,7 +145,6 @@ export function postAddSlack(botToken: string, appToken: string) {
 export function postAddOfficialQQ(
   appID: string | number,
   appSecret: string,
-  token: string,
   onlyQQGuild: boolean,
   useWebhook: boolean,
   webhookPath: string,
@@ -157,7 +156,6 @@ export function postAddOfficialQQ(
     {
       appID: String(appID),
       appSecret,
-      token,
       onlyQQGuild,
       useWebhook,
       webhookPath,
@@ -219,7 +217,9 @@ export function postConnectionDel(id: string) {
 }
 
 export function postConnectionQrcode(id: string) {
-  return request<{ img: string }>('post', 'qrcode', { id });
+  // 二维码就绪时返回 { img: base64DataUrl }，其他状态下不包含 img 字段
+  // 支持 gocq / walle-q / milky / official 协议
+  return request<{ img?: string }>('post', 'qrcode', { id });
 }
 
 export function postSmsCodeSet(id: string, code: string) {
@@ -307,6 +307,14 @@ interface AdapterQQ {
   useWebhook?: boolean;
   webhookPath?: string;
   webhookPort?: number;
+  qrLoginState?: OfficialQQLoginState;
+}
+enum OfficialQQLoginState {
+  Init = 0,
+  QRWaitingForScan = 1,
+  QRScanned = 2,
+  Connecting = 3,
+  Failed = 4,
 }
 enum goCqHttpStateCode {
   Init = 0,
