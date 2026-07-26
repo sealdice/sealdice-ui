@@ -661,6 +661,10 @@ import { urlBase } from '~/backend';
 
 const store = useStore();
 
+const wesleyYoungNames = ['Wesley-Young', '白圣女', '盐巴猫'] as const;
+const wesleyYoungName =
+  wesleyYoungNames[Math.floor(Math.random() * wesleyYoungNames.length)] ?? wesleyYoungNames[0];
+
 const v16Contributors = [
   { github: 'Szzrain', name: 'Szzrain' },
   { github: 'fy0', name: '木落' },
@@ -673,7 +677,7 @@ const v16Contributors = [
   { github: 'oissevalt', name: '檀轶步棋' },
   { github: 'BQxiaojiao', name: 'BQxiaojiao' },
   { github: 'kainordherd', name: 'Kai' },
-  { github: 'Wesley-Young', name: 'Wesley-Young' },
+  { github: 'Wesley-Young', name: wesleyYoungName },
   { github: 'Dontplay0112', name: 'Dontplay (UI)' },
   { github: 'ShiaNyaa', name: '希亚 (UI)' },
 ] as const;
