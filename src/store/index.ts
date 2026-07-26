@@ -26,26 +26,16 @@ import {
   postAddSlack,
   postAddTelegram,
   type AddOfficialQQResult,
+  type DiceConnection,
 } from '~/api/im_connections';
 import { getBaseInfo, getHello, getLogFetchAndClear, getPreInfo } from '~/api/others';
 import { getSalt, signin } from '~/api/signin';
-
 import type { addImConnectionForm } from '~/components/PageConnectInfoItems.vue';
 import type { AdvancedConfig } from '~/type.d.ts';
 import { toNumber } from 'lodash-es';
-export enum goCqHttpStateCode {
-  Init = 0,
-  InLogin = 1,
-  InLoginQrCode = 2,
-  InLoginBar = 3,
-  MilkyLoginConnected = 4,
-  MilkyLoginFailed = 5,
-  InLoginVerifyCode = 6,
-  InLoginDeviceLock = 7,
-  LoginSuccessed = 10,
-  LoginFailed = 11,
-  Closed = 20,
-}
+
+export { OfficialQQLoginState, goCqHttpStateCode } from '~/api/im_connections';
+export type { AdapterQQ, DiceConnection } from '~/api/im_connections';
 
 export const ImConnectionTypeGocqLegacy = 0;
 export const ImConnectionTypeDiscord = 1;
@@ -69,60 +59,11 @@ export const ImConnectionTypeMilkyInternal = 18;
 export const ImConnectionTypeMilkyInternalLagrange = 19;
 export const ImConnectionTypeMilkyInternalYogurt = 20;
 
-export interface AdapterQQ {
-  DiceServing: boolean;
-  connectUrl: string;
-  curLoginFailedReason: string;
-  curLoginIndex: number;
-  loginState: goCqHttpStateCode;
-  inPackGoCqHttpLastRestricted: number;
-  inPackGoCqHttpProtocol: number;
-  inPackGoCqHttpAppVersion: string;
-  implementation: string;
-  useInPackGoCqhttp: boolean;
-  goCqHttpLoginVerifyCode: string;
-  goCqHttpLoginDeviceLockUrl: string;
-  ignoreFriendRequest: boolean;
-  goCqHttpSmsNumberTip: string;
-  useSignServer: boolean;
-  signServerConfig: any;
-  redVersion: string;
-  host: string;
-  port: number;
-  appID: string | number;
-  isReverse: boolean;
-  reverseAddr: string;
-  builtinMode: 'gocq' | 'lagrange' | 'lagrange-gocq';
-  built_in_mode: string; // Milky 的字段，跟 ob 不太一样
-  signServerVer: string;
-  signServerName: string;
-  useWebhook?: boolean;
-  webhookPath?: string;
-  webhookPort?: number;
-}
-
 interface TalkLogItem {
   name?: string;
   content: string;
   isSeal?: boolean;
   mode: 'private' | 'group';
-}
-
-export interface DiceConnection {
-  id: string;
-  state: number;
-  platform: string;
-  workDir: string;
-  enable: boolean;
-  protocolType: string;
-  nickname: string;
-  userId: string | number;
-  groupNum: number;
-  cmdExecutedNum: number;
-  cmdExecutedLastTime: number;
-  isPublic: boolean;
-
-  adapter: AdapterQQ;
 }
 
 export const urlPrefix = 'sd-api';
@@ -325,7 +266,6 @@ export const useStore = defineStore('main', {
         signServerName,
         signServerVersion,
         reverseAddr,
-        onlyQQGuild,
         platform,
         wsGateway,
         restGateway,
@@ -392,7 +332,6 @@ export const useStore = defineStore('main', {
             appID,
             appSecret,
             officialQQTestOnly,
-            onlyQQGuild,
             useWebhook,
             webhookPath,
             webhookPort,

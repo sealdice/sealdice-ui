@@ -176,7 +176,6 @@ export function postAddOfficialQQ(
   appID: string | number,
   appSecret: string,
   testOnly: boolean,
-  onlyQQGuild: boolean,
   useWebhook: boolean,
   webhookPath: string,
   webhookPort: number,
@@ -188,7 +187,6 @@ export function postAddOfficialQQ(
       appID: String(appID),
       appSecret,
       testOnly,
-      onlyQQGuild,
       useWebhook,
       webhookPath: useWebhook ? webhookPath : '',
       webhookPort: useWebhook ? webhookPort : 0,
@@ -249,7 +247,9 @@ export function postConnectionDel(id: string) {
 }
 
 export function postConnectionQrcode(id: string) {
-  return request<{ img: string }>('post', 'qrcode', { id });
+  // 二维码就绪时返回 { img: base64DataUrl }，其他状态下不包含 img 字段
+  // 支持 gocq / walle-q / milky / official 协议
+  return request<{ img?: string }>('post', 'qrcode', { id });
 }
 
 export function postSmsCodeSet(id: string, code: string) {
@@ -307,7 +307,7 @@ export interface DiceConnection {
   adapter: AdapterQQ;
 }
 
-interface AdapterQQ {
+export interface AdapterQQ {
   DiceServing: boolean;
   connectUrl: string;
   curLoginFailedReason: string;
@@ -337,8 +337,16 @@ interface AdapterQQ {
   useWebhook?: boolean;
   webhookPath?: string;
   webhookPort?: number;
+  qrLoginState?: OfficialQQLoginState;
 }
-enum goCqHttpStateCode {
+export enum OfficialQQLoginState {
+  Init = 0,
+  QRWaitingForScan = 1,
+  QRScanned = 2,
+  Connecting = 3,
+  Failed = 4,
+}
+export enum goCqHttpStateCode {
   Init = 0,
   InLogin = 1,
   InLoginQrCode = 2,
@@ -384,7 +392,6 @@ enum goCqHttpStateCode {
 
 //     appID: undefined,
 //     appSecret: string,
-//     onlyQQGuild: true,
 
 //     useSignServer: false,
 //     signServerConfig: {

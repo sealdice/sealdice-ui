@@ -38,7 +38,10 @@
 
         <div
           v-if="
-            i.adapter?.loginState === goCqHttpStateCode.InLoginQrCode && store.curDice.qrcodes[i.id]
+            (i.adapter?.loginState === goCqHttpStateCode.InLoginQrCode ||
+              (i.protocolType === 'official' &&
+                i.adapter?.qrLoginState === OfficialQQLoginState.QRWaitingForScan)) &&
+            store.curDice.qrcodes[i.id]
           "
           style="position: absolute; width: 17rem; height: 14rem; background: #fff; z-index: 1">
           <div style="margin-left: 2rem">需要同账号的手机 QQ 扫码登录 (限 2 分钟内完成):</div>
@@ -1492,6 +1495,18 @@
 
         <el-form-item
           v-if="form.accountType === ImConnectionTypeOfficialQQ"
+          label="登录方式"
+          :label-width="formLabelWidth"
+          required>
+          <el-radio-group v-model="form.officialQQLoginMode">
+            <el-radio-button value="manual">手动填写</el-radio-button>
+            <el-radio-button value="qrcode">扫码登录</el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item
+          v-if="
+            form.accountType === ImConnectionTypeOfficialQQ && form.officialQQLoginMode === 'manual'
+          "
           label="机器人ID"
           :label-width="formLabelWidth"
           required>
@@ -1502,7 +1517,9 @@
             type="number"></el-input>
         </el-form-item>
         <el-form-item
-          v-if="form.accountType === ImConnectionTypeOfficialQQ"
+          v-if="
+            form.accountType === ImConnectionTypeOfficialQQ && form.officialQQLoginMode === 'manual'
+          "
           label="机器人密钥"
           :label-width="formLabelWidth"
           required>
@@ -1515,20 +1532,10 @@
         </el-form-item>
         <el-form-item
           v-if="form.accountType === ImConnectionTypeOfficialQQ"
-          label="只在频道使用"
+          label="Webhook"
           :label-width="formLabelWidth"
           required>
-          <el-switch v-model="form.onlyQQGuild" />
-        </el-form-item>
-        <el-form-item
-          v-if="form.accountType === ImConnectionTypeOfficialQQ"
-          label="连接方式"
-          :label-width="formLabelWidth"
-          required>
-          <el-radio-group v-model="form.useWebhook">
-            <el-radio-button :value="false">WebSocket</el-radio-button>
-            <el-radio-button :value="true">Webhook</el-radio-button>
-          </el-radio-group>
+          <el-switch v-model="form.useWebhook" />
         </el-form-item>
         <el-form-item
           v-if="form.accountType === ImConnectionTypeOfficialQQ && form.useWebhook"
@@ -1558,14 +1565,25 @@
           v-if="form.accountType === ImConnectionTypeOfficialQQ"
           :label-width="formLabelWidth">
           <small>
-            <div>提示：进入腾讯开放平台创建一个机器人</div>
-            <div>
-              <a href="https://q.qq.com/#/app/bot" target="_blank" rel="noopener noreferrer"
-                >https://q.qq.com/#/app/bot</a
-              >
-            </div>
-            <div>创建之后进入机器人管理后台，切换到「开发 - 开发设置」页</div>
-            <div>把机器人的相关信息复制并粘贴进来</div>
+            <template v-if="form.officialQQLoginMode === 'manual'">
+              <div>
+                进入腾讯
+                <a href="https://q.qq.com/#/app/bot" target="_blank" rel="noopener noreferrer"
+                  >开放平台</a
+                >
+                创建一个机器人之后进入机器人管理后台，切换到「开发 - 开发设置」页
+              </div>
+              <div>把机器人的 AppID 与 AppSecret 复制并粘贴进来</div>
+            </template>
+            <template v-else>
+              <div>
+                进入腾讯
+                <a href="https://q.qq.com/#/app/bot" target="_blank" rel="noopener noreferrer"
+                  >开放平台</a
+                >
+                创建一个机器人，点击"下一步"生成二维码，使用手机 QQ 扫描完成绑定
+              </div>
+            </template>
           </small>
         </el-form-item>
 
@@ -1903,7 +1921,10 @@
           </div>
           <div
             v-else-if="
-              index === 2 && curConn.adapter?.loginState === goCqHttpStateCode.InLoginQrCode
+              index === 2 &&
+              (curConn.adapter?.loginState === goCqHttpStateCode.InLoginQrCode ||
+                (curConn.protocolType === 'official' &&
+                  curConn.adapter?.qrLoginState === OfficialQQLoginState.QRWaitingForScan))
             ">
             <div>登录需要扫码验证，请使用登录此账号的手机 QQ 扫描二维码以继续登录：</div>
             <img
@@ -2029,7 +2050,11 @@
       <span class="dialog-footer">
         <template v-if="form.step === 1">
           <el-button :disabled="officialQQSubmitting" @click="cancelConnectionForm">取消</el-button>
-          <template v-if="form.accountType === ImConnectionTypeOfficialQQ">
+          <template
+            v-if="
+              form.accountType === ImConnectionTypeOfficialQQ &&
+              form.officialQQLoginMode === 'manual'
+            ">
             <el-button
               :loading="officialQQTesting"
               :disabled="
@@ -2081,7 +2106,10 @@
                   form.signServerName === '')) ||
               (form.accountType === ImConnectionTypeMilkySeparate &&
                 (form.wsGateway === '' || form.restGateway === '')) ||
-              (isInternalMilkyAccountType(form.accountType) && form.account === '')
+              (isInternalMilkyAccountType(form.accountType) && form.account === '') ||
+              (form.accountType === ImConnectionTypeOfficialQQ &&
+                form.useWebhook &&
+                (form.webhookPath === '' || form.webhookPort === undefined))
             "
             @click="goStepTwo">
             下一步
@@ -2141,6 +2169,7 @@ import { computed, reactive } from 'vue';
 import {
   useStore,
   goCqHttpStateCode,
+  OfficialQQLoginState,
   ImConnectionTypeGocqLegacy,
   ImConnectionTypeDiscord,
   ImConnectionTypeKook,
@@ -2531,6 +2560,12 @@ const goStepTwo = async () => {
   setRecentLogin();
   duringRelogin.value = false;
 
+  // 扫码登录时清空手动填写的 AppID/AppSecret，确保后端进入扫码分支
+  if (form.accountType === ImConnectionTypeOfficialQQ && form.officialQQLoginMode === 'qrcode') {
+    form.appID = '';
+    form.appSecret = '';
+  }
+
   store
     .addImConnection(form as any)
     .then(conn => {
@@ -2549,7 +2584,8 @@ const goStepTwo = async () => {
       ElMessageBox.alert('似乎已经添加了这个账号！', '添加失败');
       formClose();
     });
-  if (form.accountType > 0) {
+  // 官方 QQ 扫码登录需要停留在登录进度界面，不直接关闭对话框
+  if (form.accountType > 0 && form.accountType !== ImConnectionTypeOfficialQQ) {
     dialogFormVisible.value = false;
     form.account = '';
     form.step = 1;
@@ -2569,6 +2605,7 @@ const formClose = async () => {
   dialogFormVisible.value = false;
   form.step = 1;
   form.isEnd = false;
+  form.officialQQLoginMode = 'manual';
 };
 
 const setEnable = async (i: DiceConnection, val: boolean) => {
@@ -2867,7 +2904,7 @@ const form = reactive({
 
   appID: '' as string | number,
   appSecret: '',
-  onlyQQGuild: false,
+  officialQQLoginMode: 'manual' as 'manual' | 'qrcode',
 
   useWebhook: false,
   webhookPath: '/webhook',
@@ -2977,19 +3014,33 @@ onBeforeMount(async () => {
 
       // 获取二维码
       if (i.adapter?.loginState === goCqHttpStateCode.InLoginQrCode) {
-        store.curDice.qrcodes[i.id] = (await postConnectionQrcode(i.id)).img;
+        store.curDice.qrcodes[i.id] = (await postConnectionQrcode(i.id)).img ?? '';
+      } else if (
+        i.protocolType === 'official' &&
+        i.adapter?.qrLoginState === OfficialQQLoginState.QRWaitingForScan
+      ) {
+        store.curDice.qrcodes[i.id] = (await postConnectionQrcode(i.id)).img ?? '';
       }
 
       if (i.id === curConnId.value) {
         curConn.value = i;
 
         // 登录失败
-        if (i.state !== 1 && i.adapter?.loginState === goCqHttpStateCode.LoginFailed) {
+        if (
+          i.state !== 1 &&
+          (i.adapter?.loginState === goCqHttpStateCode.LoginFailed ||
+            (i.protocolType === 'official' &&
+              i.adapter?.qrLoginState === OfficialQQLoginState.Failed))
+        ) {
           form.isEnd = true;
         }
 
         // 登录成功
-        if (i.state === 1 && i.adapter?.loginState === goCqHttpStateCode.LoginSuccessed) {
+        if (
+          i.state === 1 &&
+          (i.adapter?.loginState === goCqHttpStateCode.LoginSuccessed ||
+            (i.protocolType === 'official' && !i.adapter?.qrLoginState))
+        ) {
           activities.value.push(fullActivities[3]);
           await sleep(1000);
           form.step = 3;
