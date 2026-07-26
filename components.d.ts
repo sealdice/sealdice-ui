@@ -112,6 +112,7 @@ declare module 'vue' {
     PageMiscDicePublic: typeof import('./src/components/misc/PageMiscDicePublic.vue')['default']
     PageMiscGroup: typeof import('./src/components/misc/PageMiscGroup.vue')['default']
     PageMiscSettings: typeof import('./src/components/misc/PageMiscSettings.vue')['default']
+    PagePackage: typeof import('./src/components/mod/PagePackage.vue')['default']
     PageProfile: typeof import('./src/components/tool/PageProfile.vue')['default']
     PageResource: typeof import('./src/components/tool/PageResource.vue')['default']
     PageStory: typeof import('./src/components/mod/PageStory.vue')['default']
