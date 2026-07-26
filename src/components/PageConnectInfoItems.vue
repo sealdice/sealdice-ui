@@ -738,6 +738,28 @@
         能力的限制，一些功能暂时无法实现。</el-alert
       >
       <el-alert
+        v-if="form.accountType === ImConnectionTypeOfficialQQ && officialQQError"
+        type="error"
+        :title="officialQQErrorTitle"
+        :description="officialQQError"
+        :closable="false"
+        show-icon
+        style="margin-bottom: 1.5rem" />
+      <el-alert
+        v-if="form.accountType === ImConnectionTypeOfficialQQ && officialQQTestSucceeded"
+        :type="officialQQExists ? 'error' : 'success'"
+        :title="
+          officialQQExists ? '连接测试成功，但该机器人账号已存在' : 'QQ 官方机器人连接测试成功'
+        "
+        :description="
+          officialQQExists
+            ? `连接测试已通过，账号 QQ：${officialQQUin}`
+            : `连接测试已通过，账号 QQ：${officialQQUin}，可以进入下一步`
+        "
+        :closable="false"
+        show-icon
+        style="margin-bottom: 1.5rem" />
+      <el-alert
         v-if="form.accountType === 14"
         type="warning"
         :closable="false"
@@ -762,7 +784,9 @@
         当前为容器模式，内置客户端被禁用。
       </el-alert>
 
-      <el-form :model="form">
+      <el-form
+        :model="form"
+        :disabled="form.accountType === ImConnectionTypeOfficialQQ && officialQQSubmitting">
         <el-form-item label="账号类型" :label-width="formLabelWidth">
           <el-select v-model="selectedAccountPlatform" filterable :clearable="false">
             <el-option label="QQ" value="QQ"></el-option>
@@ -1479,24 +1503,14 @@
         </el-form-item>
         <el-form-item
           v-if="form.accountType === ImConnectionTypeOfficialQQ"
-          label="机器人令牌"
-          :label-width="formLabelWidth"
-          required>
-          <el-input
-            v-model="form.token"
-            placeholder="填写在开放平台获取的Token"
-            type="text"
-            autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item
-          v-if="form.accountType === ImConnectionTypeOfficialQQ"
           label="机器人密钥"
           :label-width="formLabelWidth"
           required>
           <el-input
             v-model="form.appSecret"
             placeholder="填写在开放平台获取的AppSecret"
-            type="text"
+            type="password"
+            show-password
             autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item
@@ -2014,8 +2028,31 @@
     <template #footer>
       <span class="dialog-footer">
         <template v-if="form.step === 1">
-          <el-button @click="dialogFormVisible = false">取消</el-button>
+          <el-button :disabled="officialQQSubmitting" @click="cancelConnectionForm">取消</el-button>
+          <template v-if="form.accountType === ImConnectionTypeOfficialQQ">
+            <el-button
+              :loading="officialQQTesting"
+              :disabled="
+                officialQQSubmitting ||
+                officialQQTestSucceeded ||
+                form.appID === undefined ||
+                form.appID === '' ||
+                form.appSecret === '' ||
+                (form.useWebhook && (form.webhookPath === '' || form.webhookPort === undefined))
+              "
+              @click="submitOfficialQQTest">
+              测试连接
+            </el-button>
+            <el-button
+              type="primary"
+              :loading="officialQQAdding"
+              :disabled="officialQQSubmitting || !officialQQTestSucceeded || officialQQExists"
+              @click="submitOfficialQQ">
+              添加
+            </el-button>
+          </template>
           <el-button
+            v-else
             type="primary"
             :disabled="
               form.accountType === ImConnectionTypeGocqLegacy ||
@@ -2044,17 +2081,11 @@
                   form.signServerName === '')) ||
               (form.accountType === ImConnectionTypeMilkySeparate &&
                 (form.wsGateway === '' || form.restGateway === '')) ||
-              (isInternalMilkyAccountType(form.accountType) && form.account === '') ||
-              (form.accountType === ImConnectionTypeOfficialQQ &&
-                (form.appID === undefined ||
-                  form.appID === '' ||
-                  form.token === '' ||
-                  form.appSecret === '' ||
-                  (form.useWebhook && (form.webhookPath === '' || form.webhookPort === undefined))))
+              (isInternalMilkyAccountType(form.accountType) && form.account === '')
             "
             @click="goStepTwo">
-            下一步</el-button
-          >
+            下一步
+          </el-button>
         </template>
         <template v-if="form.isEnd">
           <el-button @click="formClose">确定</el-button>
@@ -2230,6 +2261,15 @@ const duringRelogin = ref(false);
 const dialogFormVisible = ref(false);
 const dialogSetDataFormVisible = ref(false);
 const dialogSlideVisible = ref(false);
+const officialQQTesting = ref(false);
+const officialQQAdding = ref(false);
+const officialQQSubmitting = computed(() => officialQQTesting.value || officialQQAdding.value);
+const officialQQTestSucceeded = ref(false);
+const officialQQUin = ref('');
+const officialQQNickname = ref('');
+const officialQQExists = ref(false);
+const officialQQErrorTitle = ref('');
+const officialQQError = ref('');
 const formLabelWidth = '120px';
 const isTestMode = ref(false);
 
@@ -2369,6 +2409,122 @@ const openSocks = async () => {
   }
 };
 
+const resetOfficialQQTestResult = () => {
+  officialQQTestSucceeded.value = false;
+  officialQQUin.value = '';
+  officialQQNickname.value = '';
+  officialQQExists.value = false;
+};
+
+const getRequestErrorMessage = (error: unknown, fallback = '连接测试请求失败') => {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: unknown } }).response;
+    const data = response?.data;
+    if (typeof data === 'string' && data) return data;
+    if (typeof data === 'object' && data !== null && 'err' in data) {
+      const err = (data as { err?: unknown }).err;
+      if (typeof err === 'string' && err) return err;
+    }
+  }
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === 'string' && error) return error;
+  return fallback;
+};
+
+const submitOfficialQQTest = async () => {
+  if (officialQQSubmitting.value) return;
+
+  officialQQTesting.value = true;
+  resetOfficialQQTestResult();
+  officialQQErrorTitle.value = '';
+  officialQQError.value = '';
+
+  try {
+    const result = await store.addImConnection(form, true);
+    if (!('result' in result)) {
+      throw new Error('连接测试返回了无效结果');
+    }
+    if (!result.result) {
+      officialQQErrorTitle.value = 'QQ 官方机器人连接测试失败';
+      officialQQError.value = result.err;
+      form.step = 1;
+      return;
+    }
+    if (result.testOnly !== true) {
+      throw new Error('连接测试返回了非测试结果');
+    }
+
+    officialQQUin.value = result.uin;
+    officialQQNickname.value = result.nickname;
+    officialQQExists.value = result.exists;
+    officialQQTestSucceeded.value = true;
+  } catch (error) {
+    officialQQErrorTitle.value = 'QQ 官方机器人连接测试请求失败';
+    officialQQError.value = getRequestErrorMessage(error);
+    form.step = 1;
+  } finally {
+    officialQQTesting.value = false;
+  }
+};
+
+const submitOfficialQQ = async () => {
+  if (officialQQSubmitting.value || !officialQQTestSucceeded.value || officialQQExists.value) {
+    return;
+  }
+
+  officialQQAdding.value = true;
+  officialQQErrorTitle.value = '';
+  officialQQError.value = '';
+
+  try {
+    const result = await store.addImConnection(form, false);
+    if (!('result' in result)) {
+      throw new Error('添加请求返回了无效结果');
+    }
+    if (!result.result) {
+      officialQQErrorTitle.value = 'QQ 官方机器人添加失败';
+      officialQQError.value = result.err;
+      return;
+    }
+    if (result.testOnly === true) {
+      throw new Error('添加请求返回了测试结果');
+    }
+
+    const { id, userId, uin } = result;
+    curConnId.value = id;
+    try {
+      const connections = await store.getImConnections();
+      const addedConnection =
+        connections.find(connection => connection.id === id) ??
+        connections.find(connection => String(connection.userId) === userId) ??
+        connections.find(connection => String(connection.userId) === `OpenQQ:${uin}`);
+      if (addedConnection) curConn.value = addedConnection;
+    } catch (error) {
+      ElMessage.error(`账号已添加，但连接列表刷新失败：${getRequestErrorMessage(error)}`);
+    }
+
+    ElMessage.success('QQ 官方机器人添加成功');
+    dialogFormVisible.value = false;
+    form.account = '';
+    form.step = 1;
+    resetOfficialQQTestResult();
+  } catch (error) {
+    officialQQErrorTitle.value = 'QQ 官方机器人添加请求失败';
+    officialQQError.value = getRequestErrorMessage(error, '添加请求失败');
+  } finally {
+    officialQQAdding.value = false;
+  }
+};
+
+const cancelConnectionForm = () => {
+  if (officialQQSubmitting.value) return;
+
+  dialogFormVisible.value = false;
+  resetOfficialQQTestResult();
+  officialQQErrorTitle.value = '';
+  officialQQError.value = '';
+};
+
 const goStepTwo = async () => {
   form.step = 2;
   curConnId.value = '';
@@ -2378,7 +2534,11 @@ const goStepTwo = async () => {
   store
     .addImConnection(form as any)
     .then(conn => {
-      if ((conn as any).testMode) {
+      if ('result' in conn) {
+        if (!conn.result) throw new Error(conn.err);
+        if (conn.testOnly === true) throw new Error('添加请求返回了测试结果');
+        curConnId.value = conn.id;
+      } else if ((conn as any).testMode) {
         isTestMode.value = true;
       } else {
         curConnId.value = conn.id;
@@ -2742,6 +2902,22 @@ const form = reactive({
   builtInMode: '',
 });
 
+watch(
+  () => [
+    form.appID,
+    form.appSecret,
+    form.useWebhook,
+    form.useWebhook ? form.webhookPath : '',
+    form.useWebhook ? form.webhookPort : 0,
+  ],
+  () => {
+    resetOfficialQQTestResult();
+    officialQQErrorTitle.value = '';
+    officialQQError.value = '';
+  },
+  { flush: 'sync' },
+);
+
 const selectedAccountPlatform = computed<number | 'QQ'>({
   get: () => (isQQAccountType(form.accountType) ? 'QQ' : form.accountType),
   set: accountType => {
@@ -2758,6 +2934,9 @@ export type addImConnectionForm = typeof form;
 
 // 添加一个新账号
 const addOne = () => {
+  resetOfficialQQTestResult();
+  officialQQErrorTitle.value = '';
+  officialQQError.value = '';
   dialogFormVisible.value = true;
   form.protocol = 6;
   form.implementation = 'gocq';

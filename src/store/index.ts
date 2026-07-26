@@ -25,6 +25,7 @@ import {
   postaddSealChat,
   postAddSlack,
   postAddTelegram,
+  type AddOfficialQQResult,
 } from '~/api/im_connections';
 import { getBaseInfo, getHello, getLogFetchAndClear, getPreInfo } from '~/api/others';
 import { getSalt, signin } from '~/api/signin';
@@ -115,7 +116,7 @@ export interface DiceConnection {
   enable: boolean;
   protocolType: string;
   nickname: string;
-  userId: number;
+  userId: string | number;
   groupNum: number;
   cmdExecutedNum: number;
   cmdExecutedLastTime: number;
@@ -291,7 +292,10 @@ export const useStore = defineStore('main', {
       return info;
     },
 
-    async addImConnection(form: addImConnectionForm) {
+    async addImConnection(
+      form: addImConnectionForm,
+      officialQQTestOnly = false,
+    ): Promise<DiceConnection | AddOfficialQQResult> {
       const {
         accountType,
         nickname,
@@ -331,7 +335,7 @@ export const useStore = defineStore('main', {
         webhookPort,
       } = form;
 
-      let info = null;
+      let info: DiceConnection | AddOfficialQQResult | null = null;
       switch (accountType) {
         //QQ
         case ImConnectionTypeGocqLegacy:
@@ -387,7 +391,7 @@ export const useStore = defineStore('main', {
           info = await postAddOfficialQQ(
             appID,
             appSecret,
-            token,
+            officialQQTestOnly,
             onlyQQGuild,
             useWebhook,
             webhookPath,
@@ -435,7 +439,10 @@ export const useStore = defineStore('main', {
           }
           break;
       }
-      return info as DiceConnection;
+      if (info === null) {
+        throw new Error('添加账号接口未返回结果');
+      }
+      return info;
     },
     async logFetchAndClear() {
       const info = await getLogFetchAndClear();
