@@ -3026,13 +3026,18 @@ onBeforeMount(async () => {
         curConn.value = i;
 
         // 登录失败
+        const officialQQQrLoginFailed =
+          i.protocolType === 'official' && i.adapter?.qrLoginState === OfficialQQLoginState.Failed;
         if (
           i.state !== 1 &&
-          (i.adapter?.loginState === goCqHttpStateCode.LoginFailed ||
-            (i.protocolType === 'official' &&
-              i.adapter?.qrLoginState === OfficialQQLoginState.Failed))
+          (i.adapter?.loginState === goCqHttpStateCode.LoginFailed || officialQQQrLoginFailed)
         ) {
-          form.isEnd = true;
+          if (officialQQQrLoginFailed) {
+            formClose();
+            ElMessage.error('QQ 官方机器人扫码登录失败，请检查账号是否已重复添加');
+          } else {
+            form.isEnd = true;
+          }
         }
 
         // 登录成功
