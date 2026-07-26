@@ -672,6 +672,8 @@ const v16Contributors = [
   { github: 'kagangtuya-star', name: 'SilverDragon' },
   { github: 'oissevalt', name: '檀轶步棋' },
   { github: 'BQxiaojiao', name: 'BQxiaojiao' },
+  { github: 'kainordherd', name: 'Kai' },
+  { github: 'Wesley-Young', name: 'Wesley-Young' },
   { github: 'Dontplay0112', name: 'Dontplay (UI)' },
   { github: 'ShiaNyaa', name: '希亚 (UI)' },
 ] as const;
