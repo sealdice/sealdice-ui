@@ -142,24 +142,54 @@ export function postAddSlack(botToken: string, appToken: string) {
   });
 }
 
+interface TestOfficialQQSuccessBase {
+  result: true;
+  testOnly: true;
+  userId: string;
+  uin: string;
+  nickname: string;
+}
+
+export type TestOfficialQQSuccessResult = TestOfficialQQSuccessBase &
+  ({ exists: false; id?: never } | { exists: true; id: string });
+
+export interface AddOfficialQQSuccessResult {
+  result: true;
+  testOnly?: false;
+  id: string;
+  userId: string;
+  uin: string;
+  nickname?: string;
+}
+
+export interface AddOfficialQQErrorResult {
+  result: false;
+  err: string;
+}
+
+export type AddOfficialQQResult =
+  | TestOfficialQQSuccessResult
+  | AddOfficialQQSuccessResult
+  | AddOfficialQQErrorResult;
+
 export function postAddOfficialQQ(
   appID: string | number,
   appSecret: string,
-  onlyQQGuild: boolean,
+  testOnly: boolean,
   useWebhook: boolean,
   webhookPath: string,
   webhookPort: number,
 ) {
-  return request<DiceConnection>(
+  return request<AddOfficialQQResult>(
     'post',
     'addOfficialQQ',
     {
       appID: String(appID),
       appSecret,
-      onlyQQGuild,
+      testOnly,
       useWebhook,
-      webhookPath,
-      webhookPort,
+      webhookPath: useWebhook ? webhookPath : '',
+      webhookPort: useWebhook ? webhookPort : 0,
     },
     'json',
     {
@@ -268,7 +298,7 @@ export interface DiceConnection {
   enable: boolean;
   protocolType: string;
   nickname: string;
-  userId: number;
+  userId: string | number;
   groupNum: number;
   cmdExecutedNum: number;
   cmdExecutedLastTime: number;
@@ -277,7 +307,7 @@ export interface DiceConnection {
   adapter: AdapterQQ;
 }
 
-interface AdapterQQ {
+export interface AdapterQQ {
   DiceServing: boolean;
   connectUrl: string;
   curLoginFailedReason: string;
@@ -309,14 +339,14 @@ interface AdapterQQ {
   webhookPort?: number;
   qrLoginState?: OfficialQQLoginState;
 }
-enum OfficialQQLoginState {
+export enum OfficialQQLoginState {
   Init = 0,
   QRWaitingForScan = 1,
   QRScanned = 2,
   Connecting = 3,
   Failed = 4,
 }
-enum goCqHttpStateCode {
+export enum goCqHttpStateCode {
   Init = 0,
   InLogin = 1,
   InLoginQrCode = 2,
@@ -362,7 +392,6 @@ enum goCqHttpStateCode {
 
 //     appID: undefined,
 //     appSecret: string,
-//     onlyQQGuild: true,
 
 //     useSignServer: false,
 //     signServerConfig: {

@@ -25,34 +25,17 @@ import {
   postaddSealChat,
   postAddSlack,
   postAddTelegram,
+  type AddOfficialQQResult,
+  type DiceConnection,
 } from '~/api/im_connections';
 import { getBaseInfo, getHello, getLogFetchAndClear, getPreInfo } from '~/api/others';
 import { getSalt, signin } from '~/api/signin';
-
 import type { addImConnectionForm } from '~/components/PageConnectInfoItems.vue';
 import type { AdvancedConfig } from '~/type.d.ts';
 import { toNumber } from 'lodash-es';
-export enum OfficialQQLoginState {
-  Init = 0,
-  QRWaitingForScan = 1,
-  QRScanned = 2,
-  Connecting = 3,
-  Failed = 4,
-}
 
-export enum goCqHttpStateCode {
-  Init = 0,
-  InLogin = 1,
-  InLoginQrCode = 2,
-  InLoginBar = 3,
-  MilkyLoginConnected = 4,
-  MilkyLoginFailed = 5,
-  InLoginVerifyCode = 6,
-  InLoginDeviceLock = 7,
-  LoginSuccessed = 10,
-  LoginFailed = 11,
-  Closed = 20,
-}
+export { OfficialQQLoginState, goCqHttpStateCode } from '~/api/im_connections';
+export type { AdapterQQ, DiceConnection } from '~/api/im_connections';
 
 export const ImConnectionTypeGocqLegacy = 0;
 export const ImConnectionTypeDiscord = 1;
@@ -76,61 +59,11 @@ export const ImConnectionTypeMilkyInternal = 18;
 export const ImConnectionTypeMilkyInternalLagrange = 19;
 export const ImConnectionTypeMilkyInternalYogurt = 20;
 
-export interface AdapterQQ {
-  DiceServing: boolean;
-  connectUrl: string;
-  curLoginFailedReason: string;
-  curLoginIndex: number;
-  loginState: goCqHttpStateCode;
-  inPackGoCqHttpLastRestricted: number;
-  inPackGoCqHttpProtocol: number;
-  inPackGoCqHttpAppVersion: string;
-  implementation: string;
-  useInPackGoCqhttp: boolean;
-  goCqHttpLoginVerifyCode: string;
-  goCqHttpLoginDeviceLockUrl: string;
-  ignoreFriendRequest: boolean;
-  goCqHttpSmsNumberTip: string;
-  useSignServer: boolean;
-  signServerConfig: any;
-  redVersion: string;
-  host: string;
-  port: number;
-  appID: string | number;
-  isReverse: boolean;
-  reverseAddr: string;
-  builtinMode: 'gocq' | 'lagrange' | 'lagrange-gocq';
-  built_in_mode: string; // Milky 的字段，跟 ob 不太一样
-  signServerVer: string;
-  signServerName: string;
-  useWebhook?: boolean;
-  webhookPath?: string;
-  webhookPort?: number;
-  qrLoginState?: OfficialQQLoginState;
-}
-
 interface TalkLogItem {
   name?: string;
   content: string;
   isSeal?: boolean;
   mode: 'private' | 'group';
-}
-
-export interface DiceConnection {
-  id: string;
-  state: number;
-  platform: string;
-  workDir: string;
-  enable: boolean;
-  protocolType: string;
-  nickname: string;
-  userId: number;
-  groupNum: number;
-  cmdExecutedNum: number;
-  cmdExecutedLastTime: number;
-  isPublic: boolean;
-
-  adapter: AdapterQQ;
 }
 
 export const urlPrefix = 'sd-api';
@@ -300,7 +233,10 @@ export const useStore = defineStore('main', {
       return info;
     },
 
-    async addImConnection(form: addImConnectionForm) {
+    async addImConnection(
+      form: addImConnectionForm,
+      officialQQTestOnly = false,
+    ): Promise<DiceConnection | AddOfficialQQResult> {
       const {
         accountType,
         nickname,
@@ -339,7 +275,7 @@ export const useStore = defineStore('main', {
         webhookPort,
       } = form;
 
-      let info = null;
+      let info: DiceConnection | AddOfficialQQResult | null = null;
       switch (accountType) {
         //QQ
         case ImConnectionTypeGocqLegacy:
@@ -395,7 +331,7 @@ export const useStore = defineStore('main', {
           info = await postAddOfficialQQ(
             appID,
             appSecret,
-            false, // onlyQQGuild: 默认全局使用
+            officialQQTestOnly,
             useWebhook,
             webhookPath,
             webhookPort,
@@ -442,7 +378,10 @@ export const useStore = defineStore('main', {
           }
           break;
       }
-      return info as DiceConnection;
+      if (info === null) {
+        throw new Error('添加账号接口未返回结果');
+      }
+      return info;
     },
     async logFetchAndClear() {
       const info = await getLogFetchAndClear();
