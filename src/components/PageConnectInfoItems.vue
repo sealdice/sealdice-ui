@@ -1,6 +1,6 @@
 <template>
   <!-- <div style="position: relative;"> -->
-  <Teleport v-if="!connectionsLoading" to="#root">
+  <Teleport v-if="!connectionsLoading && !connectionsLoadFailed" to="#root">
     <div style="position: absolute; right: 40px; bottom: 60px; z-index: 10">
       <!--    <el-button type="primary" class="btn-add" :icon="Plus" circle @click="addOne"></el-button>-->
       <el-button type="primary" class="btn-add" :icon="Plus" circle @click="addOne"></el-button>
@@ -9,6 +9,8 @@
   <!-- </div> -->
 
   <div v-if="connectionsLoading" v-loading="true" style="min-height: 4rem"></div>
+
+  <div v-else-if="connectionsLoadFailed">获取账号列表失败，请稍后重试</div>
 
   <div v-else-if="store.curDice.conns.length === 0">
     <span style="vertical-align: middle">似乎还没有账号，</span>
@@ -2253,6 +2255,7 @@ const activities = ref([] as typeof fullActivities);
 
 const store = useStore();
 const connectionsLoading = ref(true);
+const connectionsLoadFailed = ref(false);
 const curCaptchaIdSet = ref(''); // 当前设置了 ticket 的 id
 
 const isContainerMode = () => {
@@ -2989,10 +2992,21 @@ let pageUnmounted = false;
 let timerId: number | undefined;
 
 onBeforeMount(async () => {
-  await store.getImConnections();
+  try {
+    await store.getImConnections();
+  } catch {
+    if (!pageUnmounted) {
+      connectionsLoadFailed.value = true;
+      ElMessage.error('获取账号列表失败，请稍后重试');
+    }
+  } finally {
+    if (!pageUnmounted) {
+      connectionsLoading.value = false;
+    }
+  }
+
   if (pageUnmounted) return;
 
-  connectionsLoading.value = false;
   for (const i of store.curDice.conns || []) {
     delete store.curDice.qrcodes[i.id];
   }
@@ -3011,6 +3025,7 @@ onBeforeMount(async () => {
   timerId = setInterval(async () => {
     console.log('refresh');
     await store.getImConnections();
+    connectionsLoadFailed.value = false;
 
     for (const i of store.curDice.conns || []) {
       // 下一轮登录检查，移除二维码
