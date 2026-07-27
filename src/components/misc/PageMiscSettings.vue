@@ -98,31 +98,50 @@
           :key="index"
           v-for="(item, index) in noticeItems"
           style="width: 100%; margin-bottom: 0.5rem">
-          <div style="display: flex; align-items: center; gap: 0.5rem">
-            <el-checkbox v-model="item.enabled" :disabled="isMailNoticeItem(item.id)" />
+          <div class="notice-item-row">
             <el-input
               v-model="item.id"
+              class="notice-id-input"
               :autosize="true"
               :placeholder="noticeItemPlaceholder"
-              style="flex: 1"
               @change="onNoticeItemIdChanged(item)" />
+            <el-checkbox
+              v-model="item.enabled"
+              class="notice-enabled-checkbox"
+              :disabled="isMailNoticeItem(item.id)"
+              >启用</el-checkbox
+            >
             <el-select
               v-model="item.categories"
+              class="notice-category-select"
               multiple
               collapse-tags
               collapse-tags-tooltip
               :disabled="!item.enabled || isMailNoticeItem(item.id)"
-              placeholder="通知分类"
-              style="width: 18rem"
+              :placeholder="item.categoriesDirty ? '未选择分类' : '全部'"
+              popper-class="notice-category-popper"
               @change="markCategoriesDirty(item)">
               <el-option
                 v-for="option in noticeCategoryOptions"
                 :key="option.value"
                 :label="option.label"
                 :value="option.value">
-                <div style="display: flex; flex-direction: column; line-height: 1.2">
+                <div
+                  style="
+                    display: flex;
+                    width: 100%;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    text-align: left;
+                    line-height: 1.2;
+                  ">
                   <span>{{ option.label }}</span>
-                  <el-text type="info" size="small">{{ option.description }}</el-text>
+                  <el-text
+                    type="info"
+                    size="small"
+                    style="align-self: flex-start; text-align: left"
+                    >{{ option.description }}</el-text
+                  >
                 </div>
               </el-option>
             </el-select>
@@ -843,7 +862,7 @@ const beforeUpload = async (file: any) => {
 };
 
 watch(
-  () => config,
+  [config, noticeItems],
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   (newValue, oldValue) => {
     //直接监听
@@ -1000,5 +1019,36 @@ const mailTest = async () => {
 .top-item {
   flex: 1 0 50%;
   flex-grow: 0;
+}
+
+.notice-item-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.notice-id-input {
+  min-width: 12rem;
+  max-width: 24rem;
+  flex: 0 1 24rem;
+}
+
+.notice-enabled-checkbox {
+  flex: none;
+  margin-right: 0;
+}
+
+.notice-category-select {
+  width: 18rem;
+  flex: 0 0 18rem;
+}
+
+:global(.notice-category-popper .el-select-dropdown__item) {
+  height: auto;
+  min-height: 34px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  text-align: left;
 }
 </style>
