@@ -87,41 +87,59 @@
           <span>消息通知列表</span>
           <el-tooltip
             raw-content
-            content="会对以下消息进行通知:<br>加群邀请、好友邀请、进入群组、被踢出群、被禁言、自动激活、指令退群<br>单行格式: QQ:12345 QQ-Group:12345 Mail:abc@foo.bar<br>通知列表中的QQ号在发件时会自动转换成对应邮箱">
+            content="每项可独立启用与选择通知分类。<br>支持的前缀：QQ:、QQ-Group:、QQ-CH-Group:、Mail:、…<br>Mail: 邮箱类型不支持禁用或分类筛选。">
             <el-icon><question-filled /></el-icon>
           </el-tooltip>
         </div>
       </template>
 
-      <template v-if="config.noticeIds && config.noticeIds.length">
+      <template v-if="noticeItems.length">
         <div
           :key="index"
-          v-for="(k2, index) in config.noticeIds"
+          v-for="(item, index) in noticeItems"
           style="width: 100%; margin-bottom: 0.5rem">
-          <!-- 这里面是单条修改项 -->
-          <div style="display: flex">
-            <div>
-              <!-- :suffix-icon="Management" -->
-              <el-input v-model="config.noticeIds[index]" :autosize="true"></el-input>
-            </div>
-            <div style="display: flex; align-items: center; width: 1.3rem; margin-left: 1rem">
-              <el-tooltip
-                :content="index === 0 ? '点击添加项目' : '点击删除你不想要的项'"
-                placement="bottom-start">
-                <el-icon>
-                  <circle-plus-filled
-                    v-if="index == 0"
-                    @click="config.noticeIds = addItem(config.noticeIds)" />
-                  <circle-close v-else @click="removeItem(config.noticeIds, index)" />
-                </el-icon>
-              </el-tooltip>
-            </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem">
+            <el-checkbox v-model="item.enabled" :disabled="isMailNoticeItem(item.id)" />
+            <el-input
+              v-model="item.id"
+              :autosize="true"
+              :placeholder="noticeItemPlaceholder"
+              style="flex: 1"
+              @change="onNoticeItemIdChanged(item)" />
+            <el-select
+              v-model="item.categories"
+              multiple
+              collapse-tags
+              collapse-tags-tooltip
+              :disabled="!item.enabled || isMailNoticeItem(item.id)"
+              placeholder="通知分类"
+              style="width: 18rem"
+              @change="markCategoriesDirty(item)">
+              <el-option
+                v-for="option in noticeCategoryOptions"
+                :key="option.value"
+                :label="option.label"
+                :value="option.value">
+                <div style="display: flex; flex-direction: column; line-height: 1.2">
+                  <span>{{ option.label }}</span>
+                  <el-text type="info" size="small">{{ option.description }}</el-text>
+                </div>
+              </el-option>
+            </el-select>
+            <el-tooltip
+              :content="index === 0 ? '点击添加项目' : '点击删除你不想要的项'"
+              placement="bottom-start">
+              <el-icon>
+                <circle-plus-filled v-if="index == 0" @click="addNoticeItem" />
+                <circle-close v-else @click="removeNoticeItem(index)" />
+              </el-icon>
+            </el-tooltip>
           </div>
         </div>
       </template>
       <template v-else>
         <el-icon>
-          <circle-plus-filled @click="config.noticeIds = addItem(config.noticeIds)" />
+          <circle-plus-filled @click="addNoticeItem" />
         </el-icon>
       </template>
     </el-form-item>
@@ -745,6 +763,15 @@
 import { CirclePlusFilled, CircleClose, QuestionFilled, Upload } from '@element-plus/icons-vue';
 import { cloneDeep, toNumber } from 'lodash-es';
 import { postMailTest, postUploadToUpgrade } from '~/api/dice';
+import {
+  ALL_NOTICE_CATEGORIES,
+  NOTICE_CATEGORY_DESCRIPTIONS,
+  NOTICE_CATEGORY_LABELS,
+  fromNoticeItems,
+  isMailNoticeItem,
+  toNoticeItems,
+  type NoticeItem,
+} from '~/api/dice/noticeCodec';
 import { useStore } from '~/store';
 import { objDiff, passwordHash } from '~/utils';
 
@@ -756,6 +783,50 @@ const fileList = ref<any[]>([]);
 const isShowUnlockCode = ref(false);
 const modified = ref(false);
 const isUploadEnable = ref(false);
+
+const noticeItems = ref<NoticeItem[]>([]);
+
+const noticeItemPlaceholder = '例如 QQ:12345 / QQ-Group:12345 / Mail:foo@bar.com';
+
+const noticeCategoryOptions = ALL_NOTICE_CATEGORIES.map(value => ({
+  value,
+  label: NOTICE_CATEGORY_LABELS[value],
+  description: NOTICE_CATEGORY_DESCRIPTIONS[value],
+}));
+
+function syncNoticeItemsFromConfig() {
+  noticeItems.value = toNoticeItems(config.value.noticeIds);
+}
+
+function addNoticeItem() {
+  noticeItems.value.push({
+    id: '',
+    enabled: true,
+    categories: [],
+    categoriesDirty: false,
+  });
+}
+
+function removeNoticeItem(index: number) {
+  noticeItems.value.splice(index, 1);
+}
+
+function onNoticeItemIdChanged(item: NoticeItem) {
+  if (isMailNoticeItem(item.id)) {
+    item.enabled = true;
+    item.categories = [];
+    item.categoriesDirty = false;
+  }
+}
+
+function markCategoriesDirty(item: NoticeItem) {
+  if (isMailNoticeItem(item.id)) {
+    item.categories = [];
+    item.categoriesDirty = false;
+    return;
+  }
+  item.categoriesDirty = true;
+}
 
 const beforeUpload = async (file: any) => {
   // UploadRawFile
@@ -805,6 +876,7 @@ onBeforeMount(async () => {
     val.commandPrefix = [''];
   }
   config.value = val;
+  syncNoticeItemsFromConfig();
   nextTick(() => {
     modified.value = false;
   });
@@ -812,6 +884,7 @@ onBeforeMount(async () => {
 
 const submitGiveup = async () => {
   config.value = cloneDeep(store.curDice.config);
+  syncNoticeItemsFromConfig();
   modified.value = false;
   nextTick(() => {
     modified.value = false;
@@ -837,7 +910,14 @@ const submit = async () => {
   }
 
   if (mod.noticeIds) {
-    mod.noticeIds = cloneDeep(config.value.noticeIds);
+    mod.noticeIds = fromNoticeItems(noticeItems.value);
+  } else {
+    // 后端未在原 config 中出现该字段时，强制以 UI 状态同步。
+    const next = fromNoticeItems(noticeItems.value);
+    const prev = cloneDeep(store.curDice.config.noticeIds ?? []);
+    if (JSON.stringify(next) !== JSON.stringify(prev)) {
+      mod.noticeIds = next;
+    }
   }
 
   if (mod.extDefaultSettings) {
