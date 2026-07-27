@@ -1,6 +1,6 @@
 <template>
   <!-- <div style="position: relative;"> -->
-  <Teleport to="#root">
+  <Teleport v-if="!connectionsLoading" to="#root">
     <div style="position: absolute; right: 40px; bottom: 60px; z-index: 10">
       <!--    <el-button type="primary" class="btn-add" :icon="Plus" circle @click="addOne"></el-button>-->
       <el-button type="primary" class="btn-add" :icon="Plus" circle @click="addOne"></el-button>
@@ -8,14 +8,16 @@
   </Teleport>
   <!-- </div> -->
 
-  <div v-if="!store.curDice.conns || (store.curDice.conns && store.curDice.conns.length === 0)">
+  <div v-if="connectionsLoading" v-loading="true" style="min-height: 4rem"></div>
+
+  <div v-else-if="store.curDice.conns.length === 0">
     <span style="vertical-align: middle">似乎还没有账号，</span>
     <el-link style="font-size: 16px; font-weight: bolder" type="primary" @click="addOne"
       >点我添加一个</el-link
     >
   </div>
 
-  <div style="display: flex; flex-wrap: wrap">
+  <div v-else style="display: flex; flex-wrap: wrap">
     <div
       v-for="(i, index) in reactive(store.curDice.conns)"
       :key="index"
@@ -2250,6 +2252,7 @@ const fullActivities = [
 const activities = ref([] as typeof fullActivities);
 
 const store = useStore();
+const connectionsLoading = ref(true);
 const curCaptchaIdSet = ref(''); // 当前设置了 ticket 的 id
 
 const isContainerMode = () => {
@@ -2982,15 +2985,21 @@ const addOne = () => {
   getSignInfo();
 };
 
-let timerId: number;
+let pageUnmounted = false;
+let timerId: number | undefined;
 
 onBeforeMount(async () => {
   await store.getImConnections();
+  if (pageUnmounted) return;
+
+  connectionsLoading.value = false;
   for (const i of store.curDice.conns || []) {
     delete store.curDice.qrcodes[i.id];
   }
 
   const versionsRes = await getConnectQQVersion();
+  if (pageUnmounted) return;
+
   if (versionsRes.result) {
     supportedQQVersions.value = ['', ...versionsRes.versions];
   }
@@ -3059,7 +3068,8 @@ onBeforeMount(async () => {
 });
 
 onBeforeUnmount(() => {
-  clearInterval(timerId);
+  pageUnmounted = true;
+  if (timerId !== undefined) clearInterval(timerId);
 });
 
 const doRemove = async (i: DiceConnection) => {
