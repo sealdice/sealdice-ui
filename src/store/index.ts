@@ -443,11 +443,10 @@ export const useStore = defineStore('main', {
         this.canAccess = true;
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
-        this.canAccess = false;
-        // 试图做一次登录，以获取 token
+        // 无密码实例会通过默认登录刷新失效令牌；失败时 signIn 再切换到锁定状态。
         await this.signIn('defaultSignin');
       }
-      return this.token != '';
+      return this.canAccess;
     },
   },
 });
