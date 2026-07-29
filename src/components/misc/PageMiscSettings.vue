@@ -435,6 +435,19 @@
       </el-autocomplete>
     </el-form-item>
 
+    <el-form-item label="UI界面密码">
+      <template #label>
+        <div>
+          <span>UI 界面密码</span>
+          <el-tooltip content="公网用户一定要加，登录后会自动记住一段时间！">
+            <el-icon><question-filled /></el-icon>
+          </el-tooltip>
+        </div>
+      </template>
+
+      <el-input v-model="config.uiPassword" type="password" show-password style="width: auto" />
+    </el-form-item>
+
     <el-form-item label="托盘提示文本">
       <template #label>
         <div>
@@ -453,19 +466,6 @@
           @input="config.trayTooltip = limitTrayTooltip(config.trayTooltip)" />
         <el-text size="small" style="margin-left: 0.5rem"> {{ trayTooltipLength }}/10 </el-text>
       </div>
-    </el-form-item>
-
-    <el-form-item label="UI界面密码">
-      <template #label>
-        <div>
-          <span>UI 界面密码</span>
-          <el-tooltip content="公网用户一定要加，登录后会自动记住一段时间！">
-            <el-icon><question-filled /></el-icon>
-          </el-tooltip>
-        </div>
-      </template>
-
-      <el-input v-model="config.uiPassword" type="password" show-password style="width: auto" />
     </el-form-item>
 
     <h2>QQ 频道设置</h2>
