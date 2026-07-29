@@ -435,6 +435,26 @@
       </el-autocomplete>
     </el-form-item>
 
+    <el-form-item label="托盘提示文本">
+      <template #label>
+        <div>
+          <span>托盘提示文本</span>
+          <el-tooltip content="留空时使用“海豹TRPG骰点核心”，版本号和端口会自动追加">
+            <el-icon><question-filled /></el-icon>
+          </el-tooltip>
+        </div>
+      </template>
+      <div>
+        <el-input
+          v-model="config.trayTooltip"
+          clearable
+          placeholder="海豹TRPG骰点核心"
+          style="width: 14rem"
+          @input="config.trayTooltip = limitTrayTooltip(config.trayTooltip)" />
+        <el-text size="small" style="margin-left: 0.5rem"> {{ trayTooltipLength }}/10 </el-text>
+      </div>
+    </el-form-item>
+
     <el-form-item label="UI界面密码">
       <template #label>
         <div>
@@ -752,6 +772,12 @@ const store = useStore();
 
 const config = ref<any>({});
 const fileList = ref<any[]>([]);
+
+const limitTrayTooltip = (value: string | undefined) =>
+  Array.from(value ?? '')
+    .slice(0, 10)
+    .join('');
+const trayTooltipLength = computed(() => Array.from(config.value.trayTooltip ?? '').length);
 
 const isShowUnlockCode = ref(false);
 const modified = ref(false);
