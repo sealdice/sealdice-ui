@@ -452,7 +452,8 @@
       <template #label>
         <div>
           <span>托盘提示文本</span>
-          <el-tooltip content="留空时使用“海豹TRPG骰点核心”，版本号和端口会自动追加">
+          <el-tooltip
+            :content="`自定义前缀最长${trayTooltipMaxLength}个字符；留空时使用“海豹TRPG骰点核心”，版本号和端口会自动追加`">
             <el-icon><question-filled /></el-icon>
           </el-tooltip>
         </div>
@@ -462,9 +463,9 @@
           v-model="config.trayTooltip"
           clearable
           placeholder="海豹TRPG骰点核心"
-          style="width: 14rem"
-          @input="config.trayTooltip = limitTrayTooltip(config.trayTooltip)" />
-        <el-text size="small" style="margin-left: 0.5rem"> {{ trayTooltipLength }}/10 </el-text>
+          show-word-limit
+          :maxlength="trayTooltipMaxLength"
+          style="width: 14rem" />
       </div>
     </el-form-item>
 
@@ -773,11 +774,7 @@ const store = useStore();
 const config = ref<any>({});
 const fileList = ref<any[]>([]);
 
-const limitTrayTooltip = (value: string | undefined) =>
-  Array.from(value ?? '')
-    .slice(0, 10)
-    .join('');
-const trayTooltipLength = computed(() => Array.from(config.value.trayTooltip ?? '').length);
+const trayTooltipMaxLength = 10;
 
 const isShowUnlockCode = ref(false);
 const modified = ref(false);
