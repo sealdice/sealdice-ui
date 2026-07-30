@@ -1,11 +1,33 @@
 <template>
-  <div style="display: flex; justify-content: space-between; align-items: center">
+  <div class="backup-header">
     <h2>备份</h2>
-    <div>
+    <el-space wrap>
       <el-button type="success" :icon="DocumentChecked" @click="doSave">保存设置</el-button>
       <el-button type="primary" @click="showBackup = true">立即备份</el-button>
-    </div>
+      <el-upload
+        action=""
+        accept=".zip,application/zip"
+        :show-file-list="false"
+        :before-upload="beforeBackupUpload">
+        <el-button :icon="Upload" :loading="importing" :disabled="restoreInProgress">
+          导入备份
+        </el-button>
+      </el-upload>
+    </el-space>
   </div>
+  <el-alert
+    v-if="restoreStatus.state !== 'idle'"
+    :type="restoreStatusAlertType"
+    :closable="restoreStatus.state === 'succeeded'"
+    show-icon
+    style="margin-bottom: 1rem"
+    @close="dismissRestoreStatus">
+    <template #title>{{ restoreStatusTitle }}</template>
+    <div v-if="restoreStatus.message">{{ restoreStatus.message }}</div>
+    <div v-if="restoreStatus.safetyBackupName">
+      恢复前安全备份：{{ restoreStatus.safetyBackupName }}
+    </div>
+  </el-alert>
   <div>
     <el-form label-position="left">
       <h3>自动备份</h3>
@@ -104,7 +126,9 @@
     </el-form>
     <h4>如何恢复备份？</h4>
     <div>
-      将骰子彻底关闭，解压备份压缩包到骰子目录。若提示“是否覆盖？”选择“全部”即可(覆盖data目录)。
+      导入 ZIP
+      后，在备份列表中选择恢复。若在线恢复失败，可将骰子彻底关闭，手工解压备份到骰子目录并覆盖 data
+      目录。
     </div>
   </div>
 
@@ -120,10 +144,15 @@
       class="backup-line flex flex-wrap justify-between gap-2">
       <div class="flex flex-col">
         <el-text class="self-start" size="large">{{ i.name }}</el-text>
-        <el-text v-if="(i?.selection ?? 0) >= 0" class="self-start" size="small" type="info"
+        <el-text v-if="i.valid" class="self-start" size="small" type="info">
+          SeaDice {{ i.version }}（版本码 {{ i.versionCode }}）
+        </el-text>
+        <el-text v-if="i.valid" class="self-start" size="small" type="info"
           >此备份包含：{{ parseSelectionDesc(i.selection).join('、') }}</el-text
         >
-        <el-text v-else class="self-start" size="small" type="warning">此备份内容无法识别</el-text>
+        <el-text v-else class="self-start" size="small" type="warning">
+          无法恢复：{{ i.error || '备份内容无法识别' }}
+        </el-text>
       </div>
       <el-space size="small" wrap class="justify-end">
         <el-button
@@ -133,6 +162,17 @@
           :href="`${urlBase}/sd-api/backup/download?name=${encodeURIComponent(i.name)}&token=${encodeURIComponent(store.token)}`">
           下载 - {{ filesize(i.fileSize) }}
         </el-button>
+        <el-tooltip :content="i.restorable ? '恢复此备份' : i.error || '此备份不可恢复'">
+          <span>
+            <el-button
+              type="warning"
+              size="small"
+              :icon="RefreshLeft"
+              :disabled="!i.restorable || restoring"
+              plain
+              @click="openRestoreDialog(i)" />
+          </span>
+        </el-tooltip>
         <el-button
           type="danger"
           size="small"
@@ -210,29 +250,112 @@
       </el-space>
     </template>
   </el-dialog>
+
+  <el-dialog
+    v-model="showImportDecision"
+    title="导入备份"
+    width="min(32rem, 92vw)"
+    :close-on-click-modal="!importing"
+    :close-on-press-escape="!importing"
+    :show-close="!importing"
+    @closed="resetBackupImport">
+    <el-descriptions v-if="importCandidate" :column="1" border>
+      <el-descriptions-item label="文件名">{{ importCandidate.name }}</el-descriptions-item>
+      <el-descriptions-item label="大小">{{ filesize(importCandidate.size) }}</el-descriptions-item>
+    </el-descriptions>
+    <el-form label-position="top" style="margin-top: 1rem">
+      <el-form-item label="导入后操作">
+        <el-radio-group v-model="importMode">
+          <el-radio-button value="upload">仅导入</el-radio-button>
+          <el-radio-button value="restore">导入后恢复</el-radio-button>
+        </el-radio-group>
+      </el-form-item>
+    </el-form>
+    <el-alert
+      v-if="importMode === 'restore'"
+      type="warning"
+      :closable="false"
+      show-icon
+      title="ZIP 校验通过后还需要再次确认，确认后才会创建安全备份并覆盖数据。" />
+    <el-progress
+      v-if="importing"
+      :percentage="importProgress"
+      :indeterminate="importProgress === 0"
+      style="margin-top: 1rem" />
+    <template #footer>
+      <el-button :disabled="importing" @click="cancelBackupImport">取消</el-button>
+      <el-button type="primary" :loading="importing" @click="confirmBackupImport">
+        {{ importMode === 'restore' ? '导入并继续' : '仅导入' }}
+      </el-button>
+    </template>
+  </el-dialog>
+
+  <el-dialog v-model="showRestore" title="恢复备份" width="min(34rem, 92vw)">
+    <el-alert
+      type="warning"
+      :closable="false"
+      show-icon
+      title="恢复会短暂中断服务，并在同一进程中重新启动 SeaDice。" />
+    <el-descriptions v-if="restoreCandidate" :column="1" border style="margin-top: 1rem">
+      <el-descriptions-item label="备份文件">{{ restoreCandidate.name }}</el-descriptions-item>
+      <el-descriptions-item label="版本">
+        {{ restoreCandidate.version }}（{{ restoreCandidate.versionCode }}）
+      </el-descriptions-item>
+      <el-descriptions-item label="恢复范围">
+        {{ parseSelectionDesc(restoreCandidate.selection).join('、') }}
+      </el-descriptions-item>
+    </el-descriptions>
+    <p>系统会先创建当前数据的全量安全备份。恢复仅支持 SQLite，且会覆盖同名文件。</p>
+    <el-checkbox v-model="restoreConfirmed">我已了解恢复风险并确认继续</el-checkbox>
+    <template #footer>
+      <el-button @click="showRestore = false">取消</el-button>
+      <el-button
+        type="danger"
+        :loading="restoring"
+        :disabled="!restoreConfirmed"
+        @click="confirmRestore">
+        恢复并重新加载
+      </el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
-import type { CheckboxValueType } from 'element-plus';
+import type { CheckboxValueType, UploadRawFile } from 'element-plus';
 import { useStore } from '~/store';
 import { urlBase } from '~/backend';
 import { filesize } from 'filesize';
-import { Delete, QuestionFilled, DocumentChecked } from '@element-plus/icons-vue';
+import {
+  Delete,
+  QuestionFilled,
+  DocumentChecked,
+  RefreshLeft,
+  Upload,
+} from '@element-plus/icons-vue';
 import { sum } from 'lodash-es';
 import { dayjs } from 'element-plus';
 import {
+  clearRuntimeRestoreTracking,
+  getRuntimeRestoreTracking,
+  rememberRuntimeRestore,
+} from '~/utils/runtimeRestore';
+import {
   getBackupConfig,
   getBackupList,
+  getBackupRestoreStatus,
   postBackupBatchDel,
   postBackupDel,
   postDoBackup,
+  restoreBackup,
   setBackupConfig,
+  uploadBackup,
 } from '~/api/backup';
+import type { BackupInfo, BackupRestoreStatus } from '~/api/backup';
 
 const store = useStore();
 
 const data = ref<{
-  items: any[];
+  items: BackupInfo[];
 }>({
   items: [],
 });
@@ -240,6 +363,37 @@ const data = ref<{
 const cfg = ref<any>({});
 const now = ref(dayjs().format('YYMMDD_HHmmss'));
 const showBackup = ref<boolean>(false);
+const importing = ref(false);
+const importProgress = ref(0);
+const showImportDecision = ref(false);
+const importCandidate = ref<UploadRawFile>();
+const importMode = ref<'upload' | 'restore'>('upload');
+const restoring = ref(false);
+const showRestore = ref(false);
+const restoreConfirmed = ref(false);
+const restoreCandidate = ref<BackupInfo>();
+const restoreStatus = ref<BackupRestoreStatus>({ state: 'idle' });
+const trackedRestore = getRuntimeRestoreTracking();
+const restoreOperation = ref<{ operationId: string; statusToken: string } | undefined>(
+  trackedRestore
+    ? { operationId: trackedRestore.operationId, statusToken: trackedRestore.statusToken }
+    : undefined,
+);
+const observedActiveRestore = ref(false);
+const activeRestoreStates: BackupRestoreStatus['state'][] = [
+  'pending',
+  'quiescing',
+  'applying',
+  'starting',
+  'rolling_back',
+];
+const terminalRestoreStates: BackupRestoreStatus['state'][] = [
+  'succeeded',
+  'failed',
+  'rolled_back',
+  'degraded',
+];
+const restoreInProgress = computed(() => activeRestoreStates.includes(restoreStatus.value.state));
 const backupSelections = ref<string[]>([
   'base',
   'js',
@@ -341,6 +495,194 @@ watch(
 const refreshList = async () => {
   const lst = await getBackupList();
   data.value = lst;
+};
+
+const beforeBackupUpload = (file: UploadRawFile) => {
+  if (restoreInProgress.value) {
+    ElMessage.warning('恢复任务执行期间不能导入备份');
+    return false;
+  }
+  if (terminalRestoreStates.includes(restoreStatus.value.state)) dismissRestoreStatus();
+  if (!file.name.toLowerCase().endsWith('.zip')) {
+    ElMessage.error('请选择 ZIP 格式的 SeaDice 备份');
+    return false;
+  }
+  importCandidate.value = file;
+  importMode.value = 'upload';
+  importProgress.value = 0;
+  showImportDecision.value = true;
+  return false;
+};
+
+const resetBackupImport = () => {
+  if (importing.value) return;
+  importCandidate.value = undefined;
+  importMode.value = 'upload';
+  importProgress.value = 0;
+};
+
+const cancelBackupImport = () => {
+  if (importing.value) return;
+  showImportDecision.value = false;
+};
+
+const confirmBackupImport = async () => {
+  const file = importCandidate.value;
+  if (!file || importing.value) return;
+
+  const shouldRestore = importMode.value === 'restore';
+  importing.value = true;
+  importProgress.value = 0;
+  try {
+    const result = await uploadBackup(file, event => {
+      if (event.total) importProgress.value = Math.round((event.loaded / event.total) * 100);
+    });
+    if (!result.result) {
+      ElMessage.error(result.err || '导入备份失败');
+      return;
+    }
+    await refreshList();
+
+    showImportDecision.value = false;
+    if (!shouldRestore) {
+      ElMessage.success(
+        result.item?.reused
+          ? `相同备份已存在，已复用 ${result.item.name}`
+          : `备份已导入并保存为 ${result.item?.name || '新文件'}`,
+      );
+      return;
+    }
+    if (!result.item) {
+      ElMessage.error('备份已导入，但服务未返回备份信息，请从列表中发起恢复');
+      return;
+    }
+    if (!result.item.restorable) {
+      ElMessage.warning(result.item.error || '备份已导入，但该备份不能用于恢复');
+      return;
+    }
+    ElMessage.success(
+      result.item.reused
+        ? `相同备份已存在，已复用 ${result.item.name}，请确认恢复`
+        : `备份已导入并保存为 ${result.item.name}，请确认恢复`,
+    );
+    openRestoreDialog(result.item);
+  } catch {
+    ElMessage.error('导入备份失败');
+  } finally {
+    importing.value = false;
+  }
+};
+
+const refreshRestoreStatus = async () => {
+  const operation = restoreOperation.value;
+  if (!operation) {
+    restoreStatus.value = { state: 'idle' };
+    return;
+  }
+
+  try {
+    const result = await getBackupRestoreStatus(operation.operationId, operation.statusToken);
+
+    if (result.status.operationId && result.status.operationId !== operation.operationId) {
+      dismissRestoreStatus();
+      return;
+    }
+
+    // 成功提示只属于发起或观察到本次恢复的页面，不在刷新后重复展示。
+    if (result.status.state === 'succeeded' && !observedActiveRestore.value) {
+      restoreStatus.value = { state: 'idle' };
+      restoreOperation.value = undefined;
+      clearRuntimeRestoreTracking();
+      return;
+    }
+
+    restoreStatus.value = result.status;
+    if (activeRestoreStates.includes(result.status.state)) observedActiveRestore.value = true;
+    if (terminalRestoreStates.includes(result.status.state)) clearRuntimeRestoreTracking();
+  } catch {
+    // 服务切换期间连接失败属于预期行为。
+  }
+};
+
+const dismissRestoreStatus = () => {
+  restoreStatus.value = { state: 'idle' };
+  restoreOperation.value = undefined;
+  observedActiveRestore.value = false;
+  clearRuntimeRestoreTracking();
+};
+
+const restoreStatusTitle = computed(() => {
+  const titles: Record<BackupRestoreStatus['state'], string> = {
+    idle: '',
+    pending: '恢复任务已排队，服务即将重新加载',
+    quiescing: '正在停止当前 Runtime',
+    applying: '正在应用备份',
+    starting: '正在初始化新 Runtime',
+    rolling_back: '恢复失败，正在回滚原数据',
+    succeeded: '备份恢复成功',
+    failed: '备份恢复失败',
+    rolled_back: '恢复未完成，已自动回滚',
+    degraded: '恢复和回滚后的 Runtime 均无法启动',
+  };
+  return titles[restoreStatus.value.state];
+});
+
+const restoreStatusAlertType = computed<'success' | 'warning' | 'error' | 'info'>(() => {
+  if (restoreStatus.value.state === 'succeeded') return 'success';
+  if (['failed', 'degraded'].includes(restoreStatus.value.state)) return 'error';
+  if (restoreStatus.value.state === 'rolled_back') return 'warning';
+  return 'info';
+});
+
+const openRestoreDialog = (item: BackupInfo) => {
+  restoreCandidate.value = item;
+  restoreConfirmed.value = false;
+  showRestore.value = true;
+};
+
+const pollRestoreStatus = async () => {
+  for (let attempt = 0; attempt < 120; attempt += 1) {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    await refreshRestoreStatus();
+    if (terminalRestoreStates.includes(restoreStatus.value.state)) {
+      await refreshList();
+      break;
+    }
+  }
+};
+
+const confirmRestore = async () => {
+  if (!restoreCandidate.value || !restoreConfirmed.value) return;
+  restoring.value = true;
+  try {
+    const result = await restoreBackup(restoreCandidate.value.name);
+    if (!result.result) {
+      ElMessage.error(result.err || '创建恢复任务失败');
+      return;
+    }
+    if (!result.operationId || !result.statusToken) {
+      ElMessage.error('恢复服务未返回状态凭证');
+      return;
+    }
+    restoreOperation.value = {
+      operationId: result.operationId,
+      statusToken: result.statusToken,
+    };
+    rememberRuntimeRestore(result.operationId, result.statusToken);
+    observedActiveRestore.value = true;
+    restoreStatus.value = {
+      state: 'pending',
+      sourceName: restoreCandidate.value.name,
+      safetyBackupName: result.safetyBackupName,
+    };
+    showRestore.value = false;
+    ElMessage.success('恢复任务已创建，服务即将重新加载');
+    void pollRestoreStatus();
+  } catch {
+    ElMessage.error('创建恢复任务失败');
+  } finally {
+    restoring.value = false;
+  }
 };
 
 const configGet = async () => {
@@ -452,6 +794,8 @@ const refreshNow = async () => {
 onBeforeMount(async () => {
   await configGet();
   await refreshList();
+  await refreshRestoreStatus();
+  if (activeRestoreStates.includes(restoreStatus.value.state)) void pollRestoreStatus();
   await refreshNow();
 });
 </script>
@@ -468,5 +812,13 @@ onBeforeMount(async () => {
   .backup-line:not(:first-child) {
     border-top: 1px solid var(--el-border-color);
   }
+}
+
+.backup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 </style>

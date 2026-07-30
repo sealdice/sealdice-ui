@@ -166,10 +166,16 @@ import { Check, Menu as IconMenu } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { isAxiosError } from 'axios';
 
 import { passwordHash } from './utils';
 import { getNewUtils, postUtilsCheckNews } from './api/utils';
 import { checkSecurity } from './api/others';
+import {
+  clearRuntimeRestoreTracking,
+  getRuntimeRestoreTracking,
+  markRuntimeRestoreConnectionInterrupted,
+} from './utils/runtimeRestore';
 
 dayjs.locale('zh-cn');
 dayjs.extend(relativeTime);
@@ -211,6 +217,9 @@ const showDialog = computed(() => {
 });
 
 const dialogLostConnectionVisible = ref(false);
+let reauthenticating = false;
+let checkingSecurity = false;
+const securityWarningSessionKey = 'sd-security-warning-shown';
 
 const doUnlock = async () => {
   const hash = await passwordHash(store.salt, password.value);
@@ -227,12 +236,21 @@ const doUnlock = async () => {
 };
 
 const checkPassword = async () => {
-  if (!(await checkSecurity()).isOk) {
-    ElMessageBox.alert(
-      '欢迎使用海豹核心。<br/>如果您的服务开启在公网，为了保证您的安全性，请前往<b>“综合设置->基本设置”</b>界面，设置<b>UI 界面密码</b>。<br/>或切换为只有本机可访问。<br><b>如果您不了解上面在说什么，请务必设置一个密码</b>',
-      '提示',
-      { dangerouslyUseHTMLString: true },
-    );
+  if (checkingSecurity || sessionStorage.getItem(securityWarningSessionKey) === '1') return;
+  checkingSecurity = true;
+  try {
+    if (!(await checkSecurity()).isOk) {
+      sessionStorage.setItem(securityWarningSessionKey, '1');
+      await ElMessageBox.alert(
+        '欢迎使用海豹核心。<br/>如果您的服务开启在公网，为了保证您的安全性，请前往<b>“综合设置->基本设置”</b>界面，设置<b>UI 界面密码</b>。<br/>或切换为只有本机可访问。<br><b>如果您不了解上面在说什么，请务必设置一个密码</b>',
+        '提示',
+        { dangerouslyUseHTMLString: true },
+      );
+    }
+  } catch {
+    // 连接异常由全局心跳处理，安全检查将在下次浏览器会话重新执行。
+  } finally {
+    checkingSecurity = false;
   }
 };
 
@@ -254,12 +272,32 @@ onBeforeMount(async () => {
       if (dialogLostConnectionVisible.value) {
         dialogLostConnectionVisible.value = false;
       }
-    } catch (e: any) {
-      if (!e.response || e.response.status === 403) {
-        // 此时是连接不上，404
-        // e.response.status 有可能为 403
-        dialogLostConnectionVisible.value = true;
+      if (getRuntimeRestoreTracking()?.connectionInterrupted) {
+        clearRuntimeRestoreTracking();
       }
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response?.status === 403) {
+        // 服务已恢复但旧令牌不再有效；无密码实例应自动获取新令牌。
+        dialogLostConnectionVisible.value = false;
+        clearRuntimeRestoreTracking();
+        if (reauthenticating) return;
+        reauthenticating = true;
+        try {
+          await store.trySignIn();
+        } catch {
+          store.canAccess = false;
+        } finally {
+          reauthenticating = false;
+        }
+        return;
+      }
+      if (getRuntimeRestoreTracking()) {
+        // Runtime 计划内切换期间的短暂连接失败不属于主程序离线。
+        markRuntimeRestoreConnectionInterrupted();
+        dialogLostConnectionVisible.value = false;
+        return;
+      }
+      dialogLostConnectionVisible.value = true;
     }
   }, 5000) as any;
 
