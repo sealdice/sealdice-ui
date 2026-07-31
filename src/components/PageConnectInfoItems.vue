@@ -12,7 +12,7 @@
 
   <div v-else-if="connectionsLoadFailed">获取账号列表失败，请稍后重试</div>
 
-  <div v-else-if="store.curDice.conns.length === 0">
+  <div v-else-if="!store.curDice.conns?.length">
     <span style="vertical-align: middle">似乎还没有账号，</span>
     <el-link style="font-size: 16px; font-weight: bolder" type="primary" @click="addOne"
       >点我添加一个</el-link
