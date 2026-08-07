@@ -52,7 +52,6 @@
                     trigger="click"
                     :show-after="100">
                     <el-text
-                      :title="item.data.groupId"
                       style="
                         max-width: 23rem;
                         overflow: hidden;
