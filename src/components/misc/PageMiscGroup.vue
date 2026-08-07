@@ -46,17 +46,24 @@
                   "
                   @click="item.data.changed = true" />
                 <el-space size="small" wrap>
-                  <el-text
-                    style="
-                      max-width: 23rem;
-                      overflow: hidden;
-                      white-space: nowrap;
-                      text-overflow: ellipsis;
-                    "
-                    size="large"
-                    tag="strong"
-                    >{{ item.data.groupId }}</el-text
-                  >
+                  <el-tooltip
+                    :content="item.data.groupId"
+                    placement="top"
+                    trigger="click"
+                    :show-after="100">
+                    <el-text
+                      :title="item.data.groupId"
+                      style="
+                        max-width: 23rem;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                      "
+                      size="large"
+                      tag="strong"
+                      >{{ item.data.groupId }}</el-text
+                    >
+                  </el-tooltip>
                   <el-text>「{{ item.data.groupName || '未获取到' }}」</el-text>
                 </el-space>
               </el-space>
