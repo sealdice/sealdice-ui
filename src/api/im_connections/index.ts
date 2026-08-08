@@ -4,7 +4,7 @@ const baseUrl = '/im_connections/';
 const request = createRequest(baseUrl);
 
 export function getConnectionList() {
-  return request<DiceConnection[]>('get', 'list');
+  return request<DiceConnection[] | null>('get', 'list');
 }
 
 export function getConnectQQVersion() {

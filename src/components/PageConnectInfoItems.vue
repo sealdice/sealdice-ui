@@ -1,6 +1,6 @@
 <template>
   <!-- <div style="position: relative;"> -->
-  <Teleport to="#root">
+  <Teleport v-if="!connectionsLoading && !connectionsLoadFailed" to="#root">
     <div style="position: absolute; right: 40px; bottom: 60px; z-index: 10">
       <!--    <el-button type="primary" class="btn-add" :icon="Plus" circle @click="addOne"></el-button>-->
       <el-button type="primary" class="btn-add" :icon="Plus" circle @click="addOne"></el-button>
@@ -8,14 +8,18 @@
   </Teleport>
   <!-- </div> -->
 
-  <div v-if="!store.curDice.conns || (store.curDice.conns && store.curDice.conns.length === 0)">
+  <div v-if="connectionsLoading" v-loading="true" style="min-height: 4rem"></div>
+
+  <div v-else-if="connectionsLoadFailed">获取账号列表失败，请稍后重试</div>
+
+  <div v-else-if="!store.curDice.conns?.length">
     <span style="vertical-align: middle">似乎还没有账号，</span>
     <el-link style="font-size: 16px; font-weight: bolder" type="primary" @click="addOne"
       >点我添加一个</el-link
     >
   </div>
 
-  <div style="display: flex; flex-wrap: wrap">
+  <div v-else style="display: flex; flex-wrap: wrap">
     <div
       v-for="(i, index) in reactive(store.curDice.conns)"
       :key="index"
@@ -2250,6 +2254,8 @@ const fullActivities = [
 const activities = ref([] as typeof fullActivities);
 
 const store = useStore();
+const connectionsLoading = ref(true);
+const connectionsLoadFailed = ref(false);
 const curCaptchaIdSet = ref(''); // 当前设置了 ticket 的 id
 
 const isContainerMode = () => {
@@ -2982,15 +2988,32 @@ const addOne = () => {
   getSignInfo();
 };
 
-let timerId: number;
+let pageUnmounted = false;
+let timerId: number | undefined;
 
 onBeforeMount(async () => {
-  await store.getImConnections();
+  try {
+    await store.getImConnections();
+  } catch {
+    if (!pageUnmounted) {
+      connectionsLoadFailed.value = true;
+      ElMessage.error('获取账号列表失败，请稍后重试');
+    }
+  } finally {
+    if (!pageUnmounted) {
+      connectionsLoading.value = false;
+    }
+  }
+
+  if (pageUnmounted) return;
+
   for (const i of store.curDice.conns || []) {
     delete store.curDice.qrcodes[i.id];
   }
 
   const versionsRes = await getConnectQQVersion();
+  if (pageUnmounted) return;
+
   if (versionsRes.result) {
     supportedQQVersions.value = ['', ...versionsRes.versions];
   }
@@ -3002,6 +3025,7 @@ onBeforeMount(async () => {
   timerId = setInterval(async () => {
     console.log('refresh');
     await store.getImConnections();
+    connectionsLoadFailed.value = false;
 
     for (const i of store.curDice.conns || []) {
       // 下一轮登录检查，移除二维码
@@ -3059,7 +3083,8 @@ onBeforeMount(async () => {
 });
 
 onBeforeUnmount(() => {
-  clearInterval(timerId);
+  pageUnmounted = true;
+  if (timerId !== undefined) clearInterval(timerId);
 });
 
 const doRemove = async (i: DiceConnection) => {

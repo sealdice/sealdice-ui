@@ -229,8 +229,9 @@ export const useStore = defineStore('main', {
 
     async getImConnections() {
       const info = await getConnectionList();
-      this.diceServers[this.index].conns = info;
-      return info;
+      const connections = info ?? [];
+      this.diceServers[this.index].conns = connections;
+      return connections;
     },
 
     async addImConnection(
