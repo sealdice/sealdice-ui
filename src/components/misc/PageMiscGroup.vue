@@ -5,7 +5,9 @@
     <span style="margin-right: -0.2rem">
       <el-checkbox-group v-model="checkList">
         <el-checkbox label="QQ-Group:">QQ 群</el-checkbox>
+        <el-checkbox label="OpenQQ-Group:">QQ 官方机器人群</el-checkbox>
         <el-checkbox label="QQ-CH-Group:">QQ 频道</el-checkbox>
+        <el-checkbox label="OpenQQCH-Channel:">QQ 官方机器人频道</el-checkbox>
         <el-checkbox label="DISCORD-CH-Group:">Discord 频道</el-checkbox>
         <el-checkbox label="DODO-Group:">Dodo 频道</el-checkbox>
         <el-checkbox label="KOOK-CH-Group:">KOOK 频道</el-checkbox>
@@ -44,17 +46,23 @@
                   "
                   @click="item.data.changed = true" />
                 <el-space size="small" wrap>
-                  <el-text
-                    style="
-                      max-width: 23rem;
-                      overflow: hidden;
-                      white-space: nowrap;
-                      text-overflow: ellipsis;
-                    "
-                    size="large"
-                    tag="strong"
-                    >{{ item.data.groupId }}</el-text
-                  >
+                  <el-tooltip
+                    :content="item.data.groupId"
+                    placement="top"
+                    trigger="click"
+                    :show-after="100">
+                    <el-text
+                      style="
+                        max-width: 23rem;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                      "
+                      size="large"
+                      tag="strong"
+                      >{{ item.data.groupId }}</el-text
+                    >
+                  </el-tooltip>
                   <el-text>「{{ item.data.groupName || '未获取到' }}」</el-text>
                 </el-space>
               </el-space>
