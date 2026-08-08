@@ -77,6 +77,7 @@ export type DiceConfig = {
   helpDocEngineType: number; // 帮助文档引擎类型
   masterUnlockCode: string; // 主解锁码
   serveAddress: string; // 服务器地址
+  trayTooltip?: string; // 系统托盘提示文本
   masterUnlockCodeTime: number; // 解锁码的时间戳
   logPageItemLimit: number; // 日志页面的条目限制
   friendAddComment: string; // 添加好友时的备注
