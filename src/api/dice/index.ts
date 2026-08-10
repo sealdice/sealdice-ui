@@ -100,6 +100,7 @@ export type DiceConfig = {
   aliveNoticeValue: string; // 存活通知的值
   replyDebugMode: boolean; // 是否启用调试模式回复
   customReplyConfigEnable: boolean; // 是否启用自定义回复配置
+  VMVersionForReply?: 'v1' | 'v2'; // 未声明版本的自定义回复所使用的 VM
   logSizeNoticeEnable: boolean; // 是否启用日志大小通知
   logSizeNoticeCount: number; // 日志大小通知的数量
   textCmdTrustOnly: boolean; // 仅信任的文本命令
