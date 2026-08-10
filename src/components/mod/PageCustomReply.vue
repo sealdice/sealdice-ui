@@ -64,12 +64,7 @@
           <el-tag size="small" :type="currentReplyIsV2 ? 'success' : 'info'" effect="plain">
             {{ currentReplyIsV2 ? 'V2' : '未声明 / 跟随全局' }}
           </el-tag>
-          <el-checkbox-button
-            v-model="cr.enable"
-            :class="cr.enable ? `reply-file-status-open` : `reply-file-status-close`"
-            style="margin-left: 1rem">
-            {{ cr.enable ? '已启用' : '未启用' }}
-          </el-checkbox-button>
+          <el-checkbox v-model="cr.enable" style="margin-left: 1rem">启用</el-checkbox>
         </el-space>
         <el-space style="margin-top: 0.5rem" warp>
           <el-button type="danger" size="small" plain :icon="Delete" @click="customReplyFileDelete"
@@ -184,7 +179,10 @@
 
       <el-divider />
 
-      <nested-draggable :tasks="list" :class="cr.enable ? '' : 'disabled'" />
+      <nested-draggable
+        ref="nestedDraggableRef"
+        :tasks="list"
+        :class="cr.enable ? '' : 'disabled'" />
       <div style="display: flex; justify-content: space-between">
         <el-button type="success" plain :icon="Plus" @click="addOne(list)">添加一项</el-button>
         <el-button :icon="DocumentChecked" type="primary" @click="doSave()">保存</el-button>
@@ -304,6 +302,7 @@ import {
   Plus,
   RefreshRight,
 } from '@element-plus/icons-vue';
+import { ElCheckbox } from 'element-plus';
 import {
   getCustomReply,
   getCustomReplyFileList,
@@ -324,6 +323,7 @@ const configForImport = ref('');
 const newReplyFilename = ref('');
 const newReplyVMVersion = ref<ReplyVMVersion>('v2');
 const creatingReply = ref(false);
+const conversionAcknowledged = ref(false);
 
 const replyEnable = computed({
   get: () => store.curDice.config.customReplyConfigEnable,
@@ -347,6 +347,7 @@ const curFilename = ref('reply.yaml');
 const conditions = ref<any>([]);
 
 const commonConditionsRef = ref<any>(null);
+const nestedDraggableRef = ref<{ openLast: () => void } | null>(null);
 
 const list = ref<any>([
   // {"enable":true,"condition":{"condType":"match","matchType":"match_exact","value":"asd"},"results":[{"resultType":"replyToSender","delay":0.3,"message":"text"}]},
@@ -440,14 +441,37 @@ const submitCustomReplyFileNew = async () => {
 };
 
 const convertCurrentReplyToV2 = async () => {
+  conversionAcknowledged.value = false;
   try {
     await ElMessageBox.confirm(
-      '转换只会为当前文件写入 V2 声明，不会自动改写已有表达式。V1 语法可能与 V2 不兼容，是否继续？',
+      h('div', { style: 'line-height: 1.5' }, [
+        h(
+          'p',
+          { style: 'margin: 0 0 0.75rem' },
+          '转换只会为当前文件写入 V2 声明，不会自动改写已有表达式。V1 语法可能与 V2 不兼容，是否继续？',
+        ),
+        h(
+          ElCheckbox,
+          {
+            onChange: (value: boolean | string | number) => {
+              conversionAcknowledged.value = value === true;
+            },
+          },
+          { default: () => '此操作不可逆' },
+        ),
+      ]),
       '转换为 V2',
       {
         confirmButtonText: '转换并保存',
         cancelButtonText: '取消',
         type: 'warning',
+        beforeClose: (action, _instance, done) => {
+          if (action === 'confirm' && !conversionAcknowledged.value) {
+            ElMessage.warning('请先勾选“此操作不可逆”');
+            return;
+          }
+          done();
+        },
       },
     );
     const previousVMVersion = cr.value.vmVersion;
@@ -519,6 +543,7 @@ const addOne = (lst: any) => {
     conditions: [{ condType: 'textMatch', matchType: 'matchExact', value: '要匹配的文本' }],
     results: [{ resultType: 'replyToSender', delay: 0, message: [['说点什么', 1]] }],
   });
+  nestedDraggableRef.value?.openLast();
 };
 
 // const deleteAnyItem = (lst: any[], index: number) => {
