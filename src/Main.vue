@@ -12,7 +12,7 @@
         </div>
 
         <el-space
-          :v-show="store.canAccess"
+          v-show="store.canAccess"
           direction="vertical"
           alignment="flex-start"
           :size="0"
@@ -75,7 +75,30 @@
         <Menu v-model:advanced-config-counter="advancedConfigCounter" type="dark" />
       </div>
 
-      <div class="bg-gray-100 h-auto text-left flex-1 overflow-y-auto">
+      <div class="bg-gray-100 h-auto text-left flex-1 overflow-y-auto flex flex-col">
+        <el-alert
+          v-if="restoreStatus.state !== 'idle' && restoreStatus.state !== 'succeeded'"
+          :title="restoreStatusTitle"
+          :type="restoreStatusAlertType"
+          :closable="restoreStatusClosable"
+          show-icon
+          class="runtime-status-alert"
+          @close="store.dismissRuntimeRestoreStatus">
+          <div v-if="restoreStatus.message">{{ restoreStatus.message }}</div>
+          <div v-if="restoreStatus.safetyBackupName">
+            恢复前安全备份：{{ restoreStatus.safetyBackupName }}
+          </div>
+          <div v-if="store.runtimeRestorePollingUnavailable && store.runtimeRestoreInProgress">
+            状态连接暂时中断，系统会继续自动查询。
+          </div>
+        </el-alert>
+        <el-alert
+          v-else-if="store.authStatus === 'maintenance'"
+          :title="runtimeMaintenanceTitle"
+          type="warning"
+          :closable="false"
+          show-icon
+          class="runtime-status-alert" />
         <el-main ref="rightbox" v-loading="loading" class="main-container w-full h-full">
           <router-view
             v-if="!loading"
@@ -93,7 +116,7 @@
     class="drawer-menu bg-gray-600">
     <template #header>
       <div class="text-white flex items-center justify-between">
-        <el-space :v-show="store.canAccess" direction="vertical" alignment="flex-start" :size="0">
+        <el-space v-show="store.canAccess" direction="vertical" alignment="flex-start" :size="0">
           <span style="font-size: 1.2rem; cursor: pointer" @click="enableAdvancedConfig"
             >SealDice</span
           >
@@ -116,7 +139,7 @@
   </el-drawer>
 
   <el-dialog
-    v-model="showDialog"
+    :model-value="showPasswordDialog"
     title=""
     :close-on-click-modal="false"
     :close-on-press-escape="false"
@@ -124,13 +147,17 @@
     class="the-dialog">
     <h3>输入密码解锁</h3>
     <el-input v-model="password" type="password"></el-input>
-    <el-button type="primary" style="padding: 0px 50px; margin-top: 1rem" @click="doUnlock"
-      >确认</el-button
-    >
+    <el-button
+      type="primary"
+      :loading="unlocking"
+      style="padding: 0px 50px; margin-top: 1rem"
+      @click="doUnlock">
+      确认
+    </el-button>
   </el-dialog>
 
   <el-dialog
-    v-model="dialogLostConnectionVisible"
+    :model-value="store.authStatus === 'offline'"
     title="主程序离线"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
@@ -166,6 +193,8 @@ import { Check, Menu as IconMenu } from '@element-plus/icons-vue';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { isAxiosError } from 'axios';
+import type { BackupRestoreStatus } from './api/backup';
 
 import { passwordHash } from './utils';
 import { getNewUtils, postUtilsCheckNews } from './api/utils';
@@ -178,6 +207,7 @@ const loading = useStorage('router-view-loading', true);
 
 const store = useStore();
 const password = ref('');
+const unlocking = ref(false);
 
 const dialogFeed = ref(false);
 
@@ -185,15 +215,18 @@ const newsData = ref(`<div>暂无内容</div>`);
 const newsChecked = ref(true);
 const newsMark = ref('');
 const checkNews = async (close: any) => {
-  console.log('newsMark', newsMark.value);
-  const ret = await postUtilsCheckNews(newsMark.value);
-  if (ret?.result) {
-    ElMessage.success('已阅读最新的海豹新闻');
-  } else {
+  try {
+    const ret = await postUtilsCheckNews(newsMark.value);
+    if (ret?.result) {
+      ElMessage.success('已阅读最新的海豹新闻');
+    } else {
+      ElMessage.error('阅读海豹新闻失败');
+    }
+    await updateNews();
+    close();
+  } catch {
     ElMessage.error('阅读海豹新闻失败');
   }
-  await updateNews();
-  close();
 };
 const updateNews = async () => {
   const newsInfo = await getNewUtils();
@@ -206,73 +239,233 @@ const updateNews = async () => {
   }
 };
 
-const showDialog = computed(() => {
-  return !store.canAccess;
+const showPasswordDialog = computed(
+  () => store.authStatus === 'password-required' && store.passwordRequired === true,
+);
+const restoreStatus = computed(() => store.runtimeRestoreStatus);
+const restoreStatusClosable = computed(() =>
+  ['failed', 'rolled_back', 'degraded'].includes(restoreStatus.value.state),
+);
+const restoreStatusTitle = computed(() => {
+  const titles: Record<BackupRestoreStatus['state'], string> = {
+    idle: '',
+    pending: '恢复任务已排队，服务即将重新加载',
+    quiescing: '正在停止当前 Runtime',
+    applying: '正在应用备份',
+    starting: '正在初始化新 Runtime',
+    rolling_back: '恢复失败，正在回滚原数据',
+    succeeded: '备份恢复成功',
+    failed: '备份恢复失败',
+    rolled_back: '恢复未完成，已自动回滚',
+    degraded: '备份恢复处于降级状态，请检查详情或日志',
+  };
+  return titles[restoreStatus.value.state];
 });
+const restoreStatusAlertType = computed<'warning' | 'error' | 'info'>(() => {
+  if (['failed', 'degraded'].includes(restoreStatus.value.state)) return 'error';
+  if (restoreStatus.value.state === 'rolled_back') return 'warning';
+  return 'info';
+});
+const runtimeMaintenanceTitle = computed(() =>
+  store.runtimeMaintenanceCode === 'RUNTIME_UNAVAILABLE'
+    ? 'Runtime 当前不可用，正在等待服务恢复'
+    : 'Runtime 正在重新加载，请稍候',
+);
+const sessionStable = computed(
+  () => store.authStatus === 'authenticated' && !store.runtimeRestoreInProgress,
+);
 
-const dialogLostConnectionVisible = ref(false);
+let checkingSecurity = false;
+const securityWarningSessionKey = 'sd-security-warning-shown';
+const welcomeSessionKey = 'sd-welcome-shown';
+let welcomeShownInMemory = false;
+let securityWarningShownInMemory = false;
 
 const doUnlock = async () => {
-  const hash = await passwordHash(store.salt, password.value);
-  await store.signIn(hash);
-  if (store.canAccess) {
-    ElMessageBox.alert('欢迎回来，请开始使用。', '登录成功');
+  if (unlocking.value) return;
+  unlocking.value = true;
+  try {
+    const hash = await passwordHash(store.salt, password.value);
+    const signedIn = await store.signIn(hash);
     password.value = '';
-    checkPassword();
-    window.location.reload();
-  } else {
-    ElMessageBox.alert('错误的密码', '登录失败');
-    password.value = '';
+    if (!signedIn && store.authStatus === 'password-required') {
+      ElMessageBox.alert('错误的密码', '登录失败');
+    } else if (!signedIn && store.authStatus === 'maintenance') {
+      ElMessage.warning('Runtime 正在重新加载，请稍后重试');
+    } else if (!signedIn) {
+      ElMessage.error('无法连接主程序，请稍后重试');
+    }
+  } finally {
+    unlocking.value = false;
   }
 };
 
 const checkPassword = async () => {
-  if (!(await checkSecurity()).isOk) {
-    ElMessageBox.alert(
-      '欢迎使用海豹核心。<br/>如果您的服务开启在公网，为了保证您的安全性，请前往<b>“综合设置->基本设置”</b>界面，设置<b>UI 界面密码</b>。<br/>或切换为只有本机可访问。<br><b>如果您不了解上面在说什么，请务必设置一个密码</b>',
-      '提示',
-      { dangerouslyUseHTMLString: true },
-    );
+  if (checkingSecurity || securityWarningShownInMemory) return;
+  try {
+    if (sessionStorage.getItem(securityWarningSessionKey) === '1') {
+      securityWarningShownInMemory = true;
+      return;
+    }
+  } catch {
+    // 受限环境下仍通过内存标记避免本次挂载重复提示。
+  }
+  checkingSecurity = true;
+  try {
+    if (!(await checkSecurity()).isOk) {
+      securityWarningShownInMemory = true;
+      try {
+        sessionStorage.setItem(securityWarningSessionKey, '1');
+      } catch {
+        // 会话存储不可用时仅保留内存标记。
+      }
+      await ElMessageBox.alert(
+        '欢迎使用海豹核心。<br/>如果您的服务开启在公网，为了保证您的安全性，请前往<b>“综合设置->基本设置”</b>界面，设置<b>UI 界面密码</b>。<br/>或切换为只有本机可访问。<br><b>如果您不了解上面在说什么，请务必设置一个密码</b>',
+        '提示',
+        { dangerouslyUseHTMLString: true },
+      );
+    }
+  } catch {
+    // 连接异常由全局心跳处理，安全检查将在下次浏览器会话重新执行。
+  } finally {
+    checkingSecurity = false;
   }
 };
 
-onBeforeMount(async () => {
-  store.getBaseInfo();
-  store.getCustomText();
-
-  if (store.canAccess) {
-    checkPassword();
-  }
-
-  timerId = setInterval(async () => {
-    // 没输入密码，先不心跳
-    if (!store.canAccess) {
+const showWelcomeOnce = () => {
+  if (welcomeShownInMemory) return;
+  try {
+    if (sessionStorage.getItem(welcomeSessionKey) === '1') {
+      welcomeShownInMemory = true;
       return;
     }
-    try {
-      await store.getBaseInfo();
-      if (dialogLostConnectionVisible.value) {
-        dialogLostConnectionVisible.value = false;
-      }
-    } catch (e: any) {
-      if (!e.response || e.response.status === 403) {
-        // 此时是连接不上，404
-        // e.response.status 有可能为 403
-        dialogLostConnectionVisible.value = true;
-      }
-    }
-  }, 5000) as any;
-
-  await updateNews();
-
-  const conf = await store.diceAdvancedConfigGet();
-  if (conf.show) {
-    advancedConfigCounter.value = 8;
+    sessionStorage.setItem(welcomeSessionKey, '1');
+  } catch {
+    // 受限环境下仍通过内存标记保证本次挂载只提示一次。
   }
+  welcomeShownInMemory = true;
+  ElMessage.success({ message: '欢迎回来，请开始使用。', duration: 3000 });
+};
+
+let baseInfoRequest: Promise<void> | undefined;
+const refreshBaseInfo = () => {
+  if (!baseInfoRequest) {
+    baseInfoRequest = store
+      .getBaseInfo()
+      .then(() => undefined)
+      .finally(() => {
+        baseInfoRequest = undefined;
+      });
+  }
+  return baseInfoRequest;
+};
+
+let stableDataRequest: Promise<void> | undefined;
+let stableDataLoaded = false;
+const loadStableApplicationData = async () => {
+  if (!sessionStable.value || stableDataLoaded) return;
+  if (stableDataRequest) return stableDataRequest;
+
+  stableDataRequest = (async () => {
+    try {
+      await refreshBaseInfo();
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response?.status === 403) await store.trySignIn();
+      else store.setAuthStatusFromError(error);
+      return;
+    }
+    if (!sessionStable.value) return;
+
+    const [customTextResult, newsResult, advancedConfigResult] = await Promise.allSettled([
+      store.getCustomText(),
+      updateNews(),
+      store.diceAdvancedConfigGet(),
+    ]);
+    if (!sessionStable.value) return;
+    if (advancedConfigResult.status === 'fulfilled' && advancedConfigResult.value.show) {
+      advancedConfigCounter.value = 8;
+    }
+    if (customTextResult.status === 'rejected' || newsResult.status === 'rejected') {
+      // Heartbeat will retry the complete stable-data load after connectivity returns.
+      stableDataLoaded = false;
+    } else {
+      stableDataLoaded = true;
+    }
+    showWelcomeOnce();
+    void checkPassword();
+  })().finally(() => {
+    stableDataRequest = undefined;
+  });
+  return stableDataRequest;
+};
+
+const heartbeat = async () => {
+  if (store.authStatus === 'checking' || store.authStatus === 'password-required') return;
+  if (store.authStatus !== 'authenticated') {
+    await store.trySignIn();
+    if (sessionStable.value) void loadStableApplicationData();
+    return;
+  }
+
+  try {
+    await refreshBaseInfo();
+    if (!stableDataLoaded) void loadStableApplicationData();
+  } catch (error: unknown) {
+    stableDataLoaded = false;
+    if (isAxiosError(error) && error.response?.status === 403) await store.trySignIn();
+    else store.setAuthStatusFromError(error);
+  }
+};
+
+watch(
+  sessionStable,
+  stable => {
+    if (stable) void loadStableApplicationData();
+    else stableDataLoaded = false;
+  },
+  { immediate: true },
+);
+
+let notifiedRestoreOperation: string | undefined;
+watch(
+  () => store.runtimeRestoreStatus,
+  status => {
+    if (status.state !== 'succeeded') return;
+    const operationKey =
+      status.operationId || `${status.sourceName || ''}:${status.updatedAt || ''}`;
+    if (operationKey === notifiedRestoreOperation) return;
+    notifiedRestoreOperation = operationKey;
+    ElMessage.success({ message: '备份恢复成功，Runtime 已重新启动', duration: 5000 });
+  },
+  { deep: true, immediate: true },
+);
+
+let heartbeatTimerId: number | undefined;
+let heartbeatGeneration = 0;
+const scheduleHeartbeat = (generation: number) => {
+  heartbeatTimerId = window.setTimeout(async () => {
+    heartbeatTimerId = undefined;
+    try {
+      await heartbeat();
+    } catch (error: unknown) {
+      stableDataLoaded = false;
+      store.setAuthStatusFromError(error);
+    } finally {
+      if (generation === heartbeatGeneration) scheduleHeartbeat(generation);
+    }
+  }, 5000);
+};
+
+onMounted(() => {
+  const generation = ++heartbeatGeneration;
+  scheduleHeartbeat(generation);
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-let timerId: number;
+onBeforeUnmount(() => {
+  heartbeatGeneration++;
+  if (heartbeatTimerId !== undefined) window.clearTimeout(heartbeatTimerId);
+  heartbeatTimerId = undefined;
+});
 
 const rightbox = ref(null);
 
@@ -343,6 +536,11 @@ body {
   padding: 2rem;
   box-sizing: border-box;
   min-height: 100%;
+}
+
+.runtime-status-alert {
+  flex: none;
+  border-radius: 0;
 }
 
 .h100 {

@@ -50,8 +50,9 @@ app
 
 const store = useStore();
 
-store.trySignIn().then(() => {
-  app.mount('#app');
+app.mount('#app');
+void store.initializeSession().catch(error => {
+  store.setAuthStatusFromError(error);
 });
 
 try {

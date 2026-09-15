@@ -1,11 +1,53 @@
 <template>
-  <div style="display: flex; justify-content: space-between; align-items: center">
+  <div class="backup-header">
     <h2>备份</h2>
-    <div>
-      <el-button type="success" :icon="DocumentChecked" @click="doSave">保存设置</el-button>
-      <el-button type="primary" @click="showBackup = true">立即备份</el-button>
-    </div>
+    <el-space wrap>
+      <el-button
+        type="success"
+        :icon="DocumentChecked"
+        :disabled="writeOperationsDisabled"
+        @click="doSave">
+        保存设置
+      </el-button>
+      <el-button type="primary" :disabled="writeOperationsDisabled" @click="showBackup = true">
+        立即备份
+      </el-button>
+      <el-upload
+        action=""
+        accept=".zip,application/zip"
+        :disabled="writeOperationsDisabled"
+        :show-file-list="false"
+        :before-upload="beforeBackupUpload">
+        <el-button :icon="Upload" :loading="importing" :disabled="writeOperationsDisabled">
+          导入备份
+        </el-button>
+      </el-upload>
+    </el-space>
   </div>
+  <el-alert
+    v-if="store.runtimeRestoreRequestPending"
+    type="warning"
+    :closable="false"
+    show-icon
+    class="pending-restore-alert">
+    <template #title>上次恢复请求的结果仍待确认</template>
+    <p>
+      备份
+      {{ store.runtimeRestoreRequestSource }}
+      的请求仍保存在本机。请优先使用同一备份重试，以确认服务端是否已接收。
+    </p>
+    <p>
+      放弃追踪不会取消服务端任务，也不会回滚或阻止恢复。仅在已确认服务端没有执行，或确定不再需要追踪结果后使用。
+    </p>
+    <el-button
+      type="warning"
+      plain
+      size="small"
+      :disabled="store.runtimeRestoreSubmitting"
+      @click="confirmAbandonPendingRestore">
+      放弃本机追踪
+    </el-button>
+  </el-alert>
   <div>
     <el-form label-position="left">
       <h3>自动备份</h3>
@@ -104,13 +146,21 @@
     </el-form>
     <h4>如何恢复备份？</h4>
     <div>
-      将骰子彻底关闭，解压备份压缩包到骰子目录。若提示“是否覆盖？”选择“全部”即可(覆盖data目录)。
+      导入 ZIP
+      后，在备份列表中选择恢复。若在线恢复失败，可将骰子彻底关闭，手工解压备份到骰子目录并覆盖 data
+      目录。
     </div>
   </div>
 
   <div style="display: flex; justify-content: space-between; align-items: center">
     <h2>已备份文件</h2>
-    <el-button type="danger" :icon="Delete" @click="enterBatchDelete">进入批量删除页面</el-button>
+    <el-button
+      type="danger"
+      :icon="Delete"
+      :disabled="writeOperationsDisabled"
+      @click="enterBatchDelete">
+      进入批量删除页面
+    </el-button>
   </div>
 
   <div size="small" direction="vertical" class="backup-list" fill>
@@ -120,23 +170,42 @@
       class="backup-line flex flex-wrap justify-between gap-2">
       <div class="flex flex-col">
         <el-text class="self-start" size="large">{{ i.name }}</el-text>
-        <el-text v-if="(i?.selection ?? 0) >= 0" class="self-start" size="small" type="info"
+        <el-text v-if="i.valid" class="self-start" size="small" type="info">
+          SeaDice {{ i.version }}（版本码 {{ i.versionCode }}）
+        </el-text>
+        <el-text v-if="i.valid" class="self-start" size="small" type="info"
           >此备份包含：{{ parseSelectionDesc(i.selection).join('、') }}</el-text
         >
-        <el-text v-else class="self-start" size="small" type="warning">此备份内容无法识别</el-text>
+        <el-text v-else class="self-start" size="small" type="warning">
+          无法恢复：{{ i.restoreError || i.error || '备份内容无法识别' }}
+        </el-text>
       </div>
       <el-space size="small" wrap class="justify-end">
         <el-button
           size="small"
-          tag="a"
           style="text-decoration: none; width: 8rem"
-          :href="`${urlBase}/sd-api/backup/download?name=${encodeURIComponent(i.name)}&token=${encodeURIComponent(store.token)}`">
+          :loading="downloadingBackupName === i.name"
+          :disabled="downloadingBackupName !== undefined"
+          @click="downloadBackupFile(i)">
           下载 - {{ filesize(i.fileSize) }}
         </el-button>
+        <el-tooltip
+          :content="i.restorable ? '恢复此备份' : i.restoreError || i.error || '此备份不可恢复'">
+          <span>
+            <el-button
+              type="warning"
+              size="small"
+              :icon="RefreshLeft"
+              :disabled="!i.restorable || restoring || writeOperationsDisabled"
+              plain
+              @click="openRestoreDialog(i)" />
+          </span>
+        </el-tooltip>
         <el-button
           type="danger"
           size="small"
           :icon="Delete"
+          :disabled="writeOperationsDisabled"
           plain
           @click="bakDeleteConfirm(i.name)"></el-button>
       </el-space>
@@ -172,7 +241,7 @@
         <el-button @click="showBatchDelete = false">取消</el-button>
         <el-button
           type="danger"
-          :disabled="!(selectedBaks && selectedBaks.length > 0)"
+          :disabled="writeOperationsDisabled || !(selectedBaks && selectedBaks.length > 0)"
           @click="bakBatchDeleteConfirm"
           >删除所选
         </el-button>
@@ -206,33 +275,115 @@
     <template #footer>
       <el-space wrap>
         <el-button @click="showBackup = false">取消</el-button>
-        <el-button type="primary" @click="doBackup">立即备份</el-button>
+        <el-button type="primary" :disabled="writeOperationsDisabled" @click="doBackup">
+          立即备份
+        </el-button>
       </el-space>
+    </template>
+  </el-dialog>
+
+  <el-dialog
+    v-model="showImportDecision"
+    title="导入备份"
+    width="min(32rem, 92vw)"
+    :close-on-click-modal="!importing"
+    :close-on-press-escape="!importing"
+    :show-close="!importing"
+    @closed="resetBackupImport">
+    <el-descriptions v-if="importCandidate" :column="1" border>
+      <el-descriptions-item label="文件名">{{ importCandidate.name }}</el-descriptions-item>
+      <el-descriptions-item label="大小">{{ filesize(importCandidate.size) }}</el-descriptions-item>
+    </el-descriptions>
+    <el-form label-position="top" style="margin-top: 1rem">
+      <el-form-item label="导入后操作">
+        <el-radio-group v-model="importMode" :disabled="importing">
+          <el-radio-button value="upload">仅导入</el-radio-button>
+          <el-radio-button value="restore">导入后恢复</el-radio-button>
+        </el-radio-group>
+      </el-form-item>
+    </el-form>
+    <el-alert
+      v-if="importMode === 'restore'"
+      type="warning"
+      :closable="false"
+      show-icon
+      title="ZIP 校验通过后还需要再次确认，确认后才会创建安全备份并覆盖数据。" />
+    <el-progress
+      v-if="importing"
+      :percentage="importProgress"
+      :indeterminate="importProgress === 0"
+      style="margin-top: 1rem" />
+    <template #footer>
+      <el-button :disabled="importing" @click="cancelBackupImport">取消</el-button>
+      <el-button
+        type="primary"
+        :loading="importing"
+        :disabled="writeOperationsDisabled"
+        @click="confirmBackupImport">
+        {{ importMode === 'restore' ? '导入并继续' : '仅导入' }}
+      </el-button>
+    </template>
+  </el-dialog>
+
+  <el-dialog v-model="showRestore" title="恢复备份" width="min(34rem, 92vw)">
+    <el-alert
+      type="warning"
+      :closable="false"
+      show-icon
+      title="恢复会短暂中断服务，并在同一进程中重新启动 SeaDice。" />
+    <el-descriptions v-if="restoreCandidate" :column="1" border style="margin-top: 1rem">
+      <el-descriptions-item label="备份文件">{{ restoreCandidate.name }}</el-descriptions-item>
+      <el-descriptions-item label="版本">
+        {{ restoreCandidate.version }}（{{ restoreCandidate.versionCode }}）
+      </el-descriptions-item>
+      <el-descriptions-item label="恢复范围">
+        {{ parseSelectionDesc(restoreCandidate.selection).join('、') }}
+      </el-descriptions-item>
+    </el-descriptions>
+    <p>系统会先创建当前数据的全量安全备份。恢复仅支持 SQLite，且会覆盖同名文件。</p>
+    <el-checkbox v-model="restoreConfirmed">我已了解恢复风险并确认继续</el-checkbox>
+    <template #footer>
+      <el-button @click="showRestore = false">取消</el-button>
+      <el-button
+        type="danger"
+        :loading="restoring"
+        :disabled="!restoreConfirmed || writeOperationsDisabled"
+        @click="confirmRestore">
+        恢复并重新加载
+      </el-button>
     </template>
   </el-dialog>
 </template>
 
 <script lang="ts" setup>
-import type { CheckboxValueType } from 'element-plus';
+import type { CheckboxValueType, UploadRawFile } from 'element-plus';
 import { useStore } from '~/store';
-import { urlBase } from '~/backend';
 import { filesize } from 'filesize';
-import { Delete, QuestionFilled, DocumentChecked } from '@element-plus/icons-vue';
+import {
+  Delete,
+  QuestionFilled,
+  DocumentChecked,
+  RefreshLeft,
+  Upload,
+} from '@element-plus/icons-vue';
 import { sum } from 'lodash-es';
 import { dayjs } from 'element-plus';
 import {
+  downloadBackup,
   getBackupConfig,
   getBackupList,
   postBackupBatchDel,
   postBackupDel,
   postDoBackup,
   setBackupConfig,
+  uploadBackup,
 } from '~/api/backup';
+import type { BackupInfo } from '~/api/backup';
 
 const store = useStore();
 
 const data = ref<{
-  items: any[];
+  items: BackupInfo[];
 }>({
   items: [],
 });
@@ -240,6 +391,19 @@ const data = ref<{
 const cfg = ref<any>({});
 const now = ref(dayjs().format('YYMMDD_HHmmss'));
 const showBackup = ref<boolean>(false);
+const importing = ref(false);
+const importProgress = ref(0);
+const showImportDecision = ref(false);
+const importCandidate = ref<UploadRawFile>();
+const importMode = ref<'upload' | 'restore'>('upload');
+const restoring = ref(false);
+const showRestore = ref(false);
+const restoreConfirmed = ref(false);
+const restoreCandidate = ref<BackupInfo>();
+const downloadingBackupName = ref<string>();
+const writeOperationsDisabled = computed(
+  () => store.authStatus !== 'authenticated' || store.runtimeMaintenance,
+);
 const backupSelections = ref<string[]>([
   'base',
   'js',
@@ -343,6 +507,159 @@ const refreshList = async () => {
   data.value = lst;
 };
 
+const downloadBackupFile = async (item: BackupInfo) => {
+  if (downloadingBackupName.value !== undefined) return;
+  downloadingBackupName.value = item.name;
+  let objectUrl: string | undefined;
+  try {
+    const blob = await downloadBackup(item.name);
+    objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = objectUrl;
+    anchor.download = item.name;
+    document.body.appendChild(anchor);
+    try {
+      anchor.click();
+    } finally {
+      anchor.remove();
+    }
+  } catch {
+    ElMessage.error('下载备份失败');
+  } finally {
+    downloadingBackupName.value = undefined;
+    const urlToRevoke = objectUrl;
+    if (urlToRevoke) window.setTimeout(() => URL.revokeObjectURL(urlToRevoke), 0);
+  }
+};
+
+const beforeBackupUpload = (file: UploadRawFile) => {
+  if (writeOperationsDisabled.value) {
+    ElMessage.warning('请等待登录或 Runtime 维护结束后再导入备份');
+    return false;
+  }
+  if (!file.name.toLowerCase().endsWith('.zip')) {
+    ElMessage.error('请选择 ZIP 格式的 SeaDice 备份');
+    return false;
+  }
+  importCandidate.value = file;
+  importMode.value = 'upload';
+  importProgress.value = 0;
+  showImportDecision.value = true;
+  return false;
+};
+
+const resetBackupImport = () => {
+  if (importing.value) return;
+  importCandidate.value = undefined;
+  importMode.value = 'upload';
+  importProgress.value = 0;
+};
+
+const cancelBackupImport = () => {
+  if (importing.value) return;
+  showImportDecision.value = false;
+};
+
+const confirmBackupImport = async () => {
+  const file = importCandidate.value;
+  if (!file || importing.value || writeOperationsDisabled.value) return;
+
+  const shouldRestore = importMode.value === 'restore';
+  importing.value = true;
+  importProgress.value = 0;
+  let result: Awaited<ReturnType<typeof uploadBackup>> | undefined;
+  try {
+    result = await uploadBackup(file, event => {
+      if (event.total) importProgress.value = Math.round((event.loaded / event.total) * 100);
+    });
+    if (!result.result) {
+      ElMessage.error(result.err || '导入备份失败');
+      return;
+    }
+  } catch {
+    ElMessage.error('导入备份失败');
+  } finally {
+    importing.value = false;
+  }
+
+  if (!result?.result) return;
+
+  showImportDecision.value = false;
+  ElMessage.success(
+    result.item?.reused
+      ? `相同备份已存在，已复用 ${result.item.name}`
+      : `备份已导入并保存为 ${result.item?.name || '新文件'}`,
+  );
+
+  try {
+    await refreshList();
+  } catch {
+    ElMessage.warning('备份已导入，但列表刷新失败，请稍后重试');
+  }
+
+  if (!shouldRestore) return;
+  if (!result.item) {
+    ElMessage.error('备份已导入，但服务未返回备份信息，请从列表中发起恢复');
+    return;
+  }
+  if (!result.item.restorable) {
+    ElMessage.warning(
+      result.item.restoreError || result.item.error || '备份已导入，但该备份不能用于恢复',
+    );
+    return;
+  }
+  openRestoreDialog(result.item);
+};
+
+const openRestoreDialog = (item: BackupInfo) => {
+  if (writeOperationsDisabled.value) {
+    ElMessage.warning('请等待登录或 Runtime 维护结束后再发起恢复');
+    return;
+  }
+  restoreCandidate.value = item;
+  restoreConfirmed.value = false;
+  showRestore.value = true;
+};
+
+const confirmRestore = async () => {
+  if (!restoreCandidate.value || !restoreConfirmed.value || writeOperationsDisabled.value) return;
+  restoring.value = true;
+  try {
+    await store.startRuntimeRestore(restoreCandidate.value.name);
+    showRestore.value = false;
+    ElMessage.info('恢复任务已创建，服务即将重新加载');
+  } catch (error: unknown) {
+    ElMessage.error(error instanceof Error ? error.message : '创建恢复任务失败');
+  } finally {
+    restoring.value = false;
+  }
+};
+
+const confirmAbandonPendingRestore = async () => {
+  if (!store.runtimeRestoreRequestPending || store.runtimeRestoreSubmitting) return;
+
+  try {
+    await ElMessageBox.confirm(
+      '此操作只会删除当前标签页保存的请求信息，不会取消服务端任务，也不会回滚或阻止恢复。请仅在已确认服务端没有执行，或确定不再需要追踪结果时继续。',
+      '确认放弃本机追踪',
+      {
+        confirmButtonText: '确认仅放弃本机追踪',
+        cancelButtonText: '继续保留',
+        type: 'warning',
+        closeOnClickModal: false,
+      },
+    );
+  } catch {
+    return;
+  }
+
+  if (!store.abandonPendingRuntimeRestoreRequest()) {
+    ElMessage.error('未能清除本机恢复请求，请刷新页面后重试');
+    return;
+  }
+  ElMessage.warning('已放弃本机追踪；服务端任务未被取消');
+};
+
 const configGet = async () => {
   const data = await getBackupConfig();
   cfg.value = data;
@@ -360,11 +677,13 @@ const configGet = async () => {
 };
 
 const bakDeleteConfirm = async (name: string) => {
+  if (writeOperationsDisabled.value) return;
   const ret = await ElMessageBox.confirm('确认删除？', '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning',
   });
+  if (writeOperationsDisabled.value) return;
   if (ret) {
     const r = await postBackupDel(name);
     if (!r.success) {
@@ -382,6 +701,7 @@ const checkAllBaks = ref(false);
 const isIndeterminate = ref(true);
 
 const enterBatchDelete = async () => {
+  if (writeOperationsDisabled.value) return;
   selectedBaks.value = data.value.items.filter((_, index) => index >= 5);
   showBatchDelete.value = true;
 };
@@ -398,11 +718,13 @@ const handleCheckedBakChange = (value: CheckboxValueType[]) => {
 };
 
 const bakBatchDeleteConfirm = async () => {
+  if (writeOperationsDisabled.value) return;
   const ret = await ElMessageBox.confirm('确认删除所选备份？删除的内容无法找回！', '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning',
   });
+  if (writeOperationsDisabled.value) return;
   if (ret) {
     const res = await postBackupBatchDel(selectedBaks.value.map(bak => bak.name));
     if (res.result) {
@@ -416,6 +738,7 @@ const bakBatchDeleteConfirm = async () => {
 };
 
 const doBackup = async () => {
+  if (writeOperationsDisabled.value) return;
   const ret = await postDoBackup(formatSelection(backupSelections.value));
   showBackup.value = false;
   await refreshList();
@@ -427,6 +750,7 @@ const doBackup = async () => {
 };
 
 const doSave = async () => {
+  if (writeOperationsDisabled.value) return;
   await setBackupConfig(cfg.value);
   ElMessage.success('已保存');
 };
@@ -444,15 +768,51 @@ watch(backupCleanTriggers, newStrategies => {
   cfg.value.backupCleanTrigger = sum(newStrategies);
 });
 
-const refreshNow = async () => {
+const refreshNow = () => {
   now.value = dayjs().format('YYMMDD_HHmmss');
-  await setTimeout(refreshNow, 1000);
 };
 
+let pageDataLoad: Promise<void> | undefined;
+let pageDataLoaded = false;
+const loadPageData = async () => {
+  if (pageDataLoad) return pageDataLoad;
+  if (writeOperationsDisabled.value) return;
+
+  pageDataLoad = (async () => {
+    await store.resumeRuntimeRestore();
+    if (writeOperationsDisabled.value) return;
+
+    const [configResult, listResult] = await Promise.allSettled([configGet(), refreshList()]);
+    if (configResult.status === 'rejected') ElMessage.error('读取备份设置失败');
+    if (listResult.status === 'rejected') ElMessage.error('读取备份列表失败');
+    pageDataLoaded = configResult.status === 'fulfilled' && listResult.status === 'fulfilled';
+  })().finally(() => {
+    pageDataLoad = undefined;
+  });
+  return pageDataLoad;
+};
+
+watch(
+  () => [store.authStatus, store.runtimeRestoreStatus.state] as const,
+  ([authStatus], [previousAuthStatus]) => {
+    if (authStatus !== 'authenticated' || store.runtimeRestoreInProgress) {
+      pageDataLoaded = false;
+      return;
+    }
+    if (previousAuthStatus !== 'authenticated' || !pageDataLoaded) void loadPageData();
+  },
+);
+
+let nowTimer: number | undefined;
 onBeforeMount(async () => {
-  await configGet();
-  await refreshList();
-  await refreshNow();
+  refreshNow();
+  nowTimer = window.setInterval(refreshNow, 1000);
+  await store.initializeSession();
+  await loadPageData();
+});
+
+onBeforeUnmount(() => {
+  if (nowTimer !== undefined) window.clearInterval(nowTimer);
 });
 </script>
 
@@ -468,5 +828,13 @@ onBeforeMount(async () => {
   .backup-line:not(:first-child) {
     border-top: 1px solid var(--el-border-color);
   }
+}
+
+.backup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 </style>
