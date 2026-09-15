@@ -295,7 +295,7 @@
             <el-form-item label="AppID">
               <div>{{ i.adapter?.appID }}</div>
             </el-form-item>
-            <el-form-item label="连接方式">
+            <el-form-item label="事件订阅模式">
               <div>{{ i.adapter?.useWebhook ? 'Webhook' : 'WebSocket' }}</div>
             </el-form-item>
             <template v-if="i.adapter?.useWebhook">
@@ -1536,10 +1536,47 @@
         </el-form-item>
         <el-form-item
           v-if="form.accountType === ImConnectionTypeOfficialQQ"
-          label="Webhook"
+          :label-width="formLabelWidth">
+          <small>
+            <template v-if="form.officialQQLoginMode === 'manual'">
+              <div>
+                进入腾讯
+                <a href="https://q.qq.com/#/app/bot" target="_blank" rel="noopener noreferrer"
+                  >开放平台</a
+                >
+                创建一个机器人之后进入机器人管理后台，切换到「开发 - 开发设置」页
+              </div>
+              <div>把机器人的 AppID 与 AppSecret 复制并粘贴进来</div>
+            </template>
+            <template v-else>
+              <div>
+                进入腾讯
+                <a href="https://q.qq.com/#/app/bot" target="_blank" rel="noopener noreferrer"
+                  >开放平台</a
+                >
+                创建一个机器人，点击"下一步"生成二维码，使用手机 QQ 扫描完成绑定
+              </div>
+            </template>
+          </small>
+        </el-form-item>
+
+        <el-form-item
+          v-if="form.accountType === ImConnectionTypeOfficialQQ"
+          label="事件订阅模式"
           :label-width="formLabelWidth"
           required>
-          <el-switch v-model="form.useWebhook" />
+          <div>
+            <el-radio-group v-model="form.useWebhook">
+              <el-radio :value="false">WebSocket</el-radio>
+              <el-radio :value="true">Webhook</el-radio>
+            </el-radio-group>
+            <small>
+              <div v-if="form.useWebhook">
+                Webhook：需要公网 IP，并在腾讯开放平台配置可访问的回调地址。
+              </div>
+              <div v-else>WebSocket（默认）：无需公网回调地址，适合普通部署者。</div>
+            </small>
+          </div>
         </el-form-item>
         <el-form-item
           v-if="form.accountType === ImConnectionTypeOfficialQQ && form.useWebhook"
@@ -1563,32 +1600,6 @@
             :max="65535"
             placeholder="例如 8099"
             autocomplete="off"></el-input-number>
-        </el-form-item>
-
-        <el-form-item
-          v-if="form.accountType === ImConnectionTypeOfficialQQ"
-          :label-width="formLabelWidth">
-          <small>
-            <template v-if="form.officialQQLoginMode === 'manual'">
-              <div>
-                进入腾讯
-                <a href="https://q.qq.com/#/app/bot" target="_blank" rel="noopener noreferrer"
-                  >开放平台</a
-                >
-                创建一个机器人之后进入机器人管理后台，切换到「开发 - 开发设置」页
-              </div>
-              <div>把机器人的 AppID 与 AppSecret 复制并粘贴进来</div>
-            </template>
-            <template v-else>
-              <div>
-                进入腾讯
-                <a href="https://q.qq.com/#/app/bot" target="_blank" rel="noopener noreferrer"
-                  >开放平台</a
-                >
-                创建一个机器人，点击"下一步"生成二维码，使用手机 QQ 扫描完成绑定
-              </div>
-            </template>
-          </small>
         </el-form-item>
 
         <el-form-item
