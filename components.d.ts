@@ -118,6 +118,7 @@ declare module 'vue' {
     ResourceRender: typeof import('./src/components/utils/resource-render.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SameNetworkLoginHelp: typeof import('./src/components/SameNetworkLoginHelp.vue')['default']
     StoryBackup: typeof import('./src/components/mod/story/StoryBackup.vue')['default']
   }
   export interface GlobalDirectives {
