@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { DocumentChecked } from '@element-plus/icons-vue';
+import { DocumentChecked, QuestionFilled } from '@element-plus/icons-vue';
 import { getBanConfig, setBanConfig } from '~/api/banconfig';
 import type { BanConfig } from '~/type';
 
@@ -53,6 +53,21 @@ watch(
     <el-checkbox v-model="banConfig.banBehaviorQuitIfAdmin"
       >使用者为管理员立即退群，为普通群员进行通告</el-checkbox
     >
+    <el-space :size="4">
+      <el-text>黑名单通报间隔</el-text>
+      <el-tooltip
+        content="-1 表示每次通报；0 表示使用默认的 20 分钟；正整数表示自定义冷却分钟数。冷却按同一群内的同一黑名单用户分别计算。"
+        placement="top">
+        <el-icon><QuestionFilled /></el-icon>
+      </el-tooltip>
+      <el-input-number
+        v-model="banConfig.banNotifyIntervalMinutes"
+        style="width: 8rem"
+        :min="-1"
+        :step="1"
+        step-strictly />
+      <el-text>分钟</el-text>
+    </el-space>
     <el-checkbox v-model="banConfig.banBehaviorQuitIfAdminSilentIfNotAdmin"
       >使用者为管理员立即退群，为普通群员仅拒绝回复</el-checkbox
     >

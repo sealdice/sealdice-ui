@@ -50,6 +50,26 @@
     <div></div>
     <div class="subtitle">社区协力</div>
 
+    <div style="margin-top: 2rem" class="subtitle">V1.6 版本</div>
+    <div class="developers">
+      <el-link
+        v-for="contributor in v16Contributors"
+        :key="contributor.github"
+        :class="{
+          'developer-muted': contributor.github === 'PaienNate' && contributor.name !== 'PaienNate',
+        }"
+        :underline="false"
+        :href="`https://github.com/${contributor.github}`"
+        target="_blank"
+        rel="noopener noreferrer">
+        <el-avatar
+          shape="circle"
+          :size="50"
+          :src="`${urlBase}/sd-api/utils/ga/${contributor.github}`" />
+        {{ contributor.name }}
+      </el-link>
+    </div>
+
     <div style="margin-top: 2rem" class="subtitle">V1.5 版本</div>
     <div class="developers">
       <el-link :underline="false" href="https://github.com/fy0" target="_blank"
@@ -644,6 +664,35 @@ import { urlBase } from '~/backend';
 
 const store = useStore();
 
+const wesleyYoungNames = ['Wesley-Young', '白圣女', '盐巴猫'] as const;
+const wesleyYoungName =
+  wesleyYoungNames[Math.floor(Math.random() * wesleyYoungNames.length)] ?? wesleyYoungNames[0];
+
+const paienNateSpecialNames = ['*走丢了', '*这个人上班去了'] as const;
+const paienNateName =
+  Math.random() < 0.35
+    ? (paienNateSpecialNames[Math.floor(Math.random() * paienNateSpecialNames.length)] ??
+      paienNateSpecialNames[0])
+    : 'PaienNate';
+
+const v16Contributors = [
+  { github: 'Szzrain', name: 'Szzrain' },
+  { github: 'fy0', name: '木落' },
+  { github: 'MX-fox', name: '暮星' },
+  { github: 'kenichiLyon', name: '山本健一' },
+  { github: 'PaienNate', name: paienNateName },
+  { github: 'baiyu-yu', name: '白鱼' },
+  { github: 'lyjjl', name: 'SomeOne' },
+  { github: 'kagangtuya-star', name: 'SilverDragon' },
+  { github: 'oissevalt', name: '檀轶步棋' },
+  { github: 'BQxiaojiao', name: 'BQxiaojiao' },
+  { github: 'kainordherd', name: 'Kai' },
+  { github: 'Wesley-Young', name: wesleyYoungName },
+  { github: 'Lirvis', name: '莉尔维斯(Lirvis) (sealrepo)' },
+  { github: 'Dontplay0112', name: 'Dontplay (UI)' },
+  { github: 'ShiaNyaa', name: '希亚 (UI)' },
+] as const;
+
 onBeforeMount(async () => {
   await store.logFetchAndClear();
 });
@@ -685,6 +734,16 @@ onBeforeUnmount(() => {
 
 .developers .el-avatar {
   margin-right: 0.5rem;
+}
+
+.developers .developer-muted {
+  --el-link-text-color: var(--el-text-color-secondary);
+  --el-link-hover-text-color: var(--el-text-color-secondary);
+}
+
+.developers .developer-muted .el-avatar {
+  filter: grayscale(1);
+  opacity: 0.6;
 }
 
 .developers > * {

@@ -4,7 +4,7 @@ const baseUrl = '/im_connections/';
 const request = createRequest(baseUrl);
 
 export function getConnectionList() {
-  return request<DiceConnection[]>('get', 'list');
+  return request<DiceConnection[] | null>('get', 'list');
 }
 
 export function getConnectQQVersion() {
@@ -142,16 +142,55 @@ export function postAddSlack(botToken: string, appToken: string) {
   });
 }
 
+interface TestOfficialQQSuccessBase {
+  result: true;
+  testOnly: true;
+  userId: string;
+  uin: string;
+  nickname: string;
+}
+
+export type TestOfficialQQSuccessResult = TestOfficialQQSuccessBase &
+  ({ exists: false; id?: never } | { exists: true; id: string });
+
+export interface AddOfficialQQSuccessResult {
+  result: true;
+  testOnly?: false;
+  id: string;
+  userId: string;
+  uin: string;
+  nickname?: string;
+}
+
+export interface AddOfficialQQErrorResult {
+  result: false;
+  err: string;
+}
+
+export type AddOfficialQQResult =
+  | TestOfficialQQSuccessResult
+  | AddOfficialQQSuccessResult
+  | AddOfficialQQErrorResult;
+
 export function postAddOfficialQQ(
-  appID: number,
+  appID: string | number,
   appSecret: string,
-  token: string,
-  onlyQQGuild: boolean,
+  testOnly: boolean,
+  useWebhook: boolean,
+  webhookPath: string,
+  webhookPort: number,
 ) {
-  return request<DiceConnection>(
+  return request<AddOfficialQQResult>(
     'post',
     'addOfficialQQ',
-    { appID, appSecret, token, onlyQQGuild },
+    {
+      appID: String(appID),
+      appSecret,
+      testOnly,
+      useWebhook,
+      webhookPath: useWebhook ? webhookPath : '',
+      webhookPort: useWebhook ? webhookPort : 0,
+    },
     'json',
     {
       timeout: 65000,
@@ -208,7 +247,9 @@ export function postConnectionDel(id: string) {
 }
 
 export function postConnectionQrcode(id: string) {
-  return request<{ img: string }>('post', 'qrcode', { id });
+  // 二维码就绪时返回 { img: base64DataUrl }，其他状态下不包含 img 字段
+  // 支持 gocq / walle-q / milky / official 协议
+  return request<{ img?: string }>('post', 'qrcode', { id });
 }
 
 export function postSmsCodeSet(id: string, code: string) {
@@ -257,7 +298,7 @@ export interface DiceConnection {
   enable: boolean;
   protocolType: string;
   nickname: string;
-  userId: number;
+  userId: string | number;
   groupNum: number;
   cmdExecutedNum: number;
   cmdExecutedLastTime: number;
@@ -266,7 +307,7 @@ export interface DiceConnection {
   adapter: AdapterQQ;
 }
 
-interface AdapterQQ {
+export interface AdapterQQ {
   DiceServing: boolean;
   connectUrl: string;
   curLoginFailedReason: string;
@@ -286,15 +327,26 @@ interface AdapterQQ {
   redVersion: string;
   host: string;
   port: number;
-  appID: number;
+  appID: string | number;
   isReverse: boolean;
   reverseAddr: string;
   builtinMode: 'gocq' | 'lagrange' | 'lagrange-gocq';
   built_in_mode: string; // Milky
   signServerVer: string;
   signServerName: string;
+  useWebhook?: boolean;
+  webhookPath?: string;
+  webhookPort?: number;
+  qrLoginState?: OfficialQQLoginState;
 }
-enum goCqHttpStateCode {
+export enum OfficialQQLoginState {
+  Init = 0,
+  QRWaitingForScan = 1,
+  QRScanned = 2,
+  Connecting = 3,
+  Failed = 4,
+}
+export enum goCqHttpStateCode {
   Init = 0,
   InLogin = 1,
   InLoginQrCode = 2,
@@ -340,7 +392,6 @@ enum goCqHttpStateCode {
 
 //     appID: undefined,
 //     appSecret: string,
-//     onlyQQGuild: true,
 
 //     useSignServer: false,
 //     signServerConfig: {

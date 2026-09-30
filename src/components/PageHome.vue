@@ -38,34 +38,37 @@
       >
     </div>
 
-    <div class="flex items-center flex-wrap gap-1" @click="refreshNetworkHealth">
+    <div class="flex items-center flex-wrap gap-1">
       <el-tooltip raw-content content="点击重新进行检测">
-        <span>网络质量：</span>
+        <button class="network-health-trigger" type="button" @click="refreshNetworkHealth">
+          <span>网络质量：</span>
+
+          <el-text type="primary" v-if="networkHealth.timestamp === 0">检测中…… 🤔</el-text>
+          <el-text
+            type="success"
+            v-else-if="
+              networkHealth.total !== 0 && networkHealth.total === networkHealth.ok?.length
+            "
+            >优 😄</el-text
+          >
+          <el-text
+            type="primary"
+            v-else-if="networkHealth.ok?.includes('sign') && networkHealth.ok?.includes('seal')"
+            >一般 😐️</el-text
+          >
+          <el-text
+            type="danger"
+            v-else-if="networkHealth.total !== 0 && (networkHealth.ok ?? []).length === 0"
+            >网络中断 😱</el-text
+          >
+          <el-text v-else type="warning">差 ☹️</el-text>
+        </button>
       </el-tooltip>
 
-      <el-text type="primary" v-if="networkHealth.timestamp === 0">检测中…… 🤔</el-text>
-      <el-text
-        type="success"
-        v-else-if="networkHealth.total !== 0 && networkHealth.total === networkHealth.ok?.length"
-        >优 😄</el-text
+      <el-text v-if="isNetworkHealthPoor" class="ml-3" type="warning" size="small"
+        >这意味着你可能无法正常使用内置客户端/Lagrange 连接 QQ
+        平台，有时会出现消息无法正常发送的现象。</el-text
       >
-      <el-text
-        type="primary"
-        v-else-if="networkHealth.ok?.includes('sign') && networkHealth.ok?.includes('seal')"
-        >一般 😐️</el-text
-      >
-      <el-text
-        type="danger"
-        v-else-if="networkHealth.total !== 0 && (networkHealth.ok ?? []).length === 0"
-        >网络中断 😱</el-text
-      >
-      <template v-else>
-        <el-text type="warning" class="mr-4">差 ☹️</el-text>
-        <el-text type="warning" size="small"
-          >这意味着你可能无法正常使用内置客户端/Lagrange 连接 QQ
-          平台，有时会出现消息无法正常发送的现象。</el-text
-        >
-      </template>
 
       <el-tooltip v-if="networkHealth.timestamp !== 0">
         <template #content>
@@ -312,6 +315,16 @@ const networkHealth = ref({
   timestamp: number;
 });
 
+const isNetworkHealthPoor = computed(() => {
+  const { timestamp, total, ok } = networkHealth.value;
+  return (
+    timestamp !== 0 &&
+    !(total !== 0 && total === ok.length) &&
+    !(ok.includes('sign') && ok.includes('seal')) &&
+    !(total !== 0 && ok.length === 0)
+  );
+});
+
 let timerId: number;
 let checkTimerId: number;
 
@@ -437,6 +450,17 @@ onBeforeUnmount(() => {
   :deep(.el-divider__text) {
     background: #f3f4f6;
   }
+}
+
+.network-health-trigger {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
 }
 </style>
 
