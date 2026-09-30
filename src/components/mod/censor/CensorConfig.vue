@@ -106,7 +106,13 @@
         <div>
           <el-checkbox-group v-model="config.levelConfig.notice.handlers">
             <el-checkbox v-for="handle in defaultHandles" :key="handle.key" :label="handle.key">
-              {{ handle.name }}
+              <el-tooltip v-if="handle.tooltip" :content="handle.tooltip" placement="top">
+                <span class="handler-label">
+                  {{ handle.name }}
+                  <el-icon><QuestionFilled /></el-icon>
+                </span>
+              </el-tooltip>
+              <span v-else>{{ handle.name }}</span>
             </el-checkbox>
           </el-checkbox-group>
           <el-text>怒气值</el-text>
@@ -139,7 +145,13 @@
         <div>
           <el-checkbox-group v-model="config.levelConfig.caution.handlers">
             <el-checkbox v-for="handle in defaultHandles" :key="handle.key" :label="handle.key">
-              {{ handle.name }}
+              <el-tooltip v-if="handle.tooltip" :content="handle.tooltip" placement="top">
+                <span class="handler-label">
+                  {{ handle.name }}
+                  <el-icon><QuestionFilled /></el-icon>
+                </span>
+              </el-tooltip>
+              <span v-else>{{ handle.name }}</span>
             </el-checkbox>
           </el-checkbox-group>
           <el-text>怒气值</el-text>
@@ -172,7 +184,13 @@
         <div>
           <el-checkbox-group v-model="config.levelConfig.warning.handlers">
             <el-checkbox v-for="handle in defaultHandles" :key="handle.key" :label="handle.key">
-              {{ handle.name }}
+              <el-tooltip v-if="handle.tooltip" :content="handle.tooltip" placement="top">
+                <span class="handler-label">
+                  {{ handle.name }}
+                  <el-icon><QuestionFilled /></el-icon>
+                </span>
+              </el-tooltip>
+              <span v-else>{{ handle.name }}</span>
             </el-checkbox>
           </el-checkbox-group>
           <el-text>怒气值</el-text>
@@ -205,7 +223,13 @@
         <div>
           <el-checkbox-group v-model="config.levelConfig.danger.handlers">
             <el-checkbox v-for="handle in defaultHandles" :key="handle.key" :label="handle.key">
-              {{ handle.name }}
+              <el-tooltip v-if="handle.tooltip" :content="handle.tooltip" placement="top">
+                <span class="handler-label">
+                  {{ handle.name }}
+                  <el-icon><QuestionFilled /></el-icon>
+                </span>
+              </el-tooltip>
+              <span v-else>{{ handle.name }}</span>
             </el-checkbox>
           </el-checkbox-group>
           <el-text>怒气值</el-text>
@@ -281,9 +305,30 @@ interface LevelConfig {
   score: number;
 }
 
-const defaultHandles: { key: string; name: string }[] = [
+type HandlerKey =
+  | 'SendWarning'
+  | 'SendNotice'
+  | 'SendEncodedDetails'
+  | 'BanUser'
+  | 'BanGroup'
+  | 'BanInviter'
+  | 'AddScore';
+
+interface HandlerOption {
+  key: HandlerKey;
+  name: string;
+  tooltip?: string;
+}
+
+const defaultHandles: HandlerOption[] = [
   { key: 'SendWarning', name: '发送警告' },
   { key: 'SendNotice', name: '通知 Master' },
+  {
+    key: 'SendEncodedDetails',
+    name: '发送命中详情（Base64）',
+    tooltip:
+      '命中词和检测上下文会使用 Base64 展示并发送到当前会话。Base64 仅用于避免直接发送敏感原文，不是加密。',
+  },
   { key: 'BanUser', name: '拉黑用户' },
   { key: 'BanGroup', name: '拉黑群' },
   { key: 'BanInviter', name: '拉黑邀请人' },
@@ -351,3 +396,11 @@ const submit = async () => {
   });
 };
 </script>
+
+<style scoped>
+.handler-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+</style>

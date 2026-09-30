@@ -92,6 +92,7 @@ export interface BanConfig {
   banBehaviorQuitPlaceImmediately: boolean;
   banBehaviorQuitIfAdmin: boolean;
   banBehaviorQuitIfAdminSilentIfNotAdmin: boolean;
+  banNotifyIntervalMinutes: number;
 
   thresholdWarn: number;
   thresholdBan: number;

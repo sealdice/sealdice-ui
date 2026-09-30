@@ -9,9 +9,13 @@
     item-key="name">
     <template #item="{ element: el, index }">
       <li class="reply-item list-none mb-2">
-        <foldable-card type="div" :default-fold="true" compact>
+        <foldable-card
+          :ref="el => setItemCardRef(index, el)"
+          type="div"
+          :default-fold="true"
+          compact>
           <template #title>
-            <el-checkbox v-model="el.enable">开启</el-checkbox>
+            <el-checkbox v-model="el.enable" @click.stop>开启</el-checkbox>
           </template>
           <template #title-extra>
             <el-space size="large" alignment="center">
@@ -25,7 +29,14 @@
           </template>
 
           <template #unfolded-extra>
-            <div class="pl-4 border-l-4 border-orange-500">
+            <div
+              class="pl-4 border-l-4 border-orange-500 cursor-pointer"
+              role="button"
+              tabindex="0"
+              aria-label="展开或收起回复项"
+              @click="toggleCard(index)"
+              @keydown.enter.prevent="toggleCard(index)"
+              @keydown.space.prevent="toggleCard(index)">
               <div v-for="(cond, index2) in el.conditions || []" :key="index2">
                 <el-text
                   v-if="cond.condType === 'textMatch'"
@@ -169,6 +180,25 @@ import draggable from 'vuedraggable';
 import { breakpointsTailwind } from '@vueuse/core';
 
 const props = defineProps<{ tasks: Array<any> }>();
+
+type FoldableCardRef = { open: () => void; toggle: () => void };
+const itemCardRefs = ref<Array<FoldableCardRef | null>>([]);
+
+const setItemCardRef = (index: number, card: unknown) => {
+  itemCardRefs.value[index] = card as FoldableCardRef | null;
+};
+
+const toggleCard = (index: number) => {
+  itemCardRefs.value[index]?.toggle();
+};
+
+const openLast = () => {
+  nextTick(() => {
+    itemCardRefs.value[props.tasks.length - 1]?.open();
+  });
+};
+
+defineExpose({ openLast });
 
 const breakpoints = useBreakpoints(breakpointsTailwind);
 const notMobile = breakpoints.greater('sm');

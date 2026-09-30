@@ -37,6 +37,10 @@ const close = () => {
   folded.value = true;
 };
 
+const toggle = () => {
+  folded.value = !folded.value;
+};
+
 const updateFolded = () => {
   if (props.defaultFold === 'auto') {
     folded.value = folded.value ?? !window.matchMedia('(min-width: 768px)').matches;
@@ -49,7 +53,7 @@ onMounted(() => {
   updateFolded();
 });
 
-defineExpose({ open, close });
+defineExpose({ open, close, toggle });
 </script>
 
 <template>
@@ -66,7 +70,7 @@ defineExpose({ open, close });
               <slot name="title-extra" />
             </div>
             <div class="mx-2">
-              <el-button link size="small" @click="folded = !folded">
+              <el-button link size="small" @click="toggle">
                 <template #icon>
                   <el-icon color="var(--el-color-info)">
                     <component :is="folded ? ArrowRight : ArrowDown" />
