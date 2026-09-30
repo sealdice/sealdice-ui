@@ -38,10 +38,17 @@
       >
     </div>
 
-    <div class="flex items-center flex-wrap gap-1">
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
       <el-tooltip content="点击重新检测服务器到各机器人接口的连通性">
-        <el-button link :disabled="networkChecking" @click="refreshNetworkHealth"
-          >接口连通性：</el-button
+        <span
+          role="button"
+          tabindex="0"
+          class="cursor-pointer shrink-0"
+          :aria-disabled="networkChecking"
+          @click="refreshNetworkHealth"
+          @keydown.enter.prevent="refreshNetworkHealth"
+          @keydown.space.prevent="refreshNetworkHealth"
+          >接口连通性：</span
         >
       </el-tooltip>
       <el-text v-if="networkChecking" type="primary" size="small">检测中……</el-text>
@@ -53,31 +60,27 @@
         @click="refreshNetworkHealth"
         >检测失败，点击重试</el-button
       >
-      <el-tooltip v-else-if="networkHealth.timestamp !== 0">
-        <template #content>
-          {{ dayjs.unix(networkHealth.timestamp).format('YYYY-MM-DD HH:mm:ss') }}
-        </template>
-        <el-text class="ml-auto" type="info" size="small"
-          >检测于 {{ dayjs.unix(networkHealth.timestamp).from(now) }}</el-text
-        >
-      </el-tooltip>
-    </div>
-
-    <div
-      v-if="!networkChecking && !networkCheckFailed && networkHealth.timestamp !== 0"
-      class="mx-2 flex flex-wrap items-center gap-x-4 gap-y-2">
-      <el-tooltip
-        v-for="adapter in networkAdapters"
-        :key="adapter.target"
-        :content="adapter.description">
-        <el-text size="small" class="inline-flex items-center gap-1">
-          {{ adapter.label }}
-          <component :is="getConnectivityComponent(isAdapterReachable(adapter.target))" />
-        </el-text>
-      </el-tooltip>
+      <template v-else-if="networkHealth.timestamp !== 0">
+        <el-tooltip
+          v-for="adapter in networkAdapters"
+          :key="adapter.target"
+          :content="adapter.description">
+          <el-text size="small" class="inline-flex items-center gap-1">
+            {{ adapter.label }}
+            <component :is="getConnectivityComponent(isAdapterReachable(adapter.target))" />
+          </el-text>
+        </el-tooltip>
+        <el-tooltip>
+          <template #content>
+            {{ dayjs.unix(networkHealth.timestamp).format('YYYY-MM-DD HH:mm:ss') }}
+          </template>
+          <el-text class="ml-auto" type="info" size="small"
+            >检测于 {{ dayjs.unix(networkHealth.timestamp).from(now) }}</el-text
+          >
+        </el-tooltip>
+      </template>
     </div>
   </div>
-
   <div class="flex justify-between items-center">
     <h4>日志</h4>
     <el-checkbox v-model="autoRefresh">保持刷新</el-checkbox>
