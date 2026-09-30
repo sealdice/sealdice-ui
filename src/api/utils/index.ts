@@ -20,14 +20,20 @@ export function postUtilsCheckCronExpr(expr: string) {
   return request('post', 'check_cron_expr', { expr });
 }
 
+export interface NetworkHealthStatus {
+  total: number;
+  ok: string[] | null;
+  targets?: {
+    target: string;
+    ok: boolean;
+    duration: number;
+  }[];
+  timestamp: number;
+}
+
 export function getUtilsCheckNetWorkHealth() {
-  return request<
-    | {
-        result: true;
-        total: number;
-        ok: string[];
-        timestamp: number;
-      }
-    | { result: false }
-  >('get', 'check_network_health');
+  return request<(NetworkHealthStatus & { result: true }) | { result: false }>(
+    'get',
+    'check_network_health',
+  );
 }

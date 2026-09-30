@@ -38,36 +38,22 @@
       >
     </div>
 
-    <div class="flex items-center flex-wrap gap-1" @click="refreshNetworkHealth">
-      <el-tooltip raw-content content="点击重新进行检测">
-        <span>网络质量：</span>
-      </el-tooltip>
-
-      <el-text type="primary" v-if="networkHealth.timestamp === 0">检测中…… 🤔</el-text>
-      <el-text
-        type="success"
-        v-else-if="networkHealth.total !== 0 && networkHealth.total === networkHealth.ok?.length"
-        >优 😄</el-text
-      >
-      <el-text
-        type="primary"
-        v-else-if="networkHealth.ok?.includes('sign') && networkHealth.ok?.includes('seal')"
-        >一般 😐️</el-text
-      >
-      <el-text
-        type="danger"
-        v-else-if="networkHealth.total !== 0 && (networkHealth.ok ?? []).length === 0"
-        >网络中断 😱</el-text
-      >
-      <template v-else>
-        <el-text type="warning" class="mr-4">差 ☹️</el-text>
-        <el-text type="warning" size="small"
-          >这意味着你可能无法正常使用内置客户端/Lagrange 连接 QQ
-          平台，有时会出现消息无法正常发送的现象。</el-text
+    <div class="flex items-center flex-wrap gap-1">
+      <el-tooltip content="点击重新检测服务器到各机器人接口的连通性">
+        <el-button link :disabled="networkChecking" @click="refreshNetworkHealth"
+          >接口连通性：</el-button
         >
-      </template>
-
-      <el-tooltip v-if="networkHealth.timestamp !== 0">
+      </el-tooltip>
+      <el-text v-if="networkChecking" type="primary" size="small">检测中……</el-text>
+      <el-button
+        v-else-if="networkCheckFailed"
+        link
+        type="danger"
+        size="small"
+        @click="refreshNetworkHealth"
+        >检测失败，点击重试</el-button
+      >
+      <el-tooltip v-else-if="networkHealth.timestamp !== 0">
         <template #content>
           {{ dayjs.unix(networkHealth.timestamp).format('YYYY-MM-DD HH:mm:ss') }}
         </template>
@@ -77,23 +63,18 @@
       </el-tooltip>
     </div>
 
-    <div v-if="networkHealth.timestamp !== 0" class="mx-2 flex items-center gap-4">
-      <el-text size="small"
-        >官网
-        <component :is="getWebsiteHealthComponent(networkHealth.ok?.includes('seal'))"></component
-      ></el-text>
-      <el-text size="small"
-        >Lagrange Sign
-        <component :is="getWebsiteHealthComponent(networkHealth.ok?.includes('sign'))"></component
-      ></el-text>
-      <el-text size="small"
-        >Google
-        <component :is="getWebsiteHealthComponent(networkHealth.ok?.includes('google'))"></component
-      ></el-text>
-      <el-text size="small"
-        >GitHub
-        <component :is="getWebsiteHealthComponent(networkHealth.ok?.includes('github'))"></component
-      ></el-text>
+    <div
+      v-if="!networkChecking && !networkCheckFailed && networkHealth.timestamp !== 0"
+      class="mx-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+      <el-tooltip
+        v-for="adapter in networkAdapters"
+        :key="adapter.target"
+        :content="adapter.description">
+        <el-text size="small" class="inline-flex items-center gap-1">
+          {{ adapter.label }}
+          <component :is="getConnectivityComponent(isAdapterReachable(adapter.target))" />
+        </el-text>
+      </el-tooltip>
     </div>
   </div>
 
@@ -294,7 +275,7 @@ import { useStore } from '~/store';
 import dayjs from 'dayjs';
 import { filesize } from 'filesize';
 import { CircleCheckFilled, CircleCloseFilled } from '@element-plus/icons-vue';
-import { getUtilsCheckNetWorkHealth } from '~/api/utils';
+import { getUtilsCheckNetWorkHealth, type NetworkHealthStatus } from '~/api/utils';
 import { postUpgrade } from '~/api/dice';
 
 const store = useStore();
@@ -302,15 +283,27 @@ const store = useStore();
 const upgradeDialogVisible = ref(false);
 const autoRefresh = ref(true);
 const now = ref<dayjs.Dayjs>(dayjs());
-const networkHealth = ref({
+const networkHealth = ref<NetworkHealthStatus>({
   total: 0,
   ok: [],
+  targets: [],
   timestamp: 0,
-} as {
-  total: number;
-  ok: string[];
-  timestamp: number;
 });
+const networkChecking = ref(false);
+const networkCheckFailed = ref(false);
+const networkAdapters = [
+  { target: 'qq', label: 'QQ官方机器人', description: 'QQ官方机器人接口连通性' },
+  { target: 'kook', label: 'Kook', description: 'Kook机器人接口连通性' },
+  { target: 'discord', label: 'Discord', description: 'Discord机器人接口连通性' },
+  { target: 'telegram', label: 'Telegram', description: 'Telegram机器人接口连通性' },
+  { target: 'dingtalk', label: '钉钉', description: '钉钉机器人接口连通性' },
+  { target: 'slack', label: 'slack', description: 'slack接口连通性' },
+];
+
+const isAdapterReachable = (target: string): boolean =>
+  networkHealth.value.targets?.find(item => item.target === target)?.ok ??
+  networkHealth.value.ok?.includes(target) ??
+  false;
 
 let timerId: number;
 let checkTimerId: number;
@@ -360,7 +353,7 @@ const getLogRowClassName = ({ row }: { row: any }) => {
   }
 };
 
-const getWebsiteHealthComponent = (ok: boolean): VNode => (
+const getConnectivityComponent = (ok: boolean): VNode => (
   <>
     {ok ? (
       <el-icon color={'var(--el-color-success)'}>
@@ -375,10 +368,20 @@ const getWebsiteHealthComponent = (ok: boolean): VNode => (
 );
 
 const refreshNetworkHealth = async () => {
-  networkHealth.value.timestamp = 0;
-  const ret = await getUtilsCheckNetWorkHealth();
-  if (ret.result) {
-    networkHealth.value = ret;
+  if (networkChecking.value) return;
+  networkChecking.value = true;
+  networkCheckFailed.value = false;
+  try {
+    const ret = await getUtilsCheckNetWorkHealth();
+    if (ret.result) {
+      networkHealth.value = ret;
+    } else {
+      networkCheckFailed.value = true;
+    }
+  } catch {
+    networkCheckFailed.value = true;
+  } finally {
+    networkChecking.value = false;
   }
 };
 
