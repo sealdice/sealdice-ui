@@ -1917,51 +1917,53 @@
     </template>
 
     <template #footer>
-      <SameNetworkLoginHelp
-        v-if="isBuiltinAccountType(form.accountType)"
-        :style="{ paddingLeft: formLabelWidth }" />
-      <span class="dialog-footer">
-        <template v-if="form.step === 1">
-          <el-button @click="dialogFormVisible = false">取消</el-button>
-          <el-button
-            type="primary"
-            :disabled="
-              form.accountType === ImConnectionTypeGocqLegacy ||
-              ((form.accountType === ImConnectionTypeDiscord ||
-                form.accountType === ImConnectionTypeKook ||
-                form.accountType === ImConnectionTypeTelegram) &&
-                form.token === '') ||
-              (form.accountType === ImConnectionTypeMinecraft && form.url === '') ||
-              (form.accountType === ImConnectionTypeDodo &&
-                (form.clientID === '' || form.token === '')) ||
-              (form.accountType === ImConnectionTypeDingTalk &&
-                (form.clientID === '' || form.token === '' || form.robotCode === '')) ||
-              (form.accountType === ImConnectionTypeOnebotSeparate &&
-                (form.account === '' || form.connectUrl === '')) ||
-              (form.accountType === ImConnectionTypeRed &&
-                (form.host === '' || form.port === '' || form.token === '')) ||
-              (form.accountType === ImConnectionTypeSlack &&
-                (form.botToken === '' || form.appToken === '')) ||
-              (form.accountType === ImConnectionTypeOnebotReverse &&
-                (form.account === '' || form.reverseAddr === '')) ||
-              (form.accountType === ImConnectionTypeSealChat &&
-                (form.token === '' || form.url === '')) ||
-              (form.accountType === ImConnectionTypeLagrangeOnebot &&
-                (form.account === '' ||
-                  form.signServerVersion === '' ||
-                  form.signServerName === '')) ||
-              (form.accountType === ImConnectionTypeMilkySeparate &&
-                (form.wsGateway === '' || form.restGateway === '')) ||
-              (isInternalMilkyAccountType(form.accountType) && form.account === '')
-            "
-            @click="goStepTwo">
-            下一步</el-button
-          >
-        </template>
-        <template v-if="form.isEnd">
-          <el-button @click="formClose">确定</el-button>
-        </template>
-      </span>
+      <div class="flex items-center justify-end gap-4">
+        <SameNetworkLoginHelp
+          v-if="isBuiltinAccountType(form.accountType)"
+          class="mr-auto min-w-0" />
+        <span class="dialog-footer shrink-0">
+          <template v-if="form.step === 1">
+            <el-button @click="dialogFormVisible = false">取消</el-button>
+            <el-button
+              type="primary"
+              :disabled="
+                form.accountType === ImConnectionTypeGocqLegacy ||
+                ((form.accountType === ImConnectionTypeDiscord ||
+                  form.accountType === ImConnectionTypeKook ||
+                  form.accountType === ImConnectionTypeTelegram) &&
+                  form.token === '') ||
+                (form.accountType === ImConnectionTypeMinecraft && form.url === '') ||
+                (form.accountType === ImConnectionTypeDodo &&
+                  (form.clientID === '' || form.token === '')) ||
+                (form.accountType === ImConnectionTypeDingTalk &&
+                  (form.clientID === '' || form.token === '' || form.robotCode === '')) ||
+                (form.accountType === ImConnectionTypeOnebotSeparate &&
+                  (form.account === '' || form.connectUrl === '')) ||
+                (form.accountType === ImConnectionTypeRed &&
+                  (form.host === '' || form.port === '' || form.token === '')) ||
+                (form.accountType === ImConnectionTypeSlack &&
+                  (form.botToken === '' || form.appToken === '')) ||
+                (form.accountType === ImConnectionTypeOnebotReverse &&
+                  (form.account === '' || form.reverseAddr === '')) ||
+                (form.accountType === ImConnectionTypeSealChat &&
+                  (form.token === '' || form.url === '')) ||
+                (form.accountType === ImConnectionTypeLagrangeOnebot &&
+                  (form.account === '' ||
+                    form.signServerVersion === '' ||
+                    form.signServerName === '')) ||
+                (form.accountType === ImConnectionTypeMilkySeparate &&
+                  (form.wsGateway === '' || form.restGateway === '')) ||
+                (isInternalMilkyAccountType(form.accountType) && form.account === '')
+              "
+              @click="goStepTwo">
+              下一步</el-button
+            >
+          </template>
+          <template v-if="form.isEnd">
+            <el-button @click="formClose">确定</el-button>
+          </template>
+        </span>
+      </div>
     </template>
   </el-dialog>
 

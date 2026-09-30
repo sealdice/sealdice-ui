@@ -53,7 +53,6 @@ const openSocks = async () => {
 <style scoped>
 .same-network-login-help {
   text-align: left;
-  margin-bottom: 0.75rem;
 }
 
 .help-link {
