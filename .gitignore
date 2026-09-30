@@ -16,3 +16,6 @@ stats.html
 /.vscode/settings.json
 
 .env.*
+
+auto-imports.d.ts
+components.d.ts

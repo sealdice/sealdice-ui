@@ -40,16 +40,13 @@
 
     <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
       <el-tooltip content="点击重新检测服务器到各机器人接口的连通性">
-        <span
-          role="button"
-          tabindex="0"
-          class="cursor-pointer shrink-0"
-          :aria-disabled="networkChecking"
-          @click="refreshNetworkHealth"
-          @keydown.enter.prevent="refreshNetworkHealth"
-          @keydown.space.prevent="refreshNetworkHealth"
-          >接口连通性：</span
-        >
+        <button
+          type="button"
+          class="network-health-trigger shrink-0"
+          :disabled="networkChecking"
+          @click="refreshNetworkHealth">
+          接口连通性：
+        </button>
       </el-tooltip>
       <el-text v-if="networkChecking" type="primary" size="small">检测中……</el-text>
       <el-button
@@ -443,6 +440,17 @@ onBeforeUnmount(() => {
   :deep(.el-divider__text) {
     background: #f3f4f6;
   }
+}
+
+.network-health-trigger {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
 }
 </style>
 

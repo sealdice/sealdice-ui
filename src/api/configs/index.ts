@@ -19,9 +19,12 @@ export function getCustomReply(filename: string) {
   return request<CustomReply>('get', 'custom_reply', { filename });
 }
 
-export function postCustomReplyNew(filename: string) {
-  return request<{ success: boolean }>('post', 'custom_reply/file_new', {
+export type ReplyVMVersion = 'v1' | 'v2';
+
+export function postCustomReplyNew(filename: string, vmVersion: ReplyVMVersion = 'v2') {
+  return request<{ success: boolean; vmVersion: ReplyVMVersion }>('post', 'custom_reply/file_new', {
     filename,
+    vmVersion,
   });
 }
 
@@ -98,6 +101,7 @@ export type CustomReply = {
   packageId?: string;
   updateTimestamp: number;
   version: string;
+  vmVersion?: ReplyVMVersion;
 };
 type CustomReplyItem = {
   conditions: ReplyCondition[];
@@ -121,4 +125,5 @@ export type ReplyFileInfo = {
   enable: boolean;
   filename: string;
   packageId?: string;
+  vmVersion?: ReplyVMVersion;
 };

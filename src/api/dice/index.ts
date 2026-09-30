@@ -1,6 +1,8 @@
 import type { AdvancedConfig } from '~/type';
 import { createRequest } from '..';
 
+export * from './noticeCodec';
+
 const baseUrl = '/dice/';
 const request = createRequest(baseUrl);
 
@@ -75,6 +77,7 @@ export type DiceConfig = {
   helpDocEngineType: number; // 帮助文档引擎类型
   masterUnlockCode: string; // 主解锁码
   serveAddress: string; // 服务器地址
+  trayTooltip?: string; // 系统托盘提示文本
   masterUnlockCodeTime: number; // 解锁码的时间戳
   logPageItemLimit: number; // 日志页面的条目限制
   friendAddComment: string; // 添加好友时的备注
@@ -97,11 +100,14 @@ export type DiceConfig = {
   aliveNoticeValue: string; // 存活通知的值
   replyDebugMode: boolean; // 是否启用调试模式回复
   customReplyConfigEnable: boolean; // 是否启用自定义回复配置
+  VMVersionForReply?: 'v1' | 'v2'; // 未声明版本的自定义回复所使用的 VM
   logSizeNoticeEnable: boolean; // 是否启用日志大小通知
   logSizeNoticeCount: number; // 日志大小通知的数量
   textCmdTrustOnly: boolean; // 仅信任的文本命令
   ignoreUnaddressedBotCmd: boolean; // 忽略未定向给机器人的命令
   QQEnablePoke: boolean; // 是否启用QQ戳一戳功能
+  officialQQFileSendBase64: boolean; // 是否以 Base64 发送文件
+  officialQQUseMarkdown: boolean; // 是否使用 Markdown
   playerNameWrapEnable: boolean; // 是否启用玩家名包裹
   mailEnable: boolean; // 是否启用邮件功能
   mailFrom: string; // 邮件发件人
