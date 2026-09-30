@@ -9,12 +9,16 @@
 
 <script lang="ts" setup>
 import { h } from 'vue';
-import { ElMessageBox } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { QuestionFilled } from '@element-plus/icons-vue';
 import { postToolOnebot } from '~/api/others';
 
 const openSocks = async () => {
-  const ret = await postToolOnebot();
+  const ret = await postToolOnebot().catch(() => {
+    ElMessage.error('启动辅助工具失败，请检查网络连接后重试');
+    return null;
+  });
+  if (!ret) return;
   if (ret.ok) {
     const msg = h('p', null, [
       h('div', null, '将在服务器上开启临时 socks5 服务，端口 13325'),
