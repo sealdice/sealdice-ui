@@ -724,9 +724,6 @@
     :close-on-press-escape="false"
     :show-close="false"
     class="the-dialog">
-    <el-button style="float: right; margin-top: -4rem" @click="openSocks"
-      >辅助工具 -13325 端口</el-button
-    >
     <template v-if="form.step === 1">
       <el-alert
         v-if="form.accountType === 7"
@@ -802,7 +799,7 @@
             <el-option label="KOOK(开黑啦)" :value="ImConnectionTypeKook"></el-option>
             <el-option label="Telegram" :value="ImConnectionTypeTelegram"></el-option>
             <el-option label="Minecraft服务器" :value="ImConnectionTypeMinecraft"></el-option>
-            <el-option label="Dodo语音" :value="ImConnectionTypeDodo"></el-option>
+            <el-option label="Dodo语音(已下线)" :value="ImConnectionTypeDodo" disabled></el-option>
             <el-option label="钉钉" :value="ImConnectionTypeDingTalk"></el-option>
             <el-option label="Slack" :value="ImConnectionTypeSlack"></el-option>
           </el-select>
@@ -2062,78 +2059,85 @@
     </template>
 
     <template #footer>
-      <span class="dialog-footer">
-        <template v-if="form.step === 1">
-          <el-button :disabled="officialQQSubmitting" @click="cancelConnectionForm">取消</el-button>
-          <template
-            v-if="
-              form.accountType === ImConnectionTypeOfficialQQ &&
-              form.officialQQLoginMode === 'manual'
-            ">
+      <div class="flex items-center justify-end gap-4">
+        <SameNetworkLoginHelp
+          v-if="selectedAccountPlatform === 'QQ' && isBuiltinAccountType(form.accountType)"
+          class="mr-auto min-w-0" />
+        <span class="dialog-footer shrink-0">
+          <template v-if="form.step === 1">
+            <el-button :disabled="officialQQSubmitting" @click="cancelConnectionForm"
+              >取消</el-button
+            >
+            <template
+              v-if="
+                form.accountType === ImConnectionTypeOfficialQQ &&
+                form.officialQQLoginMode === 'manual'
+              ">
+              <el-button
+                :loading="officialQQTesting"
+                :disabled="
+                  officialQQSubmitting ||
+                  officialQQTestSucceeded ||
+                  form.appID === undefined ||
+                  form.appID === '' ||
+                  form.appSecret === '' ||
+                  (form.useWebhook && (form.webhookPath === '' || form.webhookPort === undefined))
+                "
+                @click="submitOfficialQQTest">
+                测试连接
+              </el-button>
+              <el-button
+                type="primary"
+                :loading="officialQQAdding"
+                :disabled="officialQQSubmitting || !officialQQTestSucceeded || officialQQExists"
+                @click="submitOfficialQQ">
+                添加
+              </el-button>
+            </template>
             <el-button
-              :loading="officialQQTesting"
-              :disabled="
-                officialQQSubmitting ||
-                officialQQTestSucceeded ||
-                form.appID === undefined ||
-                form.appID === '' ||
-                form.appSecret === '' ||
-                (form.useWebhook && (form.webhookPath === '' || form.webhookPort === undefined))
-              "
-              @click="submitOfficialQQTest">
-              测试连接
-            </el-button>
-            <el-button
+              v-else
               type="primary"
-              :loading="officialQQAdding"
-              :disabled="officialQQSubmitting || !officialQQTestSucceeded || officialQQExists"
-              @click="submitOfficialQQ">
-              添加
+              :disabled="
+                form.accountType === ImConnectionTypeGocqLegacy ||
+                ((form.accountType === ImConnectionTypeDiscord ||
+                  form.accountType === ImConnectionTypeKook ||
+                  form.accountType === ImConnectionTypeTelegram) &&
+                  form.token === '') ||
+                (form.accountType === ImConnectionTypeMinecraft && form.url === '') ||
+                (form.accountType === ImConnectionTypeDodo &&
+                  (form.clientID === '' || form.token === '')) ||
+                (form.accountType === ImConnectionTypeDingTalk &&
+                  (form.clientID === '' || form.token === '' || form.robotCode === '')) ||
+                (form.accountType === ImConnectionTypeOnebotSeparate &&
+                  (form.account === '' || form.connectUrl === '')) ||
+                (form.accountType === ImConnectionTypeRed &&
+                  (form.host === '' || form.port === '' || form.token === '')) ||
+                (form.accountType === ImConnectionTypeSlack &&
+                  (form.botToken === '' || form.appToken === '')) ||
+                (form.accountType === ImConnectionTypeOnebotReverse &&
+                  (form.account === '' || form.reverseAddr === '')) ||
+                (form.accountType === ImConnectionTypeSealChat &&
+                  (form.token === '' || form.url === '')) ||
+                (form.accountType === ImConnectionTypeLagrangeOnebot &&
+                  (form.account === '' ||
+                    form.signServerVersion === '' ||
+                    form.signServerName === '')) ||
+                (form.accountType === ImConnectionTypeMilkySeparate &&
+                  (form.wsGateway === '' || form.restGateway === '')) ||
+                (isInternalMilkyAccountType(form.accountType) && form.account === '') ||
+                (form.accountType === ImConnectionTypeOfficialQQ &&
+                  form.useWebhook &&
+                  (form.webhookPath === '' || form.webhookPort === undefined))
+              "
+              @click="goStepTwo">
+              下一步
             </el-button>
           </template>
-          <el-button
-            v-else
-            type="primary"
-            :disabled="
-              form.accountType === ImConnectionTypeGocqLegacy ||
-              ((form.accountType === ImConnectionTypeDiscord ||
-                form.accountType === ImConnectionTypeKook ||
-                form.accountType === ImConnectionTypeTelegram) &&
-                form.token === '') ||
-              (form.accountType === ImConnectionTypeMinecraft && form.url === '') ||
-              (form.accountType === ImConnectionTypeDodo &&
-                (form.clientID === '' || form.token === '')) ||
-              (form.accountType === ImConnectionTypeDingTalk &&
-                (form.clientID === '' || form.token === '' || form.robotCode === '')) ||
-              (form.accountType === ImConnectionTypeOnebotSeparate &&
-                (form.account === '' || form.connectUrl === '')) ||
-              (form.accountType === ImConnectionTypeRed &&
-                (form.host === '' || form.port === '' || form.token === '')) ||
-              (form.accountType === ImConnectionTypeSlack &&
-                (form.botToken === '' || form.appToken === '')) ||
-              (form.accountType === ImConnectionTypeOnebotReverse &&
-                (form.account === '' || form.reverseAddr === '')) ||
-              (form.accountType === ImConnectionTypeSealChat &&
-                (form.token === '' || form.url === '')) ||
-              (form.accountType === ImConnectionTypeLagrangeOnebot &&
-                (form.account === '' ||
-                  form.signServerVersion === '' ||
-                  form.signServerName === '')) ||
-              (form.accountType === ImConnectionTypeMilkySeparate &&
-                (form.wsGateway === '' || form.restGateway === '')) ||
-              (isInternalMilkyAccountType(form.accountType) && form.account === '') ||
-              (form.accountType === ImConnectionTypeOfficialQQ &&
-                form.useWebhook &&
-                (form.webhookPath === '' || form.webhookPort === undefined))
-            "
-            @click="goStepTwo">
-            下一步
-          </el-button>
-        </template>
-        <template v-if="form.isEnd">
-          <el-button @click="formClose">确定</el-button>
-        </template>
-      </span>
+          <template v-if="form.isEnd">
+            <el-button @click="formClose">确定</el-button>
+          </template>
+        </span>
+      </div>
     </template>
   </el-dialog>
 
@@ -2222,7 +2226,7 @@ import {
   postSmsCodeSet,
   type SignInfo,
 } from '~/api/im_connections';
-import { postToolOnebot } from '~/api/others';
+import SameNetworkLoginHelp from './SameNetworkLoginHelp.vue';
 
 dayjs.extend(relativeTime);
 
@@ -2417,42 +2421,6 @@ const setRecentLogin = () => {
   setTimeout(() => {
     isRecentLogin.value = false;
   }, 3000);
-};
-
-const openSocks = async () => {
-  const ret = await postToolOnebot();
-  if (ret.ok) {
-    const msg = h('p', null, [
-      h('div', null, '将在服务器上开启临时 socks5 服务，端口 13325'),
-      h('div', null, '默认持续时长为 20 分钟'),
-      h('div', null, [
-        h('span', null, `可能的公网 IP: `),
-        h('span', { style: 'color: teal' }, `${ret.ip}`),
-      ]),
-      h('div', null, '注：ip 不一定对仅供参考'),
-      h('div', { style: 'min-height: 1rem' }, ''),
-      h('div', null, '请于服务器管理面板放行 13325 端口，协议 TCP'),
-      h('div', null, '如果为 Windows Server 系统，请再额外关闭系统防火墙或设置放行规则。'),
-    ]);
-    ElMessageBox.alert(msg, '开启辅助工具');
-  } else {
-    const msg = h('p', null, [
-      h('div', null, '启动服务失败，或已经启动'),
-      h('div', null, [
-        h('span', null, `报错信息：`),
-        h('span', { style: 'color: #9b0d0d' }, `${ret.errText}`),
-      ]),
-      h('div', null, [
-        h('span', null, `可能的公网 IP: `),
-        h('span', { style: 'color: teal' }, `${ret.ip}`),
-      ]),
-      h('div', null, '注：ip 不一定对仅供参考'),
-      h('div', { style: 'min-height: 1rem' }, ''),
-      h('div', null, '请于服务器管理面板放行 13325 端口，协议 TCP'),
-      h('div', null, '如果为 Windows Server 系统，请再额外关闭系统防火墙或设置放行规则。'),
-    ]);
-    ElMessageBox.alert(msg, '开启辅助工具');
-  }
 };
 
 const resetOfficialQQTestResult = () => {
