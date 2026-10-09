@@ -2061,7 +2061,11 @@
     <template #footer>
       <div class="flex items-center justify-end gap-4">
         <SameNetworkLoginHelp
-          v-if="selectedAccountPlatform === 'QQ' && isBuiltinAccountType(form.accountType)"
+          v-if="
+            (form.step === 1 || form.step === 2) &&
+            selectedAccountPlatform === 'QQ' &&
+            isBuiltinAccountType(form.accountType)
+          "
           class="mr-auto min-w-0" />
         <span class="dialog-footer shrink-0">
           <template v-if="form.step === 1">
